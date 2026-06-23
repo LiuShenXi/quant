@@ -1,0 +1,3 @@
+symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status
+510300.SH,沪深300ETF,etf,SH,2012-05-28,,100,100,0.001,1,active
+159999.SZ,缺失测试ETF,etf,SZ,2020-01-01,,100,100,0.001,1,active
