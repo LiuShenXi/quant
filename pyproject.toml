@@ -1,0 +1,44 @@
+[project]
+name = "personal-quant"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.0",
+  "import-linter>=2.0",
+  "loguru>=0.7",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "pyarrow>=15.0",
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.importlinter]
+root_package = "quant"
+
+[[tool.importlinter.contracts]]
+name = "core does not depend outward"
+type = "forbidden"
+source_modules = ["quant.core"]
+forbidden_modules = [
+  "quant.backtest",
+  "quant.data",
+  "quant.risk",
+]
