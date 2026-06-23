@@ -27,3 +27,16 @@ def test_strategy_config_rejects_empty_universe() -> None:
         assert "universe" in str(exc)
     else:
         raise AssertionError("empty universe must fail")
+
+
+def test_strategy_config_accepts_class_path_field_name() -> None:
+    config = StrategyConfig(
+        id="ok",
+        class_path="strategies.dual_ma:DualMA",
+        version="1.0.0",
+        universe=["510300.SH"],
+        freq="1d",
+        params={"symbol": "510300.SH"},
+        runtime_mode="backtest",
+    )
+    assert config.class_path == "strategies.dual_ma:DualMA"

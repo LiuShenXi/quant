@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from quant.core.contract import Account, Bar, Order, OrderSide, OrderStatus, OrderType
+from quant.core.contract import Account, Bar, Order, OrderSide, OrderStatus, OrderType, Trade
 
 
 def test_bar_requires_timezone_and_uses_bar_end_time() -> None:
@@ -72,3 +72,21 @@ def test_account_separates_cash_frozen_and_market_value() -> None:
         total_value=100_000,
     )
     assert account.total_value == account.cash + account.frozen + account.market_value
+
+
+def test_trade_broker_ids_default_to_none() -> None:
+    now = datetime(2024, 1, 2, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
+    trade = Trade(
+        trade_id="T-1",
+        order_id="O-1",
+        strategy_id="dual_ma_510300",
+        account_id="backtest",
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        qty=1000,
+        price=3.55,
+        commission=5,
+        dt=now,
+    )
+    assert trade.broker_order_id is None
+    assert trade.broker_trade_id is None

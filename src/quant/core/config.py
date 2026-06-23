@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class RiskConfig(BaseModel):
@@ -11,6 +11,8 @@ class RiskConfig(BaseModel):
 
 
 class StrategyConfig(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str
     class_path: str = Field(alias="class")
     version: str
