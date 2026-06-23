@@ -1,0 +1,14 @@
+id: dual_ma_510300
+class: strategies.dual_ma:DualMA
+version: "1.0.0"
+universe: ["510300.SH"]
+freq: "1d"
+params:
+  symbol: "510300.SH"
+  fast: 3
+  slow: 5
+  target_qty: 10000
+risk:
+  max_order_value: 100000
+  max_position_value: 100000
+runtime_mode: backtest

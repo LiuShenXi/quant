@@ -21,6 +21,25 @@ def test_bar_requires_timezone_and_uses_bar_end_time() -> None:
     assert bar.freq == "1d"
 
 
+def test_bar_rejects_naive_datetime() -> None:
+    try:
+        Bar(
+            symbol="510300.SH",
+            freq="1d",
+            dt=datetime(2024, 1, 2, 15, 0),
+            open=3.5,
+            high=3.6,
+            low=3.4,
+            close=3.55,
+            volume=1000,
+            amount=3550,
+        )
+    except ValueError as exc:
+        assert "timezone-aware" in str(exc)
+    else:
+        raise AssertionError("Bar.dt must reject naive datetimes")
+
+
 def test_order_has_oms_fields() -> None:
     now = datetime(2024, 1, 2, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
     order = Order(

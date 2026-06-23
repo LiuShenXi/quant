@@ -1,0 +1,5 @@
+data_root: data_sample
+result_root: results
+timezone: Asia/Shanghai
+initial_cash: 100000
+account_id: backtest

@@ -53,6 +53,10 @@ class Bar:
     limit_down: float | None = None
     suspended: bool = False
 
+    def __post_init__(self) -> None:
+        if self.dt.tzinfo is None or self.dt.utcoffset() is None:
+            raise ValueError("Bar.dt must be timezone-aware and represent the bar end time")
+
 
 @dataclass(frozen=True)
 class Order:
@@ -85,9 +89,9 @@ class Trade:
     qty: float
     price: float
     commission: float
-    broker_order_id: str | None
-    broker_trade_id: str | None
     dt: datetime
+    broker_order_id: str | None = None
+    broker_trade_id: str | None = None
 
 
 @dataclass(frozen=True)
