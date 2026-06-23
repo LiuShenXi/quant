@@ -31,3 +31,22 @@ def test_portfolio_buy_updates_cash_and_position() -> None:
     assert account.cash == 96_995
     assert position.qty == 1000
     assert position.sellable == 0
+
+
+def test_portfolio_rolls_bought_shares_to_sellable_next_day() -> None:
+    portfolio = Portfolio(account_id="backtest", initial_cash=100_000)
+    trade = Trade(
+        trade_id="T-1",
+        order_id="O-1",
+        strategy_id="dual_ma_510300",
+        account_id="backtest",
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        qty=1000,
+        price=3.0,
+        commission=5.0,
+        dt=datetime(2024, 1, 3, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai")),
+    )
+    portfolio.apply_trade(trade)
+    portfolio.mark_new_day()
+    assert portfolio.position("510300.SH", mark_price=3.0).sellable == 1000

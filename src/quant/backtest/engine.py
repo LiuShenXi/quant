@@ -11,6 +11,7 @@ from quant.core.config import StrategyConfig
 from quant.core.contract import Bar, Order, OrderSide, OrderStatus, OrderType, StrategyBase, Trade
 from quant.core.portfolio import Portfolio
 from quant.costs import CostModel
+from quant.data.quality import reject_missing_rows
 from quant.data.service import DataService
 
 
@@ -134,6 +135,8 @@ class BacktestEngine:
         strategy.on_start(ctx)
         bars = self._load_bars()
         for bar in bars:
+            if self.now.date() != bar.dt.date():
+                self.portfolio.mark_new_day()
             self.now = bar.dt
             self.current_bars[bar.symbol] = bar
             self.last_prices[bar.symbol] = bar.close
@@ -185,6 +188,7 @@ class BacktestEngine:
         rows = self.data._bars[self.data._bars["symbol"].isin(self.config.universe)].sort_values(
             ["dt", "symbol"]
         )
+        reject_missing_rows(rows)
         return [
             Bar(
                 symbol=row.symbol,
@@ -227,15 +231,21 @@ class BacktestEngine:
             )
             self.trades.append(trade)
             self.portfolio.apply_trade(trade)
-            filled = replace(
+            remaining_qty = order.remaining_qty - result.filled_qty
+            status = OrderStatus.FILLED if remaining_qty == 0 else OrderStatus.PARTIAL
+            updated_order = replace(
                 order,
-                status=OrderStatus.FILLED,
-                filled_qty=result.filled_qty,
-                remaining_qty=0,
+                status=status,
+                filled_qty=order.filled_qty + result.filled_qty,
+                remaining_qty=remaining_qty,
                 avg_fill_price=result.fill_price,
                 updated_at=bar.dt,
             )
-            self.orders = [filled if old.order_id == order.order_id else old for old in self.orders]
+            self.orders = [
+                updated_order if old.order_id == order.order_id else old for old in self.orders
+            ]
+            if remaining_qty > 0:
+                remaining.append(updated_order)
         self.open_orders = remaining
 
     def _record_equity(self) -> None:

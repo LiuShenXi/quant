@@ -7,6 +7,7 @@ from quant.core.contract import Account, OrderSide, Position, Trade
 class PositionState:
     qty: float = 0
     sellable: float = 0
+    pending_sellable: float = 0
     avg_price: float = 0
 
 
@@ -23,12 +24,18 @@ class Portfolio:
         if trade.side == OrderSide.BUY:
             old_cost = state.qty * state.avg_price
             state.qty += trade.qty
+            state.pending_sellable += trade.qty
             state.avg_price = (old_cost + value) / state.qty
             self.cash -= value + trade.commission
         else:
             state.qty -= trade.qty
             state.sellable -= trade.qty
             self.cash += value - trade.commission
+
+    def mark_new_day(self) -> None:
+        for state in self.positions.values():
+            state.sellable += state.pending_sellable
+            state.pending_sellable = 0
 
     def position(self, symbol: str, mark_price: float) -> Position:
         state = self.positions.get(symbol, PositionState())
