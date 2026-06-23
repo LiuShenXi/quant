@@ -1,0 +1,2 @@
+order_id,strategy_id,account_id,symbol,side,type,qty,price,status,filled_qty,remaining_qty,avg_fill_price,created_at,updated_at,broker_order_id,reject_reason
+O-1,dual_ma_510300,backtest,510300.SH,BUY,LIMIT,10000.0,3.18,SUBMITTED,0,10000.0,0,2024-01-09T15:00:00+08:00,2024-01-09T15:00:00+08:00,,

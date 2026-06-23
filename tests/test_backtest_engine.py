@@ -1,3 +1,4 @@
+import filecmp
 from pathlib import Path
 
 from quant.backtest.engine import BacktestEngine
@@ -27,3 +28,14 @@ def test_write_result_artifacts(tmp_path) -> None:
     assert (tmp_path / "equity.csv").exists()
     assert (tmp_path / "events.jsonl").exists()
     assert (tmp_path / "report.md").exists()
+
+
+def test_golden_regression(tmp_path) -> None:
+    config = load_strategy_config(Path("config/strategies/dual_ma_510300.yaml"))
+    data = DataService(Path("data_sample"))
+    result = BacktestEngine(config=config, data=data, initial_cash=100_000).run()
+    write_result(result, output_dir=tmp_path, config=config)
+    assert filecmp.cmp(tmp_path / "orders.csv", Path("tests/golden/orders.csv"), shallow=False)
+    assert filecmp.cmp(tmp_path / "trades.csv", Path("tests/golden/trades.csv"), shallow=False)
+    assert filecmp.cmp(tmp_path / "equity.csv", Path("tests/golden/equity.csv"), shallow=False)
+    assert filecmp.cmp(tmp_path / "events.jsonl", Path("tests/golden/events.jsonl"), shallow=False)
