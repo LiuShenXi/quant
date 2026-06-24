@@ -119,3 +119,127 @@ Contracts: 1 kept, 0 broken.
 - Event audit coverage: OMS appends JSONL events for orders, risk rejects, trades, broker-order reconciliation, engine-state transitions, and manual cancel operations.
 - Idempotent trade handling: `on_broker_trade()` uses `save_trade_once()` and returns `None` for duplicate broker trade IDs without appending another trade event.
 - Failure semantics and scope: `risk_engine_error` and gateway query/send failures reject the local order, avoid gateway sends when applicable, and freeze opening orders; implementation stays paper-only with no real broker/QMT path.
+
+## Task 5 Review Fix
+
+### RED
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py -q
+```
+
+Output:
+
+```text
+...FFFF.                                                                 [100%]
+=================================== FAILURES ===================================
+______ test_unknown_broker_order_halts_and_audits_reconciliation_failure _______
+
+    with pytest.raises(KeyError, match="O-404"):
+        manager.on_broker_order(snap)
+
+>   assert manager.store.get_engine_state() == EngineState.HALT
+E   AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState.HALT: 'HALT'>
+
+tests/test_oms.py:185: AssertionError
+__________ test_unknown_broker_trade_halts_and_does_not_persist_trade __________
+
+>   with pytest.raises(KeyError, match="O-404"):
+E   Failed: DID NOT RAISE KeyError
+
+tests/test_oms.py:203: Failed
+_______ test_trade_gateway_query_failure_freezes_open_and_audits_failure _______
+
+    assert len(manager.store.list_trades()) == 1
+>   assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+E   AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState....'FREEZE_OPEN'>
+
+tests/test_oms.py:232: AssertionError
+____________ test_cancel_failure_records_manual_op_and_freezes_open ____________
+
+    assert manager.gateway.cancelled == ["PAPER-O-1"]
+>   assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+E   AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState....'FREEZE_OPEN'>
+
+tests/test_oms.py:256: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_oms.py::test_unknown_broker_order_halts_and_audits_reconciliation_failure
+FAILED tests/test_oms.py::test_unknown_broker_trade_halts_and_does_not_persist_trade
+FAILED tests/test_oms.py::test_trade_gateway_query_failure_freezes_open_and_audits_failure
+FAILED tests/test_oms.py::test_cancel_failure_records_manual_op_and_freezes_open
+4 failed, 4 passed in 0.61s
+```
+
+### Verification
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py tests/test_live_store.py tests/test_risk_pipeline.py -q
+```
+
+Output:
+
+```text
+.....................                                                    [100%]
+21 passed in 0.57s
+```
+
+Command:
+
+```bash
+.venv/bin/ruff check src/quant/live/oms.py tests/test_oms.py
+```
+
+Output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```bash
+.venv/bin/pytest -q
+```
+
+Output:
+
+```text
+..................................................                       [100%]
+50 passed in 0.98s
+```
+
+Command:
+
+```bash
+.venv/bin/lint-imports
+```
+
+Output:
+
+```text
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 18 files, 20 dependencies.
+-----------------------------------
+
+core does not depend outward KEPT
+
+Contracts: 1 kept, 0 broken.
+```

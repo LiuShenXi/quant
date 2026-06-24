@@ -143,7 +143,22 @@ class OrderManager:
                 },
             )
             return
-        self.gateway.cancel_order(order.broker_order_id)
+        try:
+            self.gateway.cancel_order(order.broker_order_id)
+        except Exception as error:
+            reason = f"gateway_cancel_error: {error}"
+            self.journal.append(
+                "manual_ops",
+                {
+                    "action": "cancel_order",
+                    "order_id": order.order_id,
+                    "broker_order_id": order.broker_order_id,
+                    "result": "failed",
+                    "reason": reason,
+                },
+            )
+            self.freeze_open(reason)
+            raise
         self.journal.append(
             "manual_ops",
             {
@@ -155,7 +170,18 @@ class OrderManager:
         )
 
     def on_broker_order(self, snapshot: BrokerOrderSnapshot) -> Order:
-        order = self.store.get_order(snapshot.order_id)
+        try:
+            order = self.store.get_order(snapshot.order_id)
+        except KeyError:
+            reason = f"unknown_local_order: {snapshot.order_id}"
+            self._append_reconciliation_failure(
+                "broker_order",
+                reason,
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+            )
+            self.halt(reason)
+            raise
         updated = replace(
             order,
             symbol=snapshot.symbol,
@@ -170,7 +196,18 @@ class OrderManager:
             updated_at=snapshot.updated_at,
             broker_order_id=snapshot.broker_order_id,
         )
-        self.store.update_order(updated)
+        try:
+            self.store.update_order(updated)
+        except Exception as error:
+            reason = f"broker_order_update_error: {error}"
+            self._append_reconciliation_failure(
+                "broker_order",
+                reason,
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+            )
+            self.halt(reason)
+            raise
         self.journal.append(
             "reconciliation",
             {
@@ -184,6 +221,20 @@ class OrderManager:
         return updated
 
     def on_broker_trade(self, snapshot: BrokerTradeSnapshot) -> Trade | None:
+        try:
+            self.store.get_order(snapshot.order_id)
+        except KeyError:
+            reason = f"unknown_local_order: {snapshot.order_id}"
+            self._append_reconciliation_failure(
+                "broker_trade",
+                reason,
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+                broker_trade_id=snapshot.broker_trade_id,
+            )
+            self.halt(reason)
+            raise
+
         trade = Trade(
             trade_id=snapshot.broker_trade_id,
             order_id=snapshot.order_id,
@@ -202,11 +253,22 @@ class OrderManager:
             return None
 
         self._append_trade_event(trade)
-        self.store.save_account_snapshot(
-            self.gateway.query_account(),
-            self.gateway.query_positions(),
-            snapshot.dt,
-        )
+        try:
+            account = self.gateway.query_account()
+            positions = self.gateway.query_positions()
+        except Exception as error:
+            reason = f"gateway_query_error: {error}"
+            self._append_reconciliation_failure(
+                "broker_trade_snapshot_refresh",
+                reason,
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+                broker_trade_id=snapshot.broker_trade_id,
+            )
+            self.freeze_open(reason)
+            raise
+
+        self.store.save_account_snapshot(account, positions, snapshot.dt)
         return trade
 
     def freeze_open(self, reason: str) -> None:
@@ -253,6 +315,22 @@ class OrderManager:
 
     def _append_trade_event(self, trade: Trade) -> None:
         self.journal.append("trade", _trade_payload(trade))
+
+    def _append_reconciliation_failure(
+        self,
+        kind: str,
+        reason: str,
+        **payload: object,
+    ) -> None:
+        self.journal.append(
+            "reconciliation",
+            {
+                "kind": kind,
+                **payload,
+                "status": "FAILED",
+                "reason": reason,
+            },
+        )
 
 
 def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
