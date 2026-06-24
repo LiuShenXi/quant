@@ -113,6 +113,154 @@ core does not depend outward KEPT
 Contracts: 1 kept, 0 broken.
 ```
 
+## Task 5 Manual Cancel Fix
+
+### RED
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py -q
+```
+
+Output:
+
+```text
+.........FF.                                                             [100%]
+=================================== FAILURES ===================================
+______ test_cancel_unknown_local_order_records_manual_op_and_freezes_open ______
+
+tmp_path = PosixPath('/private/var/folders/fb/mvdcfcws0jz4hffbdntzj1fc0000gn/T/pytest-of-shenxi/pytest-65/test_cancel_unknown_local_orde0')
+
+    def test_cancel_unknown_local_order_records_manual_op_and_freezes_open(tmp_path) -> None:
+        manager = make_manager(tmp_path)
+
+        with pytest.raises(KeyError, match="O-404"):
+            manager.cancel_order("O-404")
+
+        assert manager.gateway.cancelled == []
+>       assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+E       AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState....'FREEZE_OPEN'>
+E
+E         - FREEZE_OPEN
+E         + NORMAL
+
+tests/test_oms.py:326: AssertionError
+_ test_cancel_local_order_without_broker_id_records_failed_manual_op_and_freezes_open _
+
+tmp_path = PosixPath('/private/var/folders/fb/mvdcfcws0jz4hffbdntzj1fc0000gn/T/pytest-of-shenxi/pytest-65/test_cancel_local_order_withou0')
+
+    def test_cancel_local_order_without_broker_id_records_failed_manual_op_and_freezes_open(
+        tmp_path,
+    ) -> None:
+        manager = make_manager(tmp_path)
+        now = datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+        order = Order(
+            order_id="O-local",
+            strategy_id="dual_ma_510300",
+            account_id="paper",
+            symbol="510300.SH",
+            side=OrderSide.BUY,
+            type=OrderType.LIMIT,
+            qty=1000,
+            price=3.2,
+            status=OrderStatus.SUBMITTING,
+            filled_qty=0,
+            remaining_qty=1000,
+            avg_fill_price=0,
+            created_at=now,
+            updated_at=now,
+        )
+        manager.store.save_order(order)
+
+        assert manager.cancel_order(order.order_id) is None
+
+        assert manager.gateway.cancelled == []
+>       assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+E       AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState....'FREEZE_OPEN'>
+E
+E         - FREEZE_OPEN
+E         + NORMAL
+
+tests/test_oms.py:365: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_oms.py::test_cancel_unknown_local_order_records_manual_op_and_freezes_open
+FAILED tests/test_oms.py::test_cancel_local_order_without_broker_id_records_failed_manual_op_and_freezes_open
+2 failed, 10 passed in 0.59s
+```
+
+### Verification
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py tests/test_live_store.py tests/test_risk_pipeline.py -q
+```
+
+Output:
+
+```text
+.........................                                                [100%]
+25 passed in 0.49s
+```
+
+Command:
+
+```bash
+.venv/bin/ruff check src/quant/live/oms.py tests/test_oms.py
+```
+
+Output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```bash
+.venv/bin/pytest -q
+```
+
+Output:
+
+```text
+......................................................                   [100%]
+54 passed in 0.94s
+```
+
+Command:
+
+```bash
+.venv/bin/lint-imports
+```
+
+Output:
+
+```text
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 18 files, 20 dependencies.
+-----------------------------------
+
+core does not depend outward KEPT
+
+Contracts: 1 kept, 0 broken.
+```
+
 ## Task 5 Snapshot Persist Fix
 
 ### RED

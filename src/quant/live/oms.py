@@ -132,16 +132,33 @@ class OrderManager:
         return order_id
 
     def cancel_order(self, order_id: str) -> None:
-        order = self.store.get_order(order_id)
+        try:
+            order = self.store.get_order(order_id)
+        except KeyError:
+            reason = f"unknown_local_order: {order_id}"
+            self.journal.append(
+                "manual_ops",
+                {
+                    "action": "cancel_order",
+                    "order_id": order_id,
+                    "result": "failed",
+                    "reason": reason,
+                },
+            )
+            self.freeze_open(reason)
+            raise
         if order.broker_order_id is None:
+            reason = "no_broker_order_id"
             self.journal.append(
                 "manual_ops",
                 {
                     "action": "cancel_order",
                     "order_id": order.order_id,
-                    "result": "no_broker_order_id",
+                    "result": "failed",
+                    "reason": reason,
                 },
             )
+            self.freeze_open(reason)
             return
         try:
             self.gateway.cancel_order(order.broker_order_id)

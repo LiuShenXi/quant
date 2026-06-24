@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from quant.core.contract import Account, OrderSide, OrderStatus, OrderType
+from quant.core.contract import Account, Order, OrderSide, OrderStatus, OrderType
 from quant.live.events import EventJournal
 from quant.live.oms import OrderManager
 from quant.live.store import OmsStore
@@ -311,6 +311,65 @@ def test_cancel_failure_records_manual_op_and_freezes_open(tmp_path) -> None:
         "broker_order_id": "PAPER-O-1",
         "result": "failed",
         "reason": "gateway_cancel_error: cancel offline",
+    }
+    assert events[-1]["type"] == "engine_state"
+    assert events[-1]["payload"]["state"] == EngineState.FREEZE_OPEN.value
+
+
+def test_cancel_unknown_local_order_records_manual_op_and_freezes_open(tmp_path) -> None:
+    manager = make_manager(tmp_path)
+
+    with pytest.raises(KeyError, match="O-404"):
+        manager.cancel_order("O-404")
+
+    assert manager.gateway.cancelled == []
+    assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+    events = read_events(manager)
+    assert events[-2]["type"] == "manual_ops"
+    assert events[-2]["payload"] == {
+        "action": "cancel_order",
+        "order_id": "O-404",
+        "result": "failed",
+        "reason": "unknown_local_order: O-404",
+    }
+    assert events[-1]["type"] == "engine_state"
+    assert events[-1]["payload"]["state"] == EngineState.FREEZE_OPEN.value
+
+
+def test_cancel_local_order_without_broker_id_records_failed_manual_op_and_freezes_open(
+    tmp_path,
+) -> None:
+    manager = make_manager(tmp_path)
+    now = datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+    order = Order(
+        order_id="O-local",
+        strategy_id="dual_ma_510300",
+        account_id="paper",
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.SUBMITTING,
+        filled_qty=0,
+        remaining_qty=1000,
+        avg_fill_price=0,
+        created_at=now,
+        updated_at=now,
+    )
+    manager.store.save_order(order)
+
+    assert manager.cancel_order(order.order_id) is None
+
+    assert manager.gateway.cancelled == []
+    assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+    events = read_events(manager)
+    assert events[-2]["type"] == "manual_ops"
+    assert events[-2]["payload"] == {
+        "action": "cancel_order",
+        "order_id": order.order_id,
+        "result": "failed",
+        "reason": "no_broker_order_id",
     }
     assert events[-1]["type"] == "engine_state"
     assert events[-1]["payload"]["state"] == EngineState.FREEZE_OPEN.value
