@@ -22,5 +22,9 @@
 
 ## Acceptance Log
 
-- Paper must run for at least 10 trading days before M4 planning.
+- M3b requires at least 10 trading days of Paper observation before M4 planning.
+- Each counted day must record daily reconciliation zero difference.
+- The observation window must include one disconnect drill.
+- The observation window must include verified CRIT alert delivery.
+- The gate requires no unresolved manual intervention.
 - Required daily notes: date, strategy id, final state, orders, trades, rejects, reconciliation result, alerts.

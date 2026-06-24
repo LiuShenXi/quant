@@ -6,7 +6,18 @@ This repository intentionally excludes QMT, real broker gateways, real-money tra
 
 ## Current Phase
 
-M0-M2 implements a credible A股 ETF daily-bar backtest slice. M3 adds Paper trading infrastructure only; real broker gateways and real-money trading remain deliberately excluded.
+M0-M2 implements a credible A股 ETF daily-bar backtest slice. M3 adds Paper trading
+infrastructure only; real broker gateways and real-money trading remain deliberately
+excluded.
+
+M3 has two Paper-only phases:
+
+- M3a is deterministic local Paper replay.
+- M3b is the real-money-pre-gate observation process. It requires 10 trading days,
+  daily reconciliation zero difference, one disconnect drill, verified CRIT alert
+  delivery, and no unresolved manual intervention.
+
+M4 remains blocked until the M3b gate is complete.
 
 ## Paper Mode
 
