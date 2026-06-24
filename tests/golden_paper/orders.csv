@@ -1,0 +1,1 @@
+order_id,strategy_id,account_id,symbol,side,type,qty,price,status,filled_qty,remaining_qty,avg_fill_price,created_at,updated_at,broker_order_id,reject_reason

@@ -1,0 +1,1 @@
+trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id

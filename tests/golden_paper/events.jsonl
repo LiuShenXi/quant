@@ -1,0 +1,2 @@
+{"seq": 1, "type": "account_bootstrap", "written_at": "2024-01-02T15:00:00+08:00", "payload": {"account_id": "paper", "cash": 100000.0, "positions": {}}}
+{"seq": 2, "type": "reconciliation", "written_at": "2024-01-02T15:00:00+08:00", "payload": {"startup": true, "status": "OK", "cash_diff": 0.0, "position_diffs": {}, "message": "reconciled"}}
