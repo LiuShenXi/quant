@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from quant.core.config import StrategyConfig, load_strategy_config
-from quant.live.config import PaperConfig, load_paper_config
+from quant.live.config import PaperConfig, load_global_risk_config, load_paper_config
 
 
 def test_strategy_config_accepts_paper_but_rejects_live() -> None:
@@ -33,3 +33,12 @@ def test_paper_config_loads_paths_and_thresholds() -> None:
     assert config.events_path.as_posix() == "runtime/paper/events.jsonl"
     assert config.reconciliation.cash_tolerance == 0.01
     assert config.monitor.market_data_staleness_sec == 60
+
+
+def test_global_risk_config_loads_representative_fields() -> None:
+    config = load_global_risk_config(Path("config/risk/global.yaml"))
+    assert config.whitelist_mode is True
+    assert config.price_collar_pct == 0.02
+    assert config.max_position_value_per_symbol == 500_000
+    assert config.kill_switch.daily_loss_halt_pct == 0.04
+    assert config.market_data_staleness_sec == 60

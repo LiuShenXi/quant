@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from quant.core.config import load_yaml
 
@@ -17,6 +17,25 @@ class MonitorConfig(BaseModel):
     alert_dedupe_sec: int = 300
 
 
+class KillSwitchConfig(BaseModel):
+    daily_loss_freeze_pct: float = 0.02
+    daily_loss_halt_pct: float = 0.04
+
+
+class GlobalRiskConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    whitelist_mode: bool
+    price_collar_pct: float
+    max_order_value: float | None = None
+    max_position_value_per_symbol: float | None = None
+    max_gross_exposure_pct: float | None = None
+    max_orders_per_minute: int | None = None
+    max_cancel_ratio_daily: float | None = None
+    kill_switch: KillSwitchConfig = Field(default_factory=KillSwitchConfig)
+    market_data_staleness_sec: int = 60
+
+
 class PaperConfig(BaseModel):
     account_id: str
     initial_cash: float
@@ -31,3 +50,7 @@ class PaperConfig(BaseModel):
 
 def load_paper_config(path: Path) -> PaperConfig:
     return PaperConfig.model_validate(load_yaml(path))
+
+
+def load_global_risk_config(path: Path) -> GlobalRiskConfig:
+    return GlobalRiskConfig.model_validate(load_yaml(path))
