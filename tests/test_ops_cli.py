@@ -106,10 +106,12 @@ def test_ops_cli_freeze_open_preserves_halt_and_audits_attempt(tmp_path) -> None
     )
 
     assert freeze_open.returncode == 0, freeze_open.stdout + freeze_open.stderr
+    assert freeze_open.stdout.strip() == EngineState.HALT.value
     assert OmsStore(store_path).get_engine_state() == EngineState.HALT
     event = json.loads(events_path.read_text(encoding="utf-8").strip())
     assert event["type"] == "ops_action"
     assert event["payload"]["state"] == EngineState.HALT.value
+    assert event["payload"]["requested_state"] == EngineState.FREEZE_OPEN.value
     assert event["payload"]["action"] == "preserve_halt"
 
 

@@ -42,7 +42,7 @@ def main() -> None:
         return
 
     if args.command == "freeze-open":
-        _set_state_and_audit(
+        effective_state = _set_state_and_audit(
             store,
             journal,
             args.operator,
@@ -50,11 +50,11 @@ def main() -> None:
             args.reason,
             EngineState.FREEZE_OPEN,
         )
-        print(EngineState.FREEZE_OPEN.value)
+        print(effective_state.value)
         return
 
     if args.command == "halt":
-        _set_state_and_audit(
+        effective_state = _set_state_and_audit(
             store,
             journal,
             args.operator,
@@ -62,7 +62,7 @@ def main() -> None:
             args.reason,
             EngineState.HALT,
         )
-        print(EngineState.HALT.value)
+        print(effective_state.value)
         return
 
     required = {"account", "positions", "active_orders"}
@@ -91,7 +91,7 @@ def _set_state_and_audit(
     action: str,
     reason: str,
     state: EngineState,
-) -> None:
+) -> EngineState:
     current = store.get_engine_state()
     effective_state = resolve_engine_state_transition(current, state)
     if effective_state != current:
@@ -106,6 +106,7 @@ def _set_state_and_audit(
             "requested_state": state.value,
         },
     )
+    return effective_state
 
 
 if __name__ == "__main__":
