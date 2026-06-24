@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class RiskConfig(BaseModel):
     max_order_value: float | None = None
     max_position_value: float | None = None
+    max_gross_exposure_pct: float | None = None
+    max_orders_per_minute: int | None = None
 
 
 class StrategyConfig(BaseModel):
@@ -20,7 +22,7 @@ class StrategyConfig(BaseModel):
     freq: Literal["1d"]
     params: dict[str, Any]
     risk: RiskConfig = Field(default_factory=RiskConfig)
-    runtime_mode: Literal["backtest"]
+    runtime_mode: Literal["backtest", "paper"]
 
     @field_validator("universe")
     @classmethod

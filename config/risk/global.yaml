@@ -1,0 +1,11 @@
+whitelist_mode: true
+price_collar_pct: 0.02
+max_order_value: 200000
+max_position_value_per_symbol: 500000
+max_gross_exposure_pct: 0.95
+max_orders_per_minute: 10
+max_cancel_ratio_daily: 0.5
+kill_switch:
+  daily_loss_freeze_pct: 0.02
+  daily_loss_halt_pct: 0.04
+market_data_staleness_sec: 60
