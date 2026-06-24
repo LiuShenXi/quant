@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime
 from importlib import import_module
 from pathlib import Path
@@ -240,6 +241,97 @@ def test_gateway_disconnect_through_paper_engine_freezes_and_emits_crit_alert(
     assert alert["payload"]["account_id"] == paper_config.account_id
     assert alert["payload"]["strategy_id"] == strategy_config.id
     assert alert["payload"]["payload"]["reason"] == "network drill"
+
+
+def test_paper_engine_freezes_and_alerts_before_target_flush_when_daily_bar_missing(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.missing_daily_bar_strategy")
+
+    class MissingDailyBarStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            self.symbol = "510300.SH"
+
+        def on_bar(self, ctx, bar) -> None:
+            if bar.symbol == self.symbol:
+                ctx.set_target(self.symbol, 1000)
+
+    strategy_module.MissingDailyBarStrategy = MissingDailyBarStrategy
+    _install_strategy_module(monkeypatch, "tests.missing_daily_bar_strategy", strategy_module)
+    strategy_config = _paper_strategy_config(
+        "tests.missing_daily_bar_strategy:MissingDailyBarStrategy",
+        strategy_id="missing_daily_bar_strategy",
+    ).model_copy(update={"universe": ["510300.SH", "000300.SH"]})
+    paper_config = _paper_config(tmp_path)
+    first_bar = DataService(Path("data_sample")).load_bars(["510300.SH"])[0]
+    second_day_other_symbol = replace(
+        first_bar,
+        symbol="000300.SH",
+        dt=datetime(2024, 1, 3, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai")),
+    )
+    engine = PaperEngine(strategy_config, paper_config)
+    monkeypatch.setattr(
+        engine.data,
+        "load_bars",
+        lambda _universe: [first_bar, second_day_other_symbol],
+    )
+
+    result = engine.run_replay()
+
+    assert result.orders == []
+    assert result.trades == []
+    assert result.final_state == EngineState.FREEZE_OPEN.value
+    events = _read_events(tmp_path / "events.jsonl")
+    alert = next(
+        event
+        for event in events
+        if event["type"] == "alert" and event["payload"]["key"] == "market_data_stale"
+    )
+    assert alert["payload"]["severity"] == AlertSeverity.CRIT.value
+    assert alert["payload"]["account_id"] == paper_config.account_id
+    assert alert["payload"]["strategy_id"] == strategy_config.id
+    assert "last_bar_at" not in alert["payload"]["payload"]
+
+
+def test_paper_engine_daily_replay_does_not_freeze_normal_target_flush(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.normal_daily_freshness_strategy")
+
+    class NormalDailyFreshnessStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            self.symbol = "510300.SH"
+            self.sent = False
+
+        def on_bar(self, ctx, bar) -> None:
+            if not self.sent and bar.symbol == self.symbol:
+                self.sent = True
+                ctx.set_target(self.symbol, 1000)
+
+    strategy_module.NormalDailyFreshnessStrategy = NormalDailyFreshnessStrategy
+    _install_strategy_module(
+        monkeypatch,
+        "tests.normal_daily_freshness_strategy",
+        strategy_module,
+    )
+    strategy_config = _paper_strategy_config(
+        "tests.normal_daily_freshness_strategy:NormalDailyFreshnessStrategy",
+        strategy_id="normal_daily_freshness_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+
+    result = PaperEngine(strategy_config, paper_config).run_replay(max_bars=20)
+
+    assert result.orders
+    assert result.trades
+    assert result.final_state == EngineState.NORMAL.value
+    events = _read_events(tmp_path / "events.jsonl")
+    assert not any(
+        event["type"] == "alert" and event["payload"]["key"] == "market_data_stale"
+        for event in events
+    )
 
 
 def test_paper_context_does_not_expose_runtime_internals(tmp_path) -> None:

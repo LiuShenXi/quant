@@ -2,6 +2,7 @@ import ast
 import os
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ALLOWED_THIRD_PARTY_ROOTS = {"numpy", "pandas"}
@@ -23,6 +24,18 @@ def test_import_linter_contracts_are_kept() -> None:
         env=env,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_core_forbidden_contract_includes_live_runtime() -> None:
+    config = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    contracts = config["tool"]["importlinter"]["contracts"]
+    core_contract = next(
+        contract
+        for contract in contracts
+        if contract["name"] == "core does not depend outward"
+    )
+
+    assert "quant.live" in core_contract["forbidden_modules"]
 
 
 def test_strategy_imports_only_contract_and_allowed_libraries() -> None:

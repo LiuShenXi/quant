@@ -46,7 +46,7 @@ class RuntimeMonitor:
         state = self._set_safe_state(EngineState.FREEZE_OPEN, "market_data_stale", now)
         self._append_engine_state(state, "market_data_stale")
         self.alert_manager.emit(
-            AlertSeverity.WARN,
+            AlertSeverity.CRIT,
             "market_data_stale",
             "market data is stale; opening orders are frozen",
             self._base_payload(now, last_bar_at=last_bar_at),

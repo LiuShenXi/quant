@@ -130,6 +130,13 @@ class PaperEngine:
             )
             self.now = send_time
             latest_prices = {bar.symbol: bar.open for bar in day_bars}
+            market_data_stale = self._check_market_data_before_target_flush(
+                now=self.now,
+                day_bars=day_bars,
+                latest_prices=latest_prices,
+            )
+            if market_data_stale:
+                continue
             self.execution_router.flush_pending(now=self.now, latest_prices=latest_prices)
 
             for bar in day_bars:
@@ -246,6 +253,33 @@ class PaperEngine:
         self.state["logs"].append(
             {"level": level, "message": msg, "at": self.now.isoformat()}
         )
+
+    def _check_market_data_before_target_flush(
+        self,
+        *,
+        now: datetime,
+        day_bars: list[Bar],
+        latest_prices: dict[str, float],
+    ) -> bool:
+        pending_symbols = {
+            intent.symbol for intent in self.execution_router.pending_targets
+        }
+        if not pending_symbols:
+            return False
+
+        if not pending_symbols.issubset(latest_prices):
+            self.monitor.check_market_data(now=now, last_bar_at=None)
+            return True
+
+        daily_data_at = datetime.combine(
+            day_bars[0].dt.date(),
+            time(9, 31),
+            tzinfo=ZoneInfo(self.paper_config.timezone),
+        )
+        return self.monitor.check_market_data(
+            now=now,
+            last_bar_at=daily_data_at,
+        ) is not None
 
 
 def _group_bars_by_date(bars: list[Bar]) -> list[tuple[date, list[Bar]]]:

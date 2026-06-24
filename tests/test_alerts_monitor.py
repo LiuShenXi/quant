@@ -131,7 +131,7 @@ def test_market_data_staleness_preserves_halt_and_handles_missing_last_bar(tmp_p
     assert state == EngineState.HALT
     assert store.get_engine_state() == EngineState.HALT
     event = json.loads(alerts.path.read_text(encoding="utf-8").strip())
-    assert event["payload"]["severity"] == AlertSeverity.WARN.value
+    assert event["payload"]["severity"] == AlertSeverity.CRIT.value
     assert "last_bar_at" not in event["payload"]
 
 

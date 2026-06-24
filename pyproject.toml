@@ -40,6 +40,7 @@ source_modules = ["quant.core"]
 forbidden_modules = [
   "quant.backtest",
   "quant.data",
+  "quant.live",
   "quant.risk",
 ]
 
