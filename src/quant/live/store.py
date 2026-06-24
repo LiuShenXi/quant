@@ -1,5 +1,7 @@
 import json
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -119,7 +121,7 @@ class OmsStore:
     def update_order(self, order: Order) -> None:
         values = _order_to_row(order)
         with self._connect() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 """
                 UPDATE orders
                 SET strategy_id = :strategy_id,
@@ -141,6 +143,8 @@ class OmsStore:
                 """,
                 values,
             )
+            if cursor.rowcount != 1:
+                raise KeyError(order.order_id)
 
     def get_order(self, order_id: str) -> Order:
         with self._connect() as conn:
@@ -167,25 +171,21 @@ class OmsStore:
     def save_trade_once(self, trade: Trade) -> bool:
         values = _trade_to_row(trade)
         with self._connect() as conn:
-            try:
-                conn.execute(
-                    """
-                    INSERT INTO trades (
-                        trade_id, order_id, strategy_id, account_id, symbol, side, qty, price,
-                        commission, dt, broker_order_id, broker_trade_id
-                    )
-                    VALUES (
-                        :trade_id, :order_id, :strategy_id, :account_id, :symbol, :side, :qty,
-                        :price, :commission, :dt, :broker_order_id, :broker_trade_id
-                    )
-                    """,
-                    values,
+            cursor = conn.execute(
+                """
+                INSERT INTO trades (
+                    trade_id, order_id, strategy_id, account_id, symbol, side, qty, price,
+                    commission, dt, broker_order_id, broker_trade_id
                 )
-            except sqlite3.IntegrityError as exc:
-                if "trades.broker_trade_id" in str(exc):
-                    return False
-                raise
-        return True
+                VALUES (
+                    :trade_id, :order_id, :strategy_id, :account_id, :symbol, :side, :qty,
+                    :price, :commission, :dt, :broker_order_id, :broker_trade_id
+                )
+                ON CONFLICT(broker_trade_id) DO NOTHING
+                """,
+                values,
+            )
+        return cursor.rowcount == 1
 
     def list_trades(self) -> list[Trade]:
         with self._connect() as conn:
@@ -287,10 +287,12 @@ class OmsStore:
 
     def map_broker_order_id(self, order_id: str, broker_order_id: str) -> None:
         with self._connect() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 "UPDATE orders SET broker_order_id = ? WHERE order_id = ?",
                 (broker_order_id, order_id),
             )
+            if cursor.rowcount != 1:
+                raise KeyError(order_id)
 
     def get_order_id_by_broker(self, broker_order_id: str) -> str | None:
         with self._connect() as conn:
@@ -341,10 +343,18 @@ class OmsStore:
             return default
         return json.loads(row["value"])
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            yield conn
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
 
 def _order_to_row(order: Order) -> dict[str, Any]:
