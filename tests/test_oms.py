@@ -261,6 +261,38 @@ def test_trade_gateway_query_failure_freezes_open_and_audits_failure(tmp_path) -
     assert events[-1]["payload"]["state"] == EngineState.FREEZE_OPEN.value
 
 
+def test_trade_snapshot_persist_failure_freezes_open_and_audits_failure(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    manager = make_manager(tmp_path)
+    order_id = submit_known_order(manager)
+    snap = make_trade_snapshot(order_id)
+
+    def fail_snapshot_save(*args, **kwargs) -> None:
+        raise RuntimeError("snapshot db offline")
+
+    monkeypatch.setattr(manager.store, "save_account_snapshot", fail_snapshot_save)
+
+    with pytest.raises(RuntimeError, match="snapshot db offline"):
+        manager.on_broker_trade(snap)
+
+    assert len(manager.store.list_trades()) == 1
+    assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+    events = read_events(manager)
+    assert events[-2]["type"] == "reconciliation"
+    assert events[-2]["payload"] == {
+        "kind": "broker_trade_snapshot_refresh",
+        "order_id": order_id,
+        "broker_order_id": "PAPER-O-1",
+        "broker_trade_id": "PAPER-T-1",
+        "status": "FAILED",
+        "reason": "snapshot_persist_error: snapshot db offline",
+    }
+    assert events[-1]["type"] == "engine_state"
+    assert events[-1]["payload"]["state"] == EngineState.FREEZE_OPEN.value
+
+
 def test_cancel_failure_records_manual_op_and_freezes_open(tmp_path) -> None:
     manager = make_manager(tmp_path)
     order_id = submit_known_order(manager)

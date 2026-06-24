@@ -268,7 +268,19 @@ class OrderManager:
             self.freeze_open(reason)
             raise
 
-        self.store.save_account_snapshot(account, positions, snapshot.dt)
+        try:
+            self.store.save_account_snapshot(account, positions, snapshot.dt)
+        except Exception as error:
+            reason = f"snapshot_persist_error: {error}"
+            self._append_reconciliation_failure(
+                "broker_trade_snapshot_refresh",
+                reason,
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+                broker_trade_id=snapshot.broker_trade_id,
+            )
+            self.freeze_open(reason)
+            raise
         return trade
 
     def freeze_open(self, reason: str) -> None:

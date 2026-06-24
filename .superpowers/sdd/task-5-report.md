@@ -113,6 +113,127 @@ core does not depend outward KEPT
 Contracts: 1 kept, 0 broken.
 ```
 
+## Task 5 Snapshot Persist Fix
+
+### RED
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py -q
+```
+
+Output:
+
+```text
+.......F..                                                               [100%]
+=================================== FAILURES ===================================
+_____ test_trade_snapshot_persist_failure_freezes_open_and_audits_failure ______
+
+tmp_path = PosixPath('/private/var/folders/fb/mvdcfcws0jz4hffbdntzj1fc0000gn/T/pytest-of-shenxi/pytest-60/test_trade_snapshot_persist_fa0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x115321350>
+
+    def test_trade_snapshot_persist_failure_freezes_open_and_audits_failure(
+        tmp_path,
+        monkeypatch,
+    ) -> None:
+        manager = make_manager(tmp_path)
+        order_id = submit_known_order(manager)
+        snap = make_trade_snapshot(order_id)
+    
+        def fail_snapshot_save(*args, **kwargs) -> None:
+            raise RuntimeError("snapshot db offline")
+    
+        monkeypatch.setattr(manager.store, "save_account_snapshot", fail_snapshot_save)
+    
+        with pytest.raises(RuntimeError, match="snapshot db offline"):
+            manager.on_broker_trade(snap)
+    
+        assert len(manager.store.list_trades()) == 1
+>       assert manager.store.get_engine_state() == EngineState.FREEZE_OPEN
+E       AssertionError: assert <EngineState.NORMAL: 'NORMAL'> == <EngineState....'FREEZE_OPEN'>
+E         
+E         - FREEZE_OPEN
+E         + NORMAL
+
+tests/test_oms.py:281: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_oms.py::test_trade_snapshot_persist_failure_freezes_open_and_audits_failure
+1 failed, 9 passed in 0.53s
+```
+
+### Verification
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py tests/test_live_store.py tests/test_risk_pipeline.py -q
+```
+
+Output:
+
+```text
+.......................                                                  [100%]
+23 passed in 0.59s
+```
+
+Command:
+
+```bash
+.venv/bin/ruff check src/quant/live/oms.py tests/test_oms.py
+```
+
+Output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```bash
+.venv/bin/pytest -q
+```
+
+Output:
+
+```text
+....................................................                     [100%]
+52 passed in 1.10s
+```
+
+Command:
+
+```bash
+.venv/bin/lint-imports
+```
+
+Output:
+
+```text
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲ 
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 18 files, 20 dependencies.
+-----------------------------------
+
+core does not depend outward KEPT
+
+Contracts: 1 kept, 0 broken.
+```
+
 ## Task 5 HALT Preservation Fix
 
 ### RED
