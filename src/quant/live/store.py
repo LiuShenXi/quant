@@ -304,7 +304,14 @@ class OmsStore:
             return None
         return row["order_id"]
 
-    def set_engine_state(self, state: EngineState, reason: str) -> None:
+    def set_engine_state(
+        self,
+        state: EngineState,
+        reason: str,
+        *,
+        updated_at: datetime | None = None,
+    ) -> None:
+        timestamp = updated_at or datetime.now().astimezone()
         with self._connect() as conn:
             conn.execute(
                 """
@@ -315,7 +322,7 @@ class OmsStore:
                     reason = excluded.reason,
                     updated_at = excluded.updated_at
                 """,
-                (state.value, reason, datetime.now().astimezone().isoformat()),
+                (state.value, reason, timestamp.isoformat()),
             )
 
     def get_engine_state(self) -> EngineState:

@@ -46,6 +46,18 @@ def test_store_persists_order_mapping_and_engine_state(tmp_path) -> None:
     assert reopened.is_empty() is False
 
 
+def test_store_engine_state_accepts_deterministic_timestamp(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    updated_at = datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+
+    store.set_engine_state(EngineState.FREEZE_OPEN, "disconnect", updated_at=updated_at)
+
+    with sqlite3.connect(tmp_path / "meta.db") as conn:
+        row = conn.execute("SELECT updated_at FROM engine_state WHERE id = 1").fetchone()
+    assert row[0] == updated_at.isoformat()
+
+
 def test_store_update_order_raises_for_missing_order(tmp_path) -> None:
     store = OmsStore(tmp_path / "meta.db")
     store.init_schema()

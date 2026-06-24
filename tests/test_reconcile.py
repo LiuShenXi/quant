@@ -24,6 +24,11 @@ class GatewayForReconcile:
         return []
 
 
+class FailingAccountGateway(GatewayForReconcile):
+    def query_account(self) -> Account:
+        raise RuntimeError("account offline")
+
+
 def account_updated_at() -> datetime:
     return datetime(2024, 1, 2, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
 
@@ -116,6 +121,87 @@ def test_reconcile_repairs_small_cash_drift(tmp_path) -> None:
     assert store.load_account_snapshot().account.cash == 99_999.5
     events = read_events(tmp_path / "events.jsonl")
     assert events[-1]["payload"]["status"] == ReconciliationStatus.REPAIRED.value
+
+
+def test_reconcile_uses_injected_clock_for_repair_snapshot_timestamp(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    make_snapshot(store, 100_000)
+    repaired_at = datetime(2024, 1, 3, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+
+    reconciler = Reconciler(
+        store=store,
+        gateway=GatewayForReconcile(99_999.5),
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        cash_tolerance=0.01,
+        position_qty_tolerance=0,
+        auto_repair_cash_drift_below=1.0,
+        clock=lambda: repaired_at,
+    )
+
+    result = reconciler.run(startup=False)
+
+    assert result.status == ReconciliationStatus.REPAIRED
+    assert store.load_account_snapshot().updated_at == repaired_at
+
+
+def test_reconcile_gateway_query_exception_halts_and_audits_failure(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    make_snapshot(store, 100_000)
+
+    reconciler = Reconciler(
+        store=store,
+        gateway=FailingAccountGateway(100_000),
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        cash_tolerance=0.01,
+        position_qty_tolerance=0,
+        auto_repair_cash_drift_below=1.0,
+    )
+
+    result = reconciler.run(startup=True)
+
+    assert result.status == ReconciliationStatus.FAILED
+    assert result.message == "gateway_query_error: account offline"
+    assert store.get_engine_state() == EngineState.HALT
+    events = read_events(tmp_path / "events.jsonl")
+    assert events[-1]["type"] == "reconciliation"
+    assert events[-1]["payload"]["startup"] is True
+    assert events[-1]["payload"]["status"] == ReconciliationStatus.FAILED.value
+    assert events[-1]["payload"]["message"] == "gateway_query_error: account offline"
+
+
+def test_reconcile_repair_persistence_exception_halts_and_audits_failure(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    make_snapshot(store, 100_000)
+
+    reconciler = Reconciler(
+        store=store,
+        gateway=GatewayForReconcile(99_999.5),
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        cash_tolerance=0.01,
+        position_qty_tolerance=0,
+        auto_repair_cash_drift_below=1.0,
+    )
+
+    def fail_snapshot_save(*args, **kwargs) -> None:
+        raise RuntimeError("snapshot db offline")
+
+    monkeypatch.setattr(store, "save_account_snapshot", fail_snapshot_save)
+
+    result = reconciler.run(startup=False)
+
+    assert result.status == ReconciliationStatus.FAILED
+    assert result.message == "snapshot_persist_error: snapshot db offline"
+    assert store.get_engine_state() == EngineState.HALT
+    events = read_events(tmp_path / "events.jsonl")
+    assert events[-1]["type"] == "reconciliation"
+    assert events[-1]["payload"]["status"] == ReconciliationStatus.FAILED.value
+    assert events[-1]["payload"]["message"] == "snapshot_persist_error: snapshot db offline"
 
 
 def test_reconcile_halts_when_position_diff_exceeds_tolerance(tmp_path) -> None:

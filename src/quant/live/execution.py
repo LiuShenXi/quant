@@ -41,14 +41,19 @@ class ExecutionRouter:
         submitted: list[str] = []
         pending = self.pending_targets
         self.pending_targets = []
+        retained: list[TargetIntent] = []
         for intent in pending:
             current_qty = positions.get(intent.symbol).qty if intent.symbol in positions else 0.0
             diff = intent.target_qty - current_qty
             if diff == 0:
                 continue
-            price = latest_prices[intent.symbol]
-            submitted.append(
-                self.oms.submit_order(
+            price = latest_prices.get(intent.symbol)
+            if price is None or price <= 0:
+                retained.append(intent)
+                self.oms.freeze_open(f"target_price_missing: {intent.symbol}")
+                continue
+            try:
+                order_id = self.oms.submit_order(
                     strategy_id=intent.strategy_id,
                     symbol=intent.symbol,
                     side=OrderSide.BUY if diff > 0 else OrderSide.SELL,
@@ -58,5 +63,10 @@ class ExecutionRouter:
                     latest_price=price,
                     now=now,
                 )
-            )
+            except Exception as error:
+                retained.append(intent)
+                self.oms.freeze_open(f"target_submit_error: {error}")
+                continue
+            submitted.append(order_id)
+        self.pending_targets = retained + self.pending_targets
         return submitted

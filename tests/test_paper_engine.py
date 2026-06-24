@@ -10,10 +10,11 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from quant.core.config import load_strategy_config
-from quant.core.contract import StrategyBase
+from quant.core.contract import Account, OrderSide, OrderType, StrategyBase
 from quant.data.service import DataService
 from quant.live.config import load_paper_config
 from quant.live.engine import PaperEngine
+from quant.live.types import AlertSeverity, EngineState
 
 
 def test_load_bars_returns_sorted_timezone_aware_bars() -> None:
@@ -103,6 +104,158 @@ def test_paper_engine_replay_bootstraps_and_executes_targets_next_bar(
     assert (tmp_path / "events.jsonl").exists()
 
 
+def test_on_init_order_is_accepted_only_after_successful_startup_reconciliation(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.init_order_strategy")
+    calls: list[str] = []
+
+    class InitOrderStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            calls.append("on_init")
+            ctx.order(
+                "510300.SH",
+                OrderSide.BUY,
+                100,
+                price=3.2,
+                type=OrderType.LIMIT,
+            )
+
+        def on_start(self, ctx) -> None:
+            calls.append("on_start")
+
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.InitOrderStrategy = InitOrderStrategy
+    _install_strategy_module(monkeypatch, "tests.init_order_strategy", strategy_module)
+    monkeypatch.setattr("quant.risk.pipeline.is_cn_continuous_auction", lambda _time: True)
+
+    strategy_config = _paper_strategy_config(
+        "tests.init_order_strategy:InitOrderStrategy",
+        strategy_id="init_order_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+
+    result = PaperEngine(strategy_config, paper_config).run_replay(max_bars=1)
+
+    assert calls[:2] == ["on_init", "on_start"]
+    assert result.orders
+    assert result.final_state == EngineState.NORMAL.value
+    events = _read_events(tmp_path / "events.jsonl")
+    reconciliation_seq = next(
+        event["seq"]
+        for event in events
+        if event["type"] == "reconciliation"
+        and event["payload"]["startup"] is True
+        and event["payload"]["status"] == "OK"
+    )
+    first_order_seq = next(event["seq"] for event in events if event["type"] == "order")
+    assert reconciliation_seq < first_order_seq
+
+
+def test_failed_startup_reconciliation_stops_before_on_init_orders(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.failed_startup_strategy")
+    calls: list[str] = []
+
+    class FailedStartupStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            calls.append("on_init")
+            ctx.order(
+                "510300.SH",
+                OrderSide.BUY,
+                100,
+                price=3.2,
+                type=OrderType.LIMIT,
+            )
+
+        def on_start(self, ctx) -> None:
+            calls.append("on_start")
+
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.FailedStartupStrategy = FailedStartupStrategy
+    _install_strategy_module(monkeypatch, "tests.failed_startup_strategy", strategy_module)
+    monkeypatch.setattr("quant.risk.pipeline.is_cn_continuous_auction", lambda _time: True)
+
+    strategy_config = _paper_strategy_config(
+        "tests.failed_startup_strategy:FailedStartupStrategy",
+        strategy_id="failed_startup_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    engine = PaperEngine(strategy_config, paper_config)
+    engine.store.save_account_snapshot(
+        Account("paper", "CNY", cash=50_000, frozen=0, market_value=0, total_value=50_000),
+        {},
+        datetime(2024, 1, 1, 15, 0, tzinfo=ZoneInfo("Asia/Shanghai")),
+    )
+
+    with pytest.raises(RuntimeError, match="startup reconciliation failed"):
+        engine.run_replay(max_bars=1)
+
+    assert calls == []
+    assert engine.store.list_orders() == []
+    assert engine.store.get_engine_state() == EngineState.HALT
+    events = _read_events(tmp_path / "events.jsonl")
+    assert events[-1]["type"] == "reconciliation"
+    assert events[-1]["payload"]["startup"] is True
+    assert events[-1]["payload"]["status"] == "FAILED"
+
+
+def test_gateway_disconnect_through_paper_engine_freezes_and_emits_crit_alert(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.noop_paper_strategy")
+
+    class NoopPaperStrategy(StrategyBase):
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.NoopPaperStrategy = NoopPaperStrategy
+    _install_strategy_module(monkeypatch, "tests.noop_paper_strategy", strategy_module)
+    strategy_config = _paper_strategy_config(
+        "tests.noop_paper_strategy:NoopPaperStrategy",
+        strategy_id="noop_paper_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    engine = PaperEngine(strategy_config, paper_config)
+    engine.run_replay(max_bars=1)
+
+    engine.gateway.inject_disconnect("network drill")
+
+    assert engine.store.get_engine_state() == EngineState.FREEZE_OPEN
+    events = _read_events(tmp_path / "events.jsonl")
+    alert = next(
+        event
+        for event in reversed(events)
+        if event["type"] == "alert" and event["payload"]["key"] == "gateway_disconnect"
+    )
+    assert alert["payload"]["severity"] == AlertSeverity.CRIT.value
+    assert alert["payload"]["account_id"] == paper_config.account_id
+    assert alert["payload"]["strategy_id"] == strategy_config.id
+    assert alert["payload"]["payload"]["reason"] == "network drill"
+
+
+def test_paper_context_does_not_expose_runtime_internals(tmp_path) -> None:
+    strategy_config = _paper_strategy_config(
+        "strategies.dual_ma:DualMA",
+        strategy_id="context_boundary_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    ctx = PaperEngine(strategy_config, paper_config).context
+
+    for attr in ("engine", "gateway", "store", "oms"):
+        assert not hasattr(ctx, attr)
+        with pytest.raises(AttributeError):
+            getattr(ctx, attr)
+
+
 def test_paper_engine_refuses_non_paper_strategy(tmp_path) -> None:
     strategy_config = load_strategy_config(Path("config/strategies/dual_ma_510300.yaml"))
     paper_config = load_paper_config(Path("config/paper.yaml")).model_copy(
@@ -111,3 +264,40 @@ def test_paper_engine_refuses_non_paper_strategy(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="runtime_mode must be paper"):
         PaperEngine(strategy_config, paper_config)
+
+
+def _install_strategy_module(monkeypatch, name: str, module: ModuleType) -> None:
+    def fake_import_module(module_name: str):
+        if module_name == name:
+            return module
+        return import_module(module_name)
+
+    monkeypatch.setattr("quant.live.engine.import_module", fake_import_module)
+
+
+def _paper_strategy_config(class_path: str, *, strategy_id: str):
+    return load_strategy_config(Path("config/strategies/dual_ma_510300_paper.yaml")).model_copy(
+        update={
+            "class_path": class_path,
+            "params": {},
+            "id": strategy_id,
+        }
+    )
+
+
+def _paper_config(tmp_path):
+    return load_paper_config(Path("config/paper.yaml")).model_copy(
+        update={
+            "store_path": tmp_path / "meta.db",
+            "events_path": tmp_path / "events.jsonl",
+            "run_root": tmp_path / "runs",
+        }
+    )
+
+
+def _read_events(path: Path) -> list[dict[str, object]]:
+    return [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]

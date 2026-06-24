@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
 
 from quant.live.alerts import AlertManager
@@ -19,6 +20,7 @@ class RuntimeMonitor:
         run_id: str,
         strategy_id: str,
         account_id: str,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.store = store
         self.journal = journal
@@ -27,6 +29,7 @@ class RuntimeMonitor:
         self.run_id = run_id
         self.strategy_id = strategy_id
         self.account_id = account_id
+        self.clock = clock or (lambda: datetime.now().astimezone())
 
     def check_market_data(
         self,
@@ -40,7 +43,7 @@ class RuntimeMonitor:
         ):
             return None
 
-        state = self._set_safe_state(EngineState.FREEZE_OPEN, "market_data_stale")
+        state = self._set_safe_state(EngineState.FREEZE_OPEN, "market_data_stale", now)
         self._append_engine_state(state, "market_data_stale")
         self.alert_manager.emit(
             AlertSeverity.WARN,
@@ -51,8 +54,8 @@ class RuntimeMonitor:
         return state
 
     def on_gateway_disconnect(self, reason: str) -> EngineState:
-        now = datetime.now().astimezone()
-        state = self._set_safe_state(EngineState.FREEZE_OPEN, reason)
+        now = self.clock()
+        state = self._set_safe_state(EngineState.FREEZE_OPEN, reason, now)
         self._append_engine_state(state, reason)
         self.alert_manager.emit(
             AlertSeverity.CRIT,
@@ -75,7 +78,11 @@ class RuntimeMonitor:
         if state == current:
             return current
 
-        self.store.set_engine_state(state, "gateway_reconnected_reconciliation_ok")
+        self.store.set_engine_state(
+            state,
+            "gateway_reconnected_reconciliation_ok",
+            updated_at=self.clock(),
+        )
         self.journal.append(
             "engine_state",
             {
@@ -85,12 +92,17 @@ class RuntimeMonitor:
         )
         return state
 
-    def _set_safe_state(self, state: EngineState, reason: str) -> EngineState:
+    def _set_safe_state(
+        self,
+        state: EngineState,
+        reason: str,
+        updated_at: datetime,
+    ) -> EngineState:
         current = self.store.get_engine_state()
         target = resolve_engine_state_transition(current, state)
         if target == current:
             return current
-        self.store.set_engine_state(target, reason)
+        self.store.set_engine_state(target, reason, updated_at=updated_at)
         return target
 
     def _append_engine_state(self, state: EngineState, reason: str) -> None:

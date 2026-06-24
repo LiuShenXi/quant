@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -33,6 +34,7 @@ class Reconciler:
         cash_tolerance: float,
         position_qty_tolerance: float,
         auto_repair_cash_drift_below: float,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.store = store
         self.gateway = gateway
@@ -40,6 +42,7 @@ class Reconciler:
         self.cash_tolerance = cash_tolerance
         self.position_qty_tolerance = position_qty_tolerance
         self.auto_repair_cash_drift_below = auto_repair_cash_drift_below
+        self.clock = clock or (lambda: datetime.now().astimezone())
 
     def run(self, startup: bool) -> ReconciliationResult:
         snapshot = self.store.load_account_snapshot()
@@ -51,8 +54,16 @@ class Reconciler:
                 message="missing local account snapshot",
             )
 
-        gateway_account = self.gateway.query_account()
-        gateway_positions = self.gateway.query_positions()
+        try:
+            gateway_account = self.gateway.query_account()
+            gateway_positions = self.gateway.query_positions()
+        except Exception as error:
+            return self._fail(
+                startup=startup,
+                cash_diff=0.0,
+                position_diffs={},
+                message=f"gateway_query_error: {error}",
+            )
 
         cash_diff = snapshot.account.cash - gateway_account.cash
         position_diffs = self._position_diffs(snapshot.positions, gateway_positions)
@@ -76,11 +87,19 @@ class Reconciler:
             )
 
         if abs_cash_diff <= self.auto_repair_cash_drift_below:
-            self.store.save_account_snapshot(
-                gateway_account,
-                gateway_positions,
-                datetime.now().astimezone(),
-            )
+            try:
+                self.store.save_account_snapshot(
+                    gateway_account,
+                    gateway_positions,
+                    self.clock(),
+                )
+            except Exception as error:
+                return self._fail(
+                    startup=startup,
+                    cash_diff=cash_diff,
+                    position_diffs=position_diffs,
+                    message=f"snapshot_persist_error: {error}",
+                )
             return self._record(
                 ReconciliationStatus.REPAIRED,
                 startup=startup,
@@ -149,7 +168,7 @@ class Reconciler:
         position_diffs: dict[str, float],
         message: str,
     ) -> ReconciliationResult:
-        self.store.set_engine_state(EngineState.HALT, message)
+        self.store.set_engine_state(EngineState.HALT, message, updated_at=self.clock())
         return self._record(
             ReconciliationStatus.FAILED,
             startup=startup,

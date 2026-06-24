@@ -42,3 +42,11 @@ forbidden_modules = [
   "quant.data",
   "quant.risk",
 ]
+
+[[tool.importlinter.contracts]]
+name = "risk does not depend on live runtime"
+type = "forbidden"
+source_modules = ["quant.risk"]
+forbidden_modules = [
+  "quant.live",
+]

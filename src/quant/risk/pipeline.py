@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
-from quant.core.contract import Account, Order, OrderSide, Position
-from quant.live.types import EngineState, OrderRequest
+from quant.core.contract import Account, EngineState, Order, OrderRequest, OrderSide, Position
 from quant.risk.checks import is_cn_continuous_auction
 
 

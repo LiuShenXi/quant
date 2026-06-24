@@ -9,13 +9,15 @@ from zoneinfo import ZoneInfo
 from quant.core.config import StrategyConfig
 from quant.core.contract import Account, Bar, Order, StrategyBase, Trade
 from quant.data.service import DataService
+from quant.live.alerts import AlertManager
 from quant.live.config import PaperConfig
-from quant.live.context import PaperContext
+from quant.live.context import PaperContext, _PaperContextRuntime
 from quant.live.events import EventJournal
 from quant.live.execution import ExecutionRouter
 from quant.live.gateway.sim import SimGateway
+from quant.live.monitor import RuntimeMonitor
 from quant.live.oms import OrderManager
-from quant.live.reconcile import Reconciler
+from quant.live.reconcile import Reconciler, ReconciliationStatus
 from quant.live.store import OmsStore
 from quant.live.types import BrokerOrderSnapshot, BrokerTradeSnapshot
 from quant.risk.pipeline import RiskEngine, RiskLimits
@@ -63,6 +65,7 @@ class PaperEngine:
             store=self.store,
             journal=self.journal,
             risk=self.risk,
+            clock=lambda: self.now,
         )
         self.reconciler = Reconciler(
             store=self.store,
@@ -71,9 +74,27 @@ class PaperEngine:
             cash_tolerance=paper_config.reconciliation.cash_tolerance,
             position_qty_tolerance=paper_config.reconciliation.position_qty_tolerance,
             auto_repair_cash_drift_below=paper_config.reconciliation.auto_repair_cash_drift_below,
+            clock=lambda: self.now,
+        )
+        self.alert_manager = AlertManager(
+            self.journal,
+            dedupe_sec=paper_config.monitor.alert_dedupe_sec,
+        )
+        self.monitor = RuntimeMonitor(
+            store=self.store,
+            journal=self.journal,
+            alert_manager=self.alert_manager,
+            market_data_staleness_sec=paper_config.monitor.market_data_staleness_sec,
+            run_id=self._run_id(),
+            strategy_id=strategy_config.id,
+            account_id=paper_config.account_id,
+            clock=lambda: self.now,
         )
         self.execution_router = ExecutionRouter(self.oms, self.gateway.query_positions)
-        self.context = PaperContext(self, strategy_config.id)
+        self.context = PaperContext(
+            runtime=self._context_runtime(),
+            strategy_id=strategy_config.id,
+        )
         self.strategy: StrategyBase | None = None
 
         self.gateway.set_callbacks(
@@ -91,11 +112,14 @@ class PaperEngine:
             raise ValueError("no replay bars available")
 
         self.now = bars[0].dt
+        self._bootstrap_account_if_needed()
+        reconciliation = self.reconciler.run(startup=True)
+        if reconciliation.status == ReconciliationStatus.FAILED:
+            raise RuntimeError(f"startup reconciliation failed: {reconciliation.message}")
+
         strategy = self._load_strategy()
         self.strategy = strategy
         strategy.on_init(self.context)
-        self._bootstrap_account_if_needed()
-        self.reconciler.run(startup=True)
         strategy.on_start(self.context)
 
         for bar_date, day_bars in _group_bars_by_date(bars):
@@ -189,7 +213,39 @@ class PaperEngine:
             self.strategy.on_trade(self.context, trade)
 
     def _on_disconnect(self, reason: str) -> None:
-        self.oms.freeze_open(reason)
+        self.monitor.on_gateway_disconnect(reason)
+
+    def _run_id(self) -> str:
+        return f"paper-{self.strategy_config.id}-{self.paper_config.account_id}"
+
+    def _context_runtime(self) -> _PaperContextRuntime:
+        return _PaperContextRuntime(
+            account_id=self.paper_config.account_id,
+            now=lambda: self.now,
+            params=lambda: self.strategy_config.params,
+            history=self.data.history,
+            query_positions=self.gateway.query_positions,
+            query_account=self.gateway.query_account,
+            list_open_orders=lambda: self.store.list_orders(active_only=True),
+            latest_price=self.latest_price,
+            submit_order=self.oms.submit_order,
+            set_target=self.execution_router.set_target,
+            cancel_order=self.oms.cancel_order,
+            current_bar=lambda: self.current_bar,
+            get_instrument=self.data.get_instrument,
+            schedule=self._schedule_timer,
+            log=self._append_strategy_log,
+            save_kv=self.store.save_kv,
+            load_kv=self.store.load_kv,
+        )
+
+    def _schedule_timer(self, timer_id: str, at: str) -> None:
+        self.state["timers"][timer_id] = at
+
+    def _append_strategy_log(self, msg: str, level: str) -> None:
+        self.state["logs"].append(
+            {"level": level, "message": msg, "at": self.now.isoformat()}
+        )
 
 
 def _group_bars_by_date(bars: list[Bar]) -> list[tuple[date, list[Bar]]]:

@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import asdict, replace
 from datetime import datetime
 from typing import Any, Protocol
@@ -30,12 +31,14 @@ class OrderManager:
         store: OmsStore,
         journal: EventJournal,
         risk: RiskEngine,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.account_id = account_id
         self.gateway = gateway
         self.store = store
         self.journal = journal
         self.risk = risk
+        self.clock = clock or (lambda: datetime.now().astimezone())
 
     def submit_order(
         self,
@@ -329,7 +332,7 @@ class OrderManager:
         return f"O-{seq}"
 
     def _set_engine_state(self, state: EngineState, reason: str) -> None:
-        self.store.set_engine_state(state, reason)
+        self.store.set_engine_state(state, reason, updated_at=self.clock())
         self.journal.append(
             "engine_state",
             {
