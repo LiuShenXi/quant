@@ -1,10 +1,11 @@
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from quant.core.contract import Instrument
+from quant.core.contract import Bar, Instrument
 from quant.data.quality import reject_missing_rows
 
 
@@ -17,6 +18,33 @@ class DataService:
             parse_dates=["list_date", "delist_date"],
         )
         self._factors = pd.read_csv(data_root / "adjust_factors.csv", parse_dates=["ex_date"])
+
+    def load_bars(self, universe: list[str]) -> list[Bar]:
+        if not universe:
+            return []
+
+        frame = self._bars[self._bars["symbol"].isin(universe)].copy()
+        frame = frame.sort_values(["dt", "symbol"])
+        reject_missing_rows(frame)
+        frame = frame[frame["data_status"] == "ok"]
+        return [
+            Bar(
+                symbol=row.symbol,
+                freq="1d",
+                dt=_ensure_timezone_aware(row.dt),
+                open=float(row.open),
+                high=float(row.high),
+                low=float(row.low),
+                close=float(row.close),
+                volume=float(row.volume),
+                amount=float(row.amount),
+                pre_close=float(row.pre_close) if pd.notna(row.pre_close) else None,
+                limit_up=float(row.limit_up) if pd.notna(row.limit_up) else None,
+                limit_down=float(row.limit_down) if pd.notna(row.limit_down) else None,
+                suspended=bool(row.suspended),
+            )
+            for row in frame.itertuples(index=False)
+        ]
 
     def history(
         self,
@@ -83,3 +111,10 @@ class DataService:
         for column in ["open", "high", "low", "close"]:
             merged[column] = merged[column] * merged["factor"] / base
         return merged.drop(columns=["factor_date", "ex_date", "factor"])
+
+
+def _ensure_timezone_aware(value: datetime) -> datetime:
+    aware = value.to_pydatetime() if hasattr(value, "to_pydatetime") else value
+    if aware.tzinfo is None or aware.utcoffset() is None:
+        return aware.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+    return aware
