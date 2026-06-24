@@ -39,3 +39,12 @@
 - README wording: states M3 is paper infrastructure only and excludes QMT, real broker gateways, and real-money trading.
 - Runtime ignored: `runtime/` remains ignored by `.gitignore`; verification runtime state is not staged.
 - Real broker scope: no QMT, real broker, or live-money code paths were added.
+
+## Review Fix: M3b Paper Gate Requirements
+
+- Files changed: `README.md`, `docs/runbooks/paper_daily_runbook.md`, `tests/test_paper_runbook_docs.py`.
+- RED: `.venv/bin/python -m pytest tests/test_paper_runbook_docs.py -q` was run in a temporary detached worktree at parent commit `94c3721` with the new docs regression test copied in; result: 2 failed. Failures showed `README.md` missing `M3a is deterministic local Paper replay` and the runbook Acceptance Log missing `daily reconciliation zero difference`.
+- GREEN: `.venv/bin/python -m pytest tests/test_paper_runbook_docs.py -q`: 2 passed.
+- Lint: `.venv/bin/ruff check tests/test_paper_runbook_docs.py`: All checks passed.
+- Commit SHA: `187f32bacf2edf4e9016133a654283453c109ad9`.
+- Concerns: none.
