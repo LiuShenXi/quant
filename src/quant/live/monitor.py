@@ -66,22 +66,32 @@ class RuntimeMonitor:
         if not reconciliation_ok:
             return self.store.get_engine_state()
 
-        self.store.set_engine_state(EngineState.NORMAL, "gateway_reconnected_reconciliation_ok")
+        current = self.store.get_engine_state()
+        state = resolve_engine_state_transition(
+            current,
+            EngineState.NORMAL,
+            allow_halt_resume=False,
+        )
+        if state == current:
+            return current
+
+        self.store.set_engine_state(state, "gateway_reconnected_reconciliation_ok")
         self.journal.append(
             "engine_state",
             {
-                "state": EngineState.NORMAL.value,
+                "state": state.value,
                 "reason": "gateway_reconnected_reconciliation_ok",
             },
         )
-        return EngineState.NORMAL
+        return state
 
     def _set_safe_state(self, state: EngineState, reason: str) -> EngineState:
         current = self.store.get_engine_state()
-        if current == EngineState.HALT:
+        target = resolve_engine_state_transition(current, state)
+        if target == current:
             return current
-        self.store.set_engine_state(state, reason)
-        return state
+        self.store.set_engine_state(target, reason)
+        return target
 
     def _append_engine_state(self, state: EngineState, reason: str) -> None:
         self.journal.append(
@@ -112,3 +122,14 @@ class RuntimeMonitor:
         if last_bar_at is not None:
             payload["last_bar_at"] = last_bar_at.isoformat()
         return payload
+
+
+def resolve_engine_state_transition(
+    current: EngineState,
+    requested: EngineState,
+    *,
+    allow_halt_resume: bool = False,
+) -> EngineState:
+    if current == EngineState.HALT and requested != EngineState.HALT and not allow_halt_resume:
+        return current
+    return requested

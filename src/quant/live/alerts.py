@@ -31,7 +31,11 @@ class AlertManager:
         payload: dict[str, object],
     ) -> bool:
         if severity == AlertSeverity.CRIT:
-            missing = [field for field in self.CRIT_REQUIRED_FIELDS if field not in payload]
+            missing = [
+                field
+                for field in self.CRIT_REQUIRED_FIELDS
+                if field not in payload or not _is_usable_crit_value(payload[field])
+            ]
             if missing:
                 raise ValueError(f"CRIT alert missing fields: {', '.join(missing)}")
 
@@ -52,3 +56,11 @@ class AlertManager:
 
         self.journal.append("alert", envelope)
         return True
+
+
+def _is_usable_crit_value(value: object) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True

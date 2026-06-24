@@ -10,6 +10,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(SRC_ROOT))
 
 from quant.live.events import EventJournal  # noqa: E402
+from quant.live.monitor import resolve_engine_state_transition  # noqa: E402
 from quant.live.store import OmsStore  # noqa: E402
 from quant.live.types import EngineState  # noqa: E402
 
@@ -91,14 +92,18 @@ def _set_state_and_audit(
     reason: str,
     state: EngineState,
 ) -> None:
-    store.set_engine_state(state, reason)
+    current = store.get_engine_state()
+    effective_state = resolve_engine_state_transition(current, state)
+    if effective_state != current:
+        store.set_engine_state(effective_state, reason)
     journal.append(
         "ops_action",
         {
             "operator": operator,
-            "action": action,
+            "action": action if effective_state == state else "preserve_halt",
             "reason": reason,
-            "state": state.value,
+            "state": effective_state.value,
+            "requested_state": state.value,
         },
     )
 
