@@ -19,6 +19,10 @@ M3 has two Paper-only phases:
 
 M4 remains blocked until the M3b gate is complete.
 
+## Phase Language
+
+M3a is the local deterministic Paper replay implementation. M3b is the真钱前 Paper observation gate: 10 trading days, daily reconciliation zero difference, one disconnect drill, and CRIT alert delivery confirmed. M4 remains blocked until M3b is signed off.
+
 ## Paper Mode
 
 After M3 is implemented:
