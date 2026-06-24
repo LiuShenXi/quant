@@ -1,1 +1,2 @@
 trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id
+PAPER-T-1,O-1,paper_golden_strategy,paper,510300.SH,BUY,1000.0,3.02,5.0,2024-01-03T15:00:00+08:00,PAPER-O-1,PAPER-T-1
