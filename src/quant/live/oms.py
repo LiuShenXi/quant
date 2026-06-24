@@ -272,6 +272,17 @@ class OrderManager:
         return trade
 
     def freeze_open(self, reason: str) -> None:
+        if self.store.get_engine_state() == EngineState.HALT:
+            self.journal.append(
+                "engine_state",
+                {
+                    "state": EngineState.HALT.value,
+                    "reason": reason,
+                    "action": "preserve_halt",
+                    "requested_state": EngineState.FREEZE_OPEN.value,
+                },
+            )
+            return
         self._set_engine_state(EngineState.FREEZE_OPEN, reason)
 
     def halt(self, reason: str) -> None:

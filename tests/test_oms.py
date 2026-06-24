@@ -219,6 +219,23 @@ def test_unknown_broker_trade_halts_and_does_not_persist_trade(tmp_path) -> None
     assert events[-1]["payload"]["state"] == EngineState.HALT.value
 
 
+def test_freeze_open_preserves_existing_halt_and_audits_attempt(tmp_path) -> None:
+    manager = make_manager(tmp_path)
+
+    manager.halt("manual halt")
+    manager.freeze_open("gateway issue")
+
+    assert manager.store.get_engine_state() == EngineState.HALT
+    events = read_events(manager)
+    assert events[-1]["type"] == "engine_state"
+    assert events[-1]["payload"] == {
+        "state": EngineState.HALT.value,
+        "reason": "gateway issue",
+        "action": "preserve_halt",
+        "requested_state": EngineState.FREEZE_OPEN.value,
+    }
+
+
 def test_trade_gateway_query_failure_freezes_open_and_audits_failure(tmp_path) -> None:
     manager = make_manager(tmp_path)
     order_id = submit_known_order(manager)

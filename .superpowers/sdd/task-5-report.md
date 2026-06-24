@@ -113,6 +113,115 @@ core does not depend outward KEPT
 Contracts: 1 kept, 0 broken.
 ```
 
+## Task 5 HALT Preservation Fix
+
+### RED
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py -q
+```
+
+Output:
+
+```text
+.....F...                                                                [100%]
+=================================== FAILURES ===================================
+_________ test_freeze_open_preserves_existing_halt_and_audits_attempt __________
+
+tmp_path = PosixPath('/private/var/folders/fb/mvdcfcws0jz4hffbdntzj1fc0000gn/T/pytest-of-shenxi/pytest-55/test_freeze_open_preserves_exi0')
+
+    def test_freeze_open_preserves_existing_halt_and_audits_attempt(tmp_path) -> None:
+        manager = make_manager(tmp_path)
+    
+        manager.halt("manual halt")
+        manager.freeze_open("gateway issue")
+    
+>       assert manager.store.get_engine_state() == EngineState.HALT
+E       AssertionError: assert <EngineState....'FREEZE_OPEN'> == <EngineState.HALT: 'HALT'>
+E         
+E         - HALT
+E         + FREEZE_OPEN
+
+tests/test_oms.py:228: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_oms.py::test_freeze_open_preserves_existing_halt_and_audits_attempt
+1 failed, 8 passed in 0.57s
+```
+
+### Verification
+
+Command:
+
+```bash
+.venv/bin/pytest tests/test_oms.py tests/test_live_store.py tests/test_risk_pipeline.py -q
+```
+
+Output:
+
+```text
+......................                                                   [100%]
+22 passed in 0.52s
+```
+
+Command:
+
+```bash
+.venv/bin/ruff check src/quant/live/oms.py tests/test_oms.py
+```
+
+Output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```bash
+.venv/bin/pytest -q
+```
+
+Output:
+
+```text
+...................................................                      [100%]
+51 passed in 0.64s
+```
+
+Command:
+
+```bash
+.venv/bin/lint-imports
+```
+
+Output:
+
+```text
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲ 
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 18 files, 20 dependencies.
+-----------------------------------
+
+core does not depend outward KEPT
+
+Contracts: 1 kept, 0 broken.
+```
+
 ## Self-Review
 
 - Persistence before send: allowed orders are saved as `SUBMITTING` before `gateway.send_order()`; risk rejects are saved as `REJECTED` and never sent.
