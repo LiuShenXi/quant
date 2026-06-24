@@ -1,0 +1,2 @@
+order_id,strategy_id,account_id,symbol,side,type,qty,price,status,filled_qty,remaining_qty,avg_fill_price,created_at,updated_at,broker_order_id,reject_reason
+O-1,paper_golden_strategy,paper,510300.SH,BUY,LIMIT,1000.0,3.02,FILLED,1000.0,0.0,3.02,2024-01-03T09:31:00+08:00,2024-01-03T15:00:00+08:00,PAPER-O-1,

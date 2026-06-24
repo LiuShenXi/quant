@@ -1,0 +1,15 @@
+account_id: paper
+initial_cash: 100000
+timezone: Asia/Shanghai
+data_root: data_sample
+store_path: runtime/paper/meta.db
+events_path: runtime/paper/events.jsonl
+run_root: runtime/paper/runs
+reconciliation:
+  cash_tolerance: 0.01
+  position_qty_tolerance: 0
+  auto_repair_cash_drift_below: 1.0
+monitor:
+  market_data_staleness_sec: 60
+  gateway_heartbeat_sec: 30
+  alert_dedupe_sec: 300

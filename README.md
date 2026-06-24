@@ -2,7 +2,35 @@
 
 First slice: A股 ETF daily-bar credible backtest platform.
 
-This repository intentionally excludes Paper trading, QMT, live OMS, minute bars, and web UI.
+This repository intentionally excludes QMT, real broker gateways, real-money trading, minute bars, and web UI.
+
+## Current Phase
+
+M0-M2 implements a credible A股 ETF daily-bar backtest slice. M3 adds Paper trading
+infrastructure only; real broker gateways and real-money trading remain deliberately
+excluded.
+
+M3 has two Paper-only phases:
+
+- M3a is deterministic local Paper replay.
+- M3b is the real-money-pre-gate observation process. It requires 10 trading days,
+  daily reconciliation zero difference, one disconnect drill, verified CRIT alert
+  delivery, and no unresolved manual intervention.
+
+M4 remains blocked until the M3b gate is complete.
+
+## Phase Language
+
+M3a is the local deterministic Paper replay implementation. M3b is the真钱前 Paper observation gate: 10 trading days, daily reconciliation zero difference, one disconnect drill, and CRIT alert delivery confirmed. M4 remains blocked until M3b is signed off.
+
+## Paper Mode
+
+After M3 is implemented:
+
+```bash
+python scripts/run_paper.py --strategy config/strategies/dual_ma_510300_paper.yaml --paper config/paper.yaml --max-bars 20
+python scripts/ops.py --store runtime/paper/meta.db --events runtime/paper/events.jsonl --operator shenxi status
+```
 
 ## Documents
 
