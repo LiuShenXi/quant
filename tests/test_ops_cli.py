@@ -2,6 +2,7 @@ import json
 import subprocess
 import sys
 
+from quant.live.events import EventJournal
 from quant.live.store import OmsStore
 from quant.live.types import EngineState
 
@@ -10,6 +11,10 @@ def test_ops_cli_halt_resume_and_status(tmp_path) -> None:
     store_path = tmp_path / "meta.db"
     events_path = tmp_path / "events.jsonl"
     OmsStore(store_path).init_schema()
+    reconciliation_seq = EventJournal(events_path).append(
+        "reconciliation",
+        {"startup": False, "status": "OK", "message": "reconciled"},
+    )
 
     halt = subprocess.run(
         [
@@ -71,6 +76,9 @@ def test_ops_cli_halt_resume_and_status(tmp_path) -> None:
             "positions",
             "--precheck",
             "active_orders",
+            "--reconciliation-seq",
+            str(reconciliation_seq),
+            "--allow-halt-resume",
         ],
         text=True,
         capture_output=True,
@@ -144,4 +152,73 @@ def test_ops_cli_resume_requires_all_prechecks(tmp_path) -> None:
 
     assert resume.returncode != 0
     assert "resume missing precheck" in resume.stderr
+    assert OmsStore(store_path).get_engine_state() == EngineState.HALT
+
+
+def test_ops_cli_resume_requires_reconciliation_seq_and_halt_flag(tmp_path) -> None:
+    store_path = tmp_path / "meta.db"
+    events_path = tmp_path / "events.jsonl"
+    OmsStore(store_path).init_schema()
+    OmsStore(store_path).set_engine_state(EngineState.HALT, "manual drill")
+    reconciliation_seq = EventJournal(events_path).append(
+        "reconciliation",
+        {"startup": False, "status": "OK", "message": "reconciled"},
+    )
+
+    missing_seq = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ops.py",
+            "--store",
+            str(store_path),
+            "--events",
+            str(events_path),
+            "--operator",
+            "shenxi",
+            "resume",
+            "--reason",
+            "checked account and positions",
+            "--precheck",
+            "account",
+            "--precheck",
+            "positions",
+            "--precheck",
+            "active_orders",
+            "--allow-halt-resume",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert missing_seq.returncode != 0
+    assert "reconciliation-seq is required" in missing_seq.stderr
+
+    missing_halt_flag = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ops.py",
+            "--store",
+            str(store_path),
+            "--events",
+            str(events_path),
+            "--operator",
+            "shenxi",
+            "resume",
+            "--reason",
+            "checked account and positions",
+            "--precheck",
+            "account",
+            "--precheck",
+            "positions",
+            "--precheck",
+            "active_orders",
+            "--reconciliation-seq",
+            str(reconciliation_seq),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert missing_halt_flag.returncode != 0
+    assert "HALT resume requires --allow-halt-resume" in missing_halt_flag.stderr
     assert OmsStore(store_path).get_engine_state() == EngineState.HALT

@@ -26,6 +26,63 @@ def test_alert_manager_deduplicates_by_key(tmp_path) -> None:
     )
 
 
+def test_alert_manager_dedupes_by_context_and_reason_and_audits_suppression(tmp_path) -> None:
+    now = datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+    journal = EventJournal(tmp_path / "events.jsonl", clock=lambda: now)
+    manager = AlertManager(journal, dedupe_sec=300, clock=lambda: now)
+    payload = {
+        "run_id": "paper-20240102",
+        "strategy_id": "dual_ma_510300",
+        "account_id": "paper",
+        "last_event_seq": 7,
+        "local_time": "2024-01-02T09:31:00+08:00",
+        "market_time": "2024-01-02T09:31:00+08:00",
+    }
+
+    assert manager.emit(AlertSeverity.CRIT, "gateway_down", "gateway disconnected", payload)
+    assert manager.emit(
+        AlertSeverity.CRIT,
+        "gateway_down",
+        "gateway disconnected again",
+        payload | {"reason": "different reason"},
+    )
+    assert (
+        manager.emit(AlertSeverity.CRIT, "gateway_down", "gateway disconnected", payload)
+        is False
+    )
+
+    events = [
+        json.loads(line)
+        for line in (tmp_path / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert [event["type"] for event in events] == ["alert", "alert", "alert_suppressed"]
+
+
+def test_crit_alert_writes_delivery_receipt(tmp_path) -> None:
+    now = datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai"))
+    manager = AlertManager(
+        EventJournal(tmp_path / "events.jsonl", clock=lambda: now),
+        dedupe_sec=300,
+        clock=lambda: now,
+        delivery_dir=tmp_path / "receipts",
+    )
+    payload = {
+        "run_id": "paper-20240102",
+        "strategy_id": "dual_ma_510300",
+        "account_id": "paper",
+        "last_event_seq": 7,
+        "local_time": "2024-01-02T09:31:00+08:00",
+        "market_time": "2024-01-02T09:31:00+08:00",
+    }
+
+    assert manager.emit(AlertSeverity.CRIT, "gateway_down", "gateway disconnected", payload)
+
+    receipt = json.loads(next((tmp_path / "receipts").glob("*.json")).read_text(encoding="utf-8"))
+    assert receipt["delivery_id"] == "delivery-1"
+    assert receipt["event_seq"] == 1
+    assert receipt["channel"] == "dry-run-file"
+
+
 def test_crit_alert_requires_location_fields(tmp_path) -> None:
     manager = AlertManager(EventJournal(tmp_path / "events.jsonl"), dedupe_sec=300)
 
@@ -135,7 +192,9 @@ def test_market_data_staleness_preserves_halt_and_handles_missing_last_bar(tmp_p
     assert "last_bar_at" not in event["payload"]
 
 
-def test_gateway_disconnect_freezes_and_gateway_reconnect_does_not_auto_resume(tmp_path) -> None:
+def test_gateway_disconnect_freezes_and_gateway_reconnect_auto_recovers_after_reconcile(
+    tmp_path,
+) -> None:
     store = OmsStore(tmp_path / "meta.db")
     store.init_schema()
     monitor = RuntimeMonitor(
@@ -156,6 +215,29 @@ def test_gateway_disconnect_freezes_and_gateway_reconnect_does_not_auto_resume(t
     assert store.get_engine_state() == EngineState.FREEZE_OPEN
     assert monitor.on_gateway_reconnect(reconciliation_ok=True) == EngineState.NORMAL
     assert store.get_engine_state() == EngineState.NORMAL
+    events = [
+        json.loads(line)
+        for line in (tmp_path / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert events[-1]["type"] == "recovery"
+
+
+def test_manual_freeze_open_does_not_auto_resume(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    store.set_engine_state(EngineState.FREEZE_OPEN, "manual caution")
+    monitor = RuntimeMonitor(
+        store=store,
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        alert_manager=AlertManager(EventJournal(tmp_path / "alerts.jsonl"), dedupe_sec=300),
+        market_data_staleness_sec=60,
+        run_id="paper-20240102",
+        strategy_id="dual_ma_510300",
+        account_id="paper",
+    )
+
+    assert monitor.on_gateway_reconnect(reconciliation_ok=True) == EngineState.FREEZE_OPEN
+    assert store.get_engine_state() == EngineState.FREEZE_OPEN
 
 
 def test_halt_survives_disconnect_and_reconnect(tmp_path) -> None:

@@ -44,6 +44,7 @@ class RuntimeMonitor:
             return None
 
         state = self._set_safe_state(EngineState.FREEZE_OPEN, "market_data_stale", now)
+        self.store.save_kv("recoverable_freeze_reason", "market_data_stale")
         self._append_engine_state(state, "market_data_stale")
         self.alert_manager.emit(
             AlertSeverity.CRIT,
@@ -56,6 +57,14 @@ class RuntimeMonitor:
     def on_gateway_disconnect(self, reason: str) -> EngineState:
         now = self.clock()
         state = self._set_safe_state(EngineState.FREEZE_OPEN, reason, now)
+        self.store.save_kv("recoverable_freeze_reason", "gateway_disconnect")
+        self.journal.append(
+            "gateway_disconnect",
+            {
+                "state": state.value,
+                "reason": reason,
+            },
+        )
         self._append_engine_state(state, reason)
         self.alert_manager.emit(
             AlertSeverity.CRIT,
@@ -70,6 +79,11 @@ class RuntimeMonitor:
             return self.store.get_engine_state()
 
         current = self.store.get_engine_state()
+        if current == EngineState.FREEZE_OPEN and not self.store.load_kv(
+            "recoverable_freeze_reason",
+            default=False,
+        ):
+            return current
         state = resolve_engine_state_transition(
             current,
             EngineState.NORMAL,
@@ -85,6 +99,14 @@ class RuntimeMonitor:
         )
         self.journal.append(
             "engine_state",
+            {
+                "state": state.value,
+                "reason": "gateway_reconnected_reconciliation_ok",
+            },
+        )
+        self.store.save_kv("recoverable_freeze_reason", False)
+        self.journal.append(
+            "recovery",
             {
                 "state": state.value,
                 "reason": "gateway_reconnected_reconciliation_ok",

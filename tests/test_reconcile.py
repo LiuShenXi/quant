@@ -10,12 +10,30 @@ from quant.live.types import EngineState
 
 
 class GatewayForReconcile:
-    def __init__(self, cash: float, positions: dict[str, Position] | None = None) -> None:
+    def __init__(
+        self,
+        cash: float,
+        positions: dict[str, Position] | None = None,
+        *,
+        frozen: float = 0,
+        market_value: float = 0,
+        total_value: float | None = None,
+    ) -> None:
         self.cash = cash
         self.positions = positions or {}
+        self.frozen = frozen
+        self.market_value = market_value
+        self.total_value = cash if total_value is None else total_value
 
     def query_account(self) -> Account:
-        return Account("paper", "CNY", self.cash, 0, 0, self.cash)
+        return Account(
+            "paper",
+            "CNY",
+            self.cash,
+            self.frozen,
+            self.market_value,
+            self.total_value,
+        )
 
     def query_positions(self) -> dict[str, Position]:
         return self.positions
@@ -37,8 +55,19 @@ def make_snapshot(
     store: OmsStore,
     cash: float,
     positions: dict[str, Position] | None = None,
+    *,
+    frozen: float = 0,
+    market_value: float = 0,
+    total_value: float | None = None,
 ) -> None:
-    account = Account("paper", "CNY", cash, 0, 0, cash)
+    account = Account(
+        "paper",
+        "CNY",
+        cash,
+        frozen,
+        market_value,
+        cash if total_value is None else total_value,
+    )
     store.save_account_snapshot(account, positions or {}, account_updated_at())
 
 
@@ -239,3 +268,73 @@ def test_reconcile_halts_when_position_diff_exceeds_tolerance(tmp_path) -> None:
     assert store.get_engine_state() == EngineState.HALT
     events = read_events(tmp_path / "events.jsonl")
     assert events[-1]["payload"]["status"] == ReconciliationStatus.FAILED.value
+
+
+def test_reconcile_halts_when_account_value_fields_drift(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    make_snapshot(store, 100_000, frozen=10, market_value=1_000, total_value=101_010)
+
+    reconciler = Reconciler(
+        store=store,
+        gateway=GatewayForReconcile(
+            100_000,
+            frozen=0,
+            market_value=1_000,
+            total_value=101_000,
+        ),
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        cash_tolerance=0.01,
+        position_qty_tolerance=0,
+        auto_repair_cash_drift_below=1.0,
+    )
+
+    result = reconciler.run(startup=False)
+
+    assert result.status == ReconciliationStatus.FAILED
+    assert result.account_diffs == {"frozen": 10, "total_value": 10}
+    assert store.get_engine_state() == EngineState.HALT
+
+
+def test_reconcile_halts_when_position_value_fields_drift(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+    local_positions = {
+        "510300.SH": Position(
+            "510300.SH",
+            "paper",
+            qty=100,
+            sellable=80,
+            avg_price=3.0,
+            market_value=300,
+        )
+    }
+    gateway_positions = {
+        "510300.SH": Position(
+            "510300.SH",
+            "paper",
+            qty=100,
+            sellable=70,
+            avg_price=3.0,
+            market_value=310,
+        )
+    }
+    make_snapshot(store, 100_000, local_positions)
+
+    reconciler = Reconciler(
+        store=store,
+        gateway=GatewayForReconcile(100_000, positions=gateway_positions),
+        journal=EventJournal(tmp_path / "events.jsonl"),
+        cash_tolerance=0.01,
+        position_qty_tolerance=0,
+        auto_repair_cash_drift_below=1.0,
+    )
+
+    result = reconciler.run(startup=False)
+
+    assert result.status == ReconciliationStatus.FAILED
+    assert result.position_value_diffs == {
+        "510300.SH.sellable": 10,
+        "510300.SH.market_value": -10,
+    }
+    assert store.get_engine_state() == EngineState.HALT

@@ -13,7 +13,7 @@ import pytest
 from quant.core.config import load_strategy_config
 from quant.core.contract import Account, OrderSide, OrderType, StrategyBase
 from quant.data.service import DataService
-from quant.live.config import load_paper_config
+from quant.live.config import load_global_risk_config, load_paper_config
 from quant.live.engine import PaperEngine
 from quant.live.types import AlertSeverity, EngineState
 
@@ -243,6 +243,34 @@ def test_gateway_disconnect_through_paper_engine_freezes_and_emits_crit_alert(
     assert alert["payload"]["payload"]["reason"] == "network drill"
 
 
+def test_paper_engine_disconnect_drill_recovers_after_reconciliation(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    strategy_module = ModuleType("tests.drill_paper_strategy")
+
+    class DrillPaperStrategy(StrategyBase):
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.DrillPaperStrategy = DrillPaperStrategy
+    _install_strategy_module(monkeypatch, "tests.drill_paper_strategy", strategy_module)
+    strategy_config = _paper_strategy_config(
+        "tests.drill_paper_strategy:DrillPaperStrategy",
+        strategy_id="drill_paper_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    engine = PaperEngine(strategy_config, paper_config)
+    engine.run_replay(max_bars=1)
+
+    result = engine.run_disconnect_drill("network drill")
+
+    assert result["final_state"] == EngineState.NORMAL.value
+    events = _read_events(tmp_path / "events.jsonl")
+    assert any(event["type"] == "disconnect_drill" for event in events)
+    assert any(event["type"] == "recovery" for event in events)
+
+
 def test_paper_engine_freezes_and_alerts_before_target_flush_when_daily_bar_missing(
     tmp_path,
     monkeypatch,
@@ -330,6 +358,98 @@ def test_paper_engine_daily_replay_does_not_freeze_normal_target_flush(
     events = _read_events(tmp_path / "events.jsonl")
     assert not any(
         event["type"] == "alert" and event["payload"]["key"] == "market_data_stale"
+        for event in events
+    )
+
+
+def test_paper_engine_runs_close_reconciliation(tmp_path, monkeypatch) -> None:
+    strategy_module = ModuleType("tests.close_reconcile_strategy")
+
+    class CloseReconcileStrategy(StrategyBase):
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.CloseReconcileStrategy = CloseReconcileStrategy
+    _install_strategy_module(monkeypatch, "tests.close_reconcile_strategy", strategy_module)
+    strategy_config = _paper_strategy_config(
+        "tests.close_reconcile_strategy:CloseReconcileStrategy",
+        strategy_id="close_reconcile_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+
+    result = PaperEngine(strategy_config, paper_config).run_replay(max_bars=1)
+
+    assert result.startup_reconciliation.status == "OK"
+    assert result.close_reconciliation.status == "OK"
+    events = _read_events(tmp_path / "events.jsonl")
+    assert [
+        event["payload"]["startup"]
+        for event in events
+        if event["type"] == "reconciliation"
+    ] == [True, False]
+
+
+def test_paper_engine_applies_global_risk_limits(tmp_path, monkeypatch) -> None:
+    strategy_module = ModuleType("tests.global_risk_strategy")
+
+    class GlobalRiskStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            ctx.order("510300.SH", OrderSide.BUY, 100, price=3.2, type=OrderType.LIMIT)
+
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.GlobalRiskStrategy = GlobalRiskStrategy
+    _install_strategy_module(monkeypatch, "tests.global_risk_strategy", strategy_module)
+    monkeypatch.setattr("quant.risk.pipeline.is_cn_continuous_auction", lambda _time: True)
+    strategy_config = _paper_strategy_config(
+        "tests.global_risk_strategy:GlobalRiskStrategy",
+        strategy_id="global_risk_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    global_risk = load_global_risk_config(Path("config/risk/global.yaml")).model_copy(
+        update={"max_order_value": 10}
+    )
+
+    result = PaperEngine(strategy_config, paper_config, global_risk).run_replay(max_bars=1)
+
+    assert result.orders[0].status.value == "REJECTED"
+    assert result.orders[0].reject_reason.startswith("max_order_value")
+
+
+def test_paper_engine_equity_kill_switch_sets_halt(tmp_path, monkeypatch) -> None:
+    strategy_module = ModuleType("tests.kill_switch_strategy")
+
+    class KillSwitchStrategy(StrategyBase):
+        def on_bar(self, ctx, bar) -> None:
+            return None
+
+    strategy_module.KillSwitchStrategy = KillSwitchStrategy
+    _install_strategy_module(monkeypatch, "tests.kill_switch_strategy", strategy_module)
+    strategy_config = _paper_strategy_config(
+        "tests.kill_switch_strategy:KillSwitchStrategy",
+        strategy_id="kill_switch_strategy",
+    )
+    paper_config = _paper_config(tmp_path)
+    first_bar = DataService(Path("data_sample")).load_bars(["510300.SH"])[0]
+    second_bar = replace(first_bar, dt=first_bar.dt.replace(hour=15, minute=1), close=2.5)
+    engine = PaperEngine(strategy_config, paper_config)
+    monkeypatch.setattr(engine.data, "load_bars", lambda _universe: [first_bar, second_bar])
+    values = iter([100_000, 100_000, 95_000])
+
+    def query_account() -> Account:
+        total = next(values, 95_000)
+        return Account("paper", "CNY", cash=total, frozen=0, market_value=0, total_value=total)
+
+    monkeypatch.setattr(engine.gateway, "query_account", query_account)
+
+    result = engine.run_replay()
+
+    assert result.final_state == EngineState.HALT.value
+    events = _read_events(tmp_path / "events.jsonl")
+    assert any(
+        event["type"] == "engine_state"
+        and event["payload"]["reason"] == "daily_loss_halt"
         for event in events
     )
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -30,6 +31,8 @@ def main() -> None:
     resume = sub.add_parser("resume")
     resume.add_argument("--reason", required=True)
     resume.add_argument("--precheck", action="append", required=True)
+    resume.add_argument("--reconciliation-seq", type=int, default=None)
+    resume.add_argument("--allow-halt-resume", action="store_true")
 
     args = parser.parse_args()
 
@@ -69,6 +72,12 @@ def main() -> None:
     missing = sorted(required.difference(set(args.precheck)))
     if missing:
         raise SystemExit(f"resume missing precheck: {', '.join(missing)}")
+    if args.reconciliation_seq is None:
+        raise SystemExit("reconciliation-seq is required")
+    _validate_reconciliation_seq(journal.path, args.reconciliation_seq)
+    current = store.get_engine_state()
+    if current == EngineState.HALT and not args.allow_halt_resume:
+        raise SystemExit("HALT resume requires --allow-halt-resume")
 
     store.set_engine_state(EngineState.NORMAL, args.reason)
     journal.append(
@@ -78,6 +87,8 @@ def main() -> None:
             "action": "resume",
             "reason": args.reason,
             "precheck": args.precheck,
+            "reconciliation_seq": args.reconciliation_seq,
+            "allow_halt_resume": args.allow_halt_resume,
             "state": EngineState.NORMAL.value,
         },
     )
@@ -107,6 +118,23 @@ def _set_state_and_audit(
         },
     )
     return effective_state
+
+
+def _validate_reconciliation_seq(events_path: Path, seq: int) -> None:
+    for line in events_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        event = json.loads(line)
+        if event.get("seq") != seq:
+            continue
+        payload = event.get("payload", {})
+        if event.get("type") == "reconciliation" and payload.get("status") in {
+            "OK",
+            "REPAIRED",
+        }:
+            return
+        raise SystemExit("reconciliation-seq must reference OK or REPAIRED reconciliation")
+    raise SystemExit("reconciliation-seq not found")
 
 
 if __name__ == "__main__":
