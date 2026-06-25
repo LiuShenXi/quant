@@ -28,3 +28,10 @@
 - The observation window must include verified CRIT alert delivery.
 - The gate requires no unresolved manual intervention.
 - Required daily notes: date, strategy id, final state, orders, trades, rejects, reconciliation result, alerts.
+
+## Final Sign-Off Intake
+
+- Produce an operator-authored `m3b_signoff.yaml` after the full observation window is complete.
+- Keep the referenced Paper `events.jsonl` archive and trade calendar beside the signoff package or use absolute paths.
+- Run `python scripts/validate_m3b_signoff.py path/to/m3b_signoff.yaml`.
+- Only output containing `M4a may start` opens the M4a/QMT gate; any rejection keeps M4a blocked.

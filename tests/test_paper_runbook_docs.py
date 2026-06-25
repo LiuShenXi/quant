@@ -38,3 +38,16 @@ def test_paper_runbook_acceptance_log_lists_all_m3b_gate_conditions() -> None:
 
     for phrase in required_phrases:
         assert phrase in runbook
+
+
+def test_m3b_signoff_intake_command_is_documented() -> None:
+    combined = normalized("README.md") + " " + normalized("docs/runbooks/paper_daily_runbook.md")
+
+    required_phrases = [
+        "scripts/validate_m3b_signoff.py",
+        "m3b_signoff.yaml",
+        "M4a may start",
+    ]
+
+    for phrase in required_phrases:
+        assert phrase in combined
