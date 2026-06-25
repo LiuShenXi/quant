@@ -17,7 +17,9 @@ dev = [
   "import-linter>=2.0",
   "mypy>=1.10",
   "pytest>=8.0",
+  "pandas-stubs>=2.2",
   "ruff>=0.5",
+  "types-PyYAML>=6.0",
 ]
 
 [tool.pytest.ini_options]
