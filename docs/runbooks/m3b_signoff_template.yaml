@@ -1,7 +1,16 @@
 gate: M3b
 required_trading_days: 10
+event_journal_path: runtime/paper/events.jsonl
+trade_calendar_path: data_sample/trade_calendar.csv
+counted_window:
+  start_date: YYYY-MM-DD
+  end_date: YYYY-MM-DD
+  trading_day_count: 10
 trading_days:
   - date: YYYY-MM-DD
+    run_id: paper-YYYYMMDD
+    strategy_id: dual_ma_510300
+    account_id: paper
     startup_reconciliation_seq: 0
     startup_reconciliation_status: OK
     close_reconciliation_seq: 0
@@ -9,14 +18,23 @@ trading_days:
     unresolved_difference_count: 0
     manual_intervention_unresolved: false
 disconnect_drill:
+  date: YYYY-MM-DD
   seq: 0
   recovery_seq: 0
   status: RECOVERED
+  reason: network drill
+  run_id: paper-YYYYMMDD
+  strategy_id: dual_ma_510300
+  account_id: paper
 crit_delivery_receipts:
   - delivery_id: delivery-0
     event_seq: 0
+    severity: CRIT
     channel: dry-run-file
     delivered_at: YYYY-MM-DDTHH:MM:SS+08:00
+    run_id: paper-YYYYMMDD
+    strategy_id: dual_ma_510300
+    account_id: paper
 manual_intervention:
   unresolved: false
   notes: none

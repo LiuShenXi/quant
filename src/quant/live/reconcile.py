@@ -36,6 +36,9 @@ class Reconciler:
         cash_tolerance: float,
         position_qty_tolerance: float,
         auto_repair_cash_drift_below: float,
+        run_id: str | None = None,
+        strategy_id: str | None = None,
+        account_id: str | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.store = store
@@ -44,6 +47,9 @@ class Reconciler:
         self.cash_tolerance = cash_tolerance
         self.position_qty_tolerance = position_qty_tolerance
         self.auto_repair_cash_drift_below = auto_repair_cash_drift_below
+        self.run_id = run_id
+        self.strategy_id = strategy_id
+        self.account_id = account_id
         self.clock = clock or (lambda: datetime.now().astimezone())
 
     def run(self, startup: bool) -> ReconciliationResult:
@@ -235,7 +241,8 @@ class Reconciler:
         )
         self.journal.append(
             "reconciliation",
-            {
+            self._runtime_context()
+            | {
                 "startup": startup,
                 "status": status.value,
                 "cash_diff": cash_diff,
@@ -246,6 +253,17 @@ class Reconciler:
             },
         )
         return result
+
+    def _runtime_context(self) -> dict[str, object]:
+        context: dict[str, object] = {}
+        for field, value in (
+            ("run_id", self.run_id),
+            ("strategy_id", self.strategy_id),
+            ("account_id", self.account_id),
+        ):
+            if isinstance(value, str) and value.strip():
+                context[field] = value
+        return context
 
     def _fail(
         self,
