@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>个人量化系统小白教程：从零理解回测、Paper 和 M3b</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5c6975;
+      --subtle: #eef2f5;
+      --panel: #ffffff;
+      --paper: #f8fafc;
+      --line: #d7dee6;
+      --blue: #2563eb;
+      --cyan: #0891b2;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --violet: #6d28d9;
+      --code-bg: #101827;
+      --code-fg: #e6edf3;
+      --shadow: 0 10px 30px rgba(23, 32, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.75;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      min-width: 190px;
+      line-height: 1.2;
+    }
+
+    .brand strong {
+      font-size: 15px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      font-size: 13px;
+      padding: 6px 9px;
+      background: #fff;
+    }
+
+    .nav a:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 72px;
+    }
+
+    section {
+      scroll-margin-top: 96px;
+      margin: 34px 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 24px;
+      align-items: stretch;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      gap: 8px;
+      border: 1px solid #c7d2fe;
+      color: #3730a3;
+      background: #eef2ff;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(30px, 5vw, 56px);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: clamp(24px, 3vw, 34px);
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .lead {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .hero-checklist {
+      display: grid;
+      gap: 10px;
+      align-content: center;
+      border-left: 4px solid var(--cyan);
+      background: #f0f9ff;
+      padding: 18px;
+      border-radius: 8px;
+    }
+
+    .hero-checklist p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 11px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .plain-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .section-intro {
+      max-width: 880px;
+      color: var(--muted);
+      margin-top: -4px;
+      margin-bottom: 18px;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .term-card,
+    .step-card,
+    .output-card,
+    .warning-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .term-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+
+    .term-card p,
+    .step-card p,
+    .output-card p,
+    .warning-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      background: var(--blue);
+      margin-bottom: 10px;
+    }
+
+    .tag.green {
+      background: var(--green);
+    }
+
+    .tag.amber {
+      background: var(--amber);
+    }
+
+    .tag.red {
+      background: var(--red);
+    }
+
+    .tag.cyan {
+      background: var(--cyan);
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: #fffbeb;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fef2f2;
+    }
+
+    .callout.success {
+      border-left-color: var(--green);
+      background: #f0fdf4;
+    }
+
+    .callout h3 {
+      font-size: 17px;
+    }
+
+    .callout p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .code-block {
+      margin: 14px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #243046;
+      background: var(--code-bg);
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 12px;
+      background: #182235;
+      color: #aab6c5;
+      font-size: 13px;
+    }
+
+    .copy-btn {
+      border: 1px solid #43536b;
+      border-radius: 8px;
+      background: #243046;
+      color: #f8fafc;
+      padding: 5px 9px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .copy-btn:hover {
+      border-color: #7dd3fc;
+      color: #7dd3fc;
+    }
+
+    pre {
+      margin: 0;
+      padding: 15px;
+      overflow-x: auto;
+      color: var(--code-fg);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.95em;
+    }
+
+    :not(pre) > code {
+      color: #0f4c81;
+      background: #eef6ff;
+      border: 1px solid #d8e9fb;
+      border-radius: 6px;
+      padding: 1px 5px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .phase {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+      min-height: 150px;
+    }
+
+    .phase.current {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .phase.blocked {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .phase small {
+      display: inline-block;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .phase p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0;
+    }
+
+    .flow-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .flow-box strong {
+      display: block;
+    }
+
+    .flow-box span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .arrow {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .file-tree {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .file-tree ul {
+      list-style: none;
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    .file-tree li {
+      position: relative;
+      margin: 9px 0;
+      color: var(--muted);
+      min-width: 300px;
+    }
+
+    .file-tree li::before {
+      content: "";
+      position: absolute;
+      left: -15px;
+      top: 0.9em;
+      width: 10px;
+      border-top: 1px solid #bac6d1;
+    }
+
+    .file-tree strong {
+      color: var(--ink);
+    }
+
+    .svg-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .box {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      margin-top: 3px;
+      background: #ecfeff;
+    }
+
+    .mini {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .kbd {
+      display: inline-flex;
+      border: 1px solid #b9c3cf;
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: #fff;
+      padding: 1px 6px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .footer {
+      margin-top: 44px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid.two,
+      .grid.three,
+      .grid.four {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+      }
+
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main,
+      .topbar-inner {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .hero,
+      .panel {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .nav a {
+        font-size: 12px;
+        padding: 5px 7px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+      }
+
+      .topbar,
+      .copy-btn {
+        display: none;
+      }
+
+      main {
+        width: 100%;
+        padding: 0;
+      }
+
+      section {
+        break-inside: avoid;
+        margin: 22px 0;
+      }
+
+      .hero,
+      .panel,
+      .term-card,
+      .step-card,
+      .output-card,
+      .warning-card,
+      .callout,
+      .file-tree,
+      .svg-wrap,
+      .phase,
+      .flow-box {
+        box-shadow: none;
+        border-color: #999;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        color: #000;
+        background: #f4f4f4;
+      }
+
+      .code-block,
+      .code-head {
+        background: #f4f4f4;
+        color: #000;
+        border-color: #aaa;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="回到顶部">
+        <strong>个人量化系统小白教程</strong>
+        <span>回测、Paper、风控、M3b 一次讲清</span>
+      </a>
+      <nav class="nav" aria-label="页面目录">
+        <a href="#status">系统现状</a>
+        <a href="#terms">术语翻译</a>
+        <a href="#map">项目地图</a>
+        <a href="#first-run">第一次使用</a>
+        <a href="#backtest">回测</a>
+        <a href="#strategy">策略</a>
+        <a href="#paper">Paper</a>
+        <a href="#ops">运维</a>
+        <a href="#drill">断连</a>
+        <a href="#m3b">M3b</a>
+        <a href="#errors">常见错误</a>
+        <a href="#quickstart">速查</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <span class="eyebrow">给完全小白的真实使用手册</span>
+        <h1 id="title">把个人量化系统当成一台“交易训练模拟器”来学</h1>
+        <p class="lead">
+          这份教程不假设你懂金融、懂 Python、懂量化。你只需要知道：这个项目目前已经完成 M0-M3，
+          可以用样例行情做本地回测，也可以跑 Paper 模拟盘来练习交易流程、风控、对账和告警。
+          它现在不是实盘自动交易系统，不能直接拿真金白银下单。
+        </p>
+        <div class="pill-row" aria-label="教程重点">
+          <span class="pill">离线 HTML</span>
+          <span class="pill">小白术语翻译</span>
+          <span class="pill">完整命令</span>
+          <span class="pill">图解流程</span>
+          <span class="pill">M3b 每日打卡</span>
+        </div>
+      </div>
+      <aside class="hero-checklist" aria-label="先记住三句话">
+        <h2>先记住三句话</h2>
+        <p><strong>第一，回测</strong> 是用历史数据检查策略想法。</p>
+        <p><strong>第二，Paper</strong> 是模拟盘，不花真钱，用来演练真实流程。</p>
+        <p><strong>第三，M3b</strong> 是真钱前观察期，没完成前不要接实盘。</p>
+      </aside>
+    </section>
+
+    <section id="status" aria-labelledby="status-title">
+      <h2 id="status-title">一、这个系统现在到底是什么状态</h2>
+      <p class="section-intro">
+        你可以把项目理解成一座正在分阶段建造的交易系统。现在已经可以在本地训练和验证，但还没有开放真实券商接口。
+      </p>
+      <div class="timeline" aria-label="M0 到 M4 阶段时间线">
+        <article class="phase">
+          <small>M0</small>
+          <h3>项目骨架</h3>
+          <p>确定目录、配置、基础模块和测试方式，让系统能被持续开发。</p>
+        </article>
+        <article class="phase">
+          <small>M1</small>
+          <h3>数据层</h3>
+          <p>能读取样例行情、交易日历、标的信息，并做基础质量检查。</p>
+        </article>
+        <article class="phase">
+          <small>M2</small>
+          <h3>可信回测</h3>
+          <p>能把策略放到历史日线数据里跑，生成订单、成交和权益曲线。</p>
+        </article>
+        <article class="phase current">
+          <small>M3 当前阶段</small>
+          <h3>Paper 模拟盘</h3>
+          <p>不碰真钱，演练订单、风控、对账、告警和故障恢复。</p>
+        </article>
+        <article class="phase blocked">
+          <small>M4 暂时禁止</small>
+          <h3>QMT / 实盘</h3>
+          <p>M3b 没有连续观察签收前，不接真实券商，不实盘下单。</p>
+        </article>
+      </div>
+
+      <div class="callout danger">
+        <h3>风险边界：现在不要把它当实盘机器人</h3>
+        <p>
+          当前项目明确排除了 QMT、真实券商网关、真钱交易、分钟线和 Web UI。你现在能做的是学习、回测、模拟、观察和演练。
+        </p>
+      </div>
+    </section>
+
+    <section id="terms" aria-labelledby="terms-title">
+      <h2 id="terms-title">二、先把金融和系统术语翻译成人话</h2>
+      <p class="section-intro">
+        术语听起来吓人，其实大多数都能翻译成生活语言。先理解这些词，后面的命令就不会像咒语。
+      </p>
+      <div class="grid three">
+        <article class="term-card">
+          <strong>回测</strong>
+          <p>用过去的行情数据，假装自己回到当时，看策略会不会买、会不会卖、最后资金变成多少。</p>
+        </article>
+        <article class="term-card">
+          <strong>Paper 是什么</strong>
+          <p>Paper 不是纸，是“模拟盘”。它像交易演练场：流程像真的，但不花真钱，也不连接真实券商。</p>
+        </article>
+        <article class="term-card">
+          <strong>策略</strong>
+          <p>一套买卖规则。比如：短期均线比长期均线高就买，低就卖。</p>
+        </article>
+        <article class="term-card">
+          <strong>标的</strong>
+          <p>你要交易的东西。这里的样例标的是 <code>510300.SH</code>，可以理解成一只 ETF。</p>
+        </article>
+        <article class="term-card">
+          <strong>K 线 / 日线</strong>
+          <p>把一天的开盘价、最高价、最低价、收盘价整理成一条记录。日线就是一天一条。</p>
+        </article>
+        <article class="term-card">
+          <strong>均线</strong>
+          <p>最近几天收盘价的平均值。短均线看近期变化，长均线看稍长趋势。</p>
+        </article>
+        <article class="term-card">
+          <strong>订单</strong>
+          <p>系统发出的“我要买”或“我要卖”的请求。订单不一定马上成交。</p>
+        </article>
+        <article class="term-card">
+          <strong>成交</strong>
+          <p>订单真的买到或卖出了，才叫成交。回测里可能有订单但没有成交。</p>
+        </article>
+        <article class="term-card">
+          <strong>仓位</strong>
+          <p>你现在手里持有多少标的。持仓 0 就是空仓，持有 10000 份就是有仓位。</p>
+        </article>
+        <article class="term-card">
+          <strong>风控</strong>
+          <p>防止系统乱买、买太多、状态异常还继续买。风控是刹车，不是赚钱按钮。</p>
+        </article>
+        <article class="term-card">
+          <strong>对账</strong>
+          <p>检查系统记录和账户记录是否一致。现金差异、持仓差异都要看。</p>
+        </article>
+        <article class="term-card">
+          <strong>CRIT 告警</strong>
+          <p>CRIT 是严重告警。比如网关断连，系统要立刻提醒并冻结新开仓。</p>
+        </article>
+        <article class="term-card">
+          <strong>NORMAL</strong>
+          <p>系统状态正常。Paper 跑完后看到这个状态，表示没有停在危险状态。</p>
+        </article>
+        <article class="term-card">
+          <strong>FREEZE_OPEN</strong>
+          <p>冻结开仓。系统可以保护自己，不再接受新的买入开仓动作。</p>
+        </article>
+        <article class="term-card">
+          <strong>HALT</strong>
+          <p>更严肃的暂停状态。遇到未知风险时先停下来，查清楚再恢复。</p>
+        </article>
+        <article class="term-card">
+          <strong>M3b</strong>
+          <p>真钱前 Paper 观察期。至少 10 个交易日，每天对账零差异，还要做断连和告警演练。</p>
+        </article>
+        <article class="term-card">
+          <strong>M4</strong>
+          <p>未来接 QMT / 真实券商的阶段。M3b 没签收前，M4 是被阻塞的。</p>
+        </article>
+        <article class="term-card">
+          <strong>runtime</strong>
+          <p>系统运行后产生的记录目录，里面有事件日志、状态库、告警投递文件等。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="map" aria-labelledby="map-title">
+      <h2 id="map-title">三、项目地图：每个目录是干什么的</h2>
+      <p class="section-intro">
+        小白最容易迷路。先看地图：你日常主要碰 <code>config/</code>、<code>strategies/</code>、<code>scripts/</code> 和 <code>runtime/</code>。
+      </p>
+      <div class="grid two">
+        <div class="file-tree" aria-label="项目目录树">
+          <ul>
+            <li><strong>个人量化系统/</strong> 工作区根目录</li>
+            <li>
+              <strong>quant/</strong> 项目主体
+              <ul>
+                <li><strong>README.md</strong> 当前阶段说明</li>
+                <li><strong>config/</strong> 配置：资金、策略、风控、成本</li>
+                <li><strong>strategies/</strong> 策略代码，例如双均线</li>
+                <li><strong>scripts/</strong> 你会运行的命令入口</li>
+                <li><strong>data_sample/</strong> 样例行情数据</li>
+                <li><strong>runtime/</strong> 运行后生成的记录</li>
+                <li><strong>docs/runbooks/</strong> Paper 每日操作手册</li>
+                <li><strong>tests/</strong> 自动测试，确认系统没坏</li>
+              </ul>
+            </li>
+            <li><strong>教程/</strong> 本教程所在目录</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>你最常用的 3 个脚本</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>脚本</th>
+                <th>作用</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>scripts/run_backtest.py</code></td>
+                <td>跑回测，用历史数据检查策略。</td>
+              </tr>
+              <tr>
+                <td><code>scripts/run_paper.py</code></td>
+                <td>跑 Paper 模拟盘，演练接近真实交易的流程。</td>
+              </tr>
+              <tr>
+                <td><code>scripts/ops.py</code></td>
+                <td>查状态、冻结开仓、暂停、恢复，是运维刹车工具。</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout warning">
+            <h3>不要随便删 runtime</h3>
+            <p>如果只是自己练习，可以清理旧运行记录；如果正在做连续 M3b 观察，就不要随便删除，否则观察链条会断。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="first-run" aria-labelledby="first-run-title">
+      <h2 id="first-run-title">四、第一次使用：先进入正确目录</h2>
+      <p class="section-intro">
+        所有命令都从项目主体目录运行。你现在这台机器上已经有 <code>.venv</code> 虚拟环境，所以最稳的命令是 <code>.venv/bin/python</code>。
+      </p>
+
+      <div class="callout">
+        <h3>为什么不用 python？</h3>
+        <p>
+          有些 macOS 环境没有 <code>python</code> 命令，直接敲会出现 <code>command not found: python</code>。
+          这个项目的虚拟环境在 <code>quant/.venv/</code>，用 <code>.venv/bin/python</code> 可以直接指定正确的 Python。
+        </p>
+      </div>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>进入项目主体目录</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant</code></pre>
+      </div>
+      <p class="mini">这条命令的意思：先走到真正放代码的 <code>quant</code> 目录里。</p>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>检查 Python 版本</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>.venv/bin/python --version</code></pre>
+      </div>
+      <p class="mini">你应该看到类似 <code>Python 3.13.3</code> 的输出。</p>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>检查系统是否健康</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>.venv/bin/python -m pytest -q</code></pre>
+      </div>
+      <p class="mini">我实测时看到 <code>120 passed</code>。这表示当前代码和测试是健康的。</p>
+    </section>
+
+    <section id="backtest" aria-labelledby="backtest-title">
+      <h2 id="backtest-title">五、回测：用历史数据假装回到过去试策略</h2>
+      <p class="section-intro">
+        回测适合回答：“如果我当时按这套规则交易，会发生什么？”它不是预测未来，只是用历史数据检查策略是否能跑通、是否会产生订单和成交。
+      </p>
+
+      <div class="flow" aria-label="回测流程图">
+        <div class="flow-box">
+          <strong>样例行情</strong>
+          <span><code>data_sample/bars_1d.csv</code></span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="flow-box">
+          <strong>策略配置</strong>
+          <span><code>dual_ma_510300.yaml</code></span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="flow-box">
+          <strong>回测引擎</strong>
+          <span>逐日喂数据，策略做决定</span>
+        </div>
+      </div>
+      <div class="flow" aria-label="回测输出流程图">
+        <div class="flow-box">
+          <strong>订单</strong>
+          <span>orders.csv</span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="flow-box">
+          <strong>成交</strong>
+          <span>trades.csv</span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="flow-box">
+          <strong>资金曲线</strong>
+          <span>equity.csv / report.md</span>
+        </div>
+      </div>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>运行一次回测</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/run_backtest.py \
+  --strategy config/strategies/dual_ma_510300.yaml \
+  --data-root data_sample \
+  --out runtime/demo_backtest \
+  --initial-cash 100000</code></pre>
+      </div>
+
+      <div class="grid three">
+        <article class="output-card">
+          <span class="tag">report.md</span>
+          <h3>回测小报告</h3>
+          <p>最简单的结果摘要。当前样例数据很短，重点是验证流程，不是看收益。</p>
+        </article>
+        <article class="output-card">
+          <span class="tag cyan">orders.csv</span>
+          <h3>订单表</h3>
+          <p>策略发出了哪些买卖请求。订单可能提交了，但不一定成交。</p>
+        </article>
+        <article class="output-card">
+          <span class="tag green">trades.csv</span>
+          <h3>成交表</h3>
+          <p>真正买到或卖出的记录。空文件表示这次没有实际成交。</p>
+        </article>
+        <article class="output-card">
+          <span class="tag amber">equity.csv</span>
+          <h3>权益曲线</h3>
+          <p>每天总资产和现金是多少。以后样例数据更长时，这里会更有意义。</p>
+        </article>
+        <article class="output-card">
+          <span class="tag">events.jsonl</span>
+          <h3>事件流水</h3>
+          <p>机器可读的事件记录，一行一个 JSON，适合追踪系统到底做过什么。</p>
+        </article>
+        <article class="output-card">
+          <span class="tag">config_snapshot.yaml</span>
+          <h3>配置快照</h3>
+          <p>保存当时用的策略配置。以后复盘时，知道这次结果是用什么参数跑出来的。</p>
+        </article>
+      </div>
+
+      <div class="callout success">
+        <h3>如何解读“有订单但没成交”</h3>
+        <p>
+          订单是“我想买”，成交是“我真的买到了”。样例数据只有几行，出现订单但没有成交是正常的。
+          这不代表系统坏了，只代表这次回测的样例条件下没有撮合出成交。
+        </p>
+      </div>
+    </section>
+
+    <section id="strategy" aria-labelledby="strategy-title">
+      <h2 id="strategy-title">六、策略：双均线策略到底在想什么</h2>
+      <p class="section-intro">
+        当前示例策略叫 <code>dual_ma</code>，意思是 dual moving average，双均线。它不是神奇模型，只是一套非常经典的趋势规则。
+      </p>
+
+      <div class="grid two">
+        <div class="panel">
+          <h3>策略规则翻译</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>代码里的话</th>
+                <th>人话</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>fast: 3</code></td>
+                <td>看最近 3 天的平均收盘价，代表短期走势。</td>
+              </tr>
+              <tr>
+                <td><code>slow: 5</code></td>
+                <td>看最近 5 天的平均收盘价，代表稍长一点的走势。</td>
+              </tr>
+              <tr>
+                <td><code>target_qty: 10000</code></td>
+                <td>如果要买，就希望持有 10000 份。</td>
+              </tr>
+              <tr>
+                <td><code>ma_fast &gt; ma_slow</code></td>
+                <td>短期平均价高于长期平均价，理解成短期趋势更强，于是买入。</td>
+              </tr>
+              <tr>
+                <td><code>ma_fast &lt; ma_slow</code></td>
+                <td>短期平均价低于长期平均价，理解成趋势走弱，于是清仓。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="svg-wrap" aria-label="双均线示意图">
+          <svg viewBox="0 0 720 420" role="img" aria-labelledby="ma-title ma-desc">
+            <title id="ma-title">双均线买卖示意图</title>
+            <desc id="ma-desc">短均线上穿长均线买入，下穿长均线卖出。</desc>
+            <rect x="0" y="0" width="720" height="420" fill="#ffffff"></rect>
+            <line x1="70" y1="330" x2="650" y2="330" stroke="#94a3b8" stroke-width="2"></line>
+            <line x1="70" y1="60" x2="70" y2="330" stroke="#94a3b8" stroke-width="2"></line>
+            <path d="M 80 260 C 150 245, 180 225, 230 230 S 320 260, 360 210 S 450 120, 520 150 S 590 235, 640 210"
+              fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M 80 245 C 150 240, 210 238, 260 236 S 360 225, 420 195 S 520 170, 640 190"
+              fill="none" stroke="#b45309" stroke-width="5" stroke-linecap="round"></path>
+            <circle cx="335" cy="224" r="10" fill="#15803d"></circle>
+            <text x="350" y="214" font-size="18" fill="#15803d" font-weight="700">短均线高于长均线：买入</text>
+            <circle cx="580" cy="218" r="10" fill="#b91c1c"></circle>
+            <text x="400" y="275" font-size="18" fill="#b91c1c" font-weight="700">短均线跌回长均线附近：谨慎或卖出</text>
+            <rect x="92" y="70" width="18" height="18" fill="#2563eb" rx="4"></rect>
+            <text x="118" y="85" font-size="16" fill="#334155">短均线 fast</text>
+            <rect x="92" y="100" width="18" height="18" fill="#b45309" rx="4"></rect>
+            <text x="118" y="115" font-size="16" fill="#334155">长均线 slow</text>
+            <text x="70" y="370" font-size="14" fill="#64748b">时间向右走</text>
+            <text x="24" y="65" font-size="14" fill="#64748b">价格</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <h3>策略简单不代表一定赚钱</h3>
+        <p>
+          双均线只是教学用的第一套规则。真正策略要经过更长数据、更严格成本、滑点、风控、回撤和样本外验证。
+          当前阶段的重点是学会系统流程。
+        </p>
+      </div>
+    </section>
+
+    <section id="paper" aria-labelledby="paper-title">
+      <h2 id="paper-title">七、Paper：真钱前的模拟盘演练</h2>
+      <p class="section-intro">
+        Paper 模式可以理解成“穿着救生衣练游泳”。它不接真实券商，不花真钱，但会认真记录订单、状态、对账和告警。
+      </p>
+
+      <div class="callout danger">
+        <h3>Paper 不是真钱</h3>
+        <p>
+          Paper 的价值不是赚钱，而是检查交易系统有没有纪律：启动前是否对账、异常时是否冻结、告警是否可见、恢复是否有依据。
+        </p>
+      </div>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>运行 Paper 模拟盘</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/run_paper.py \
+  --strategy config/strategies/dual_ma_510300_paper.yaml \
+  --paper config/paper.yaml \
+  --max-bars 20</code></pre>
+      </div>
+      <p class="mini">你应该看到类似 <code>paper events: runtime/paper/events.jsonl</code>、<code>paper store: runtime/paper/meta.db</code>、<code>final state: NORMAL</code>。</p>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>查看 Paper 当前状态</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/ops.py \
+  --store runtime/paper/meta.db \
+  --events runtime/paper/events.jsonl \
+  --operator shenxi \
+  status</code></pre>
+      </div>
+      <p class="mini">正常情况下输出 <code>NORMAL</code>。如果不是 NORMAL，不要急着继续跑，要先看运维章节。</p>
+
+      <div class="grid two">
+        <article class="plain-panel">
+          <h3><code>runtime/paper/events.jsonl</code> 是流水账</h3>
+          <p>
+            每发生一件重要事情，就写一行事件。比如启动对账、断连、告警、恢复。它适合追溯“系统到底做过什么”。
+          </p>
+        </article>
+        <article class="plain-panel">
+          <h3><code>runtime/paper/meta.db</code> 是状态库</h3>
+          <p>
+            SQLite 数据库，保存 Paper 当前状态、订单和成交等结构化记录。它适合查询“系统现在是什么状态”。
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="ops" aria-labelledby="ops-title">
+      <h2 id="ops-title">八、运维：学会刹车，比学会开车更重要</h2>
+      <p class="section-intro">
+        真正交易系统最怕“状态不清楚还继续跑”。所以 M3 阶段已经有状态机和运维命令，让你能查状态、冻结开仓、暂停和恢复。
+      </p>
+
+      <div class="svg-wrap" aria-label="Paper 状态机图">
+        <svg viewBox="0 0 900 360" role="img" aria-labelledby="state-title state-desc">
+          <title id="state-title">Paper 运维状态机</title>
+          <desc id="state-desc">NORMAL 可以进入 FREEZE_OPEN 或 HALT，恢复需要检查和对账。</desc>
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+              <polygon points="0 0, 10 4, 0 8" fill="#475569"></polygon>
+            </marker>
+          </defs>
+          <rect x="0" y="0" width="900" height="360" fill="#ffffff"></rect>
+          <circle cx="170" cy="170" r="72" fill="#dcfce7" stroke="#15803d" stroke-width="3"></circle>
+          <text x="125" y="162" font-size="22" fill="#14532d" font-weight="800">NORMAL</text>
+          <text x="105" y="194" font-size="15" fill="#166534">正常运行</text>
+
+          <circle cx="460" cy="105" r="78" fill="#fffbeb" stroke="#b45309" stroke-width="3"></circle>
+          <text x="390" y="98" font-size="22" fill="#7c2d12" font-weight="800">FREEZE_OPEN</text>
+          <text x="405" y="130" font-size="15" fill="#92400e">冻结新开仓</text>
+
+          <circle cx="720" cy="210" r="72" fill="#fee2e2" stroke="#b91c1c" stroke-width="3"></circle>
+          <text x="688" y="202" font-size="22" fill="#7f1d1d" font-weight="800">HALT</text>
+          <text x="660" y="234" font-size="15" fill="#991b1b">未知风险暂停</text>
+
+          <line x1="240" y1="150" x2="373" y2="118" stroke="#475569" stroke-width="3" marker-end="url(#arrowhead)"></line>
+          <text x="255" y="118" font-size="14" fill="#475569">freeze-open</text>
+
+          <line x1="235" y1="205" x2="645" y2="210" stroke="#475569" stroke-width="3" marker-end="url(#arrowhead)"></line>
+          <text x="360" y="236" font-size="14" fill="#475569">halt</text>
+
+          <line x1="415" y1="176" x2="245" y2="175" stroke="#475569" stroke-width="3" marker-end="url(#arrowhead)"></line>
+          <text x="285" y="198" font-size="14" fill="#475569">resume + precheck + reconciliation</text>
+
+          <line x1="666" y1="160" x2="530" y2="125" stroke="#475569" stroke-width="3" marker-end="url(#arrowhead)"></line>
+          <text x="548" y="105" font-size="14" fill="#475569">先查清楚</text>
+        </svg>
+      </div>
+
+      <div class="grid four">
+        <article class="step-card">
+          <span class="tag green">status</span>
+          <h3>查状态</h3>
+          <p>任何时候不确定，就先查状态。期望看到 NORMAL。</p>
+        </article>
+        <article class="step-card">
+          <span class="tag amber">freeze-open</span>
+          <h3>冻结开仓</h3>
+          <p>你觉得有风险但还没到全面暂停，就先禁止新的开仓。</p>
+        </article>
+        <article class="step-card">
+          <span class="tag red">halt</span>
+          <h3>暂停系统</h3>
+          <p>状态未知、风险未知、对账异常时，先停下来。</p>
+        </article>
+        <article class="step-card">
+          <span class="tag cyan">resume</span>
+          <h3>恢复</h3>
+          <p>恢复前必须做账户、持仓、活跃订单检查，并引用 OK 的对账编号。</p>
+        </article>
+      </div>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>手动冻结开仓</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/ops.py \
+  --store runtime/paper/meta.db \
+  --events runtime/paper/events.jsonl \
+  --operator shenxi \
+  freeze-open \
+  --reason manual-caution</code></pre>
+      </div>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>确认检查后恢复</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/ops.py \
+  --store runtime/paper/meta.db \
+  --events runtime/paper/events.jsonl \
+  --operator shenxi \
+  resume \
+  --reason checked-and-safe \
+  --precheck account \
+  --precheck positions \
+  --precheck active_orders \
+  --reconciliation-seq 42</code></pre>
+      </div>
+      <p class="mini">
+        <code>--reconciliation-seq 42</code> 只是示例。真实恢复时，要从 <code>events.jsonl</code> 里找到最近一次状态为 OK 或 REPAIRED 的对账事件编号。
+      </p>
+    </section>
+
+    <section id="drill" aria-labelledby="drill-title">
+      <h2 id="drill-title">九、断连演练：故意制造一次“出事了”</h2>
+      <p class="section-intro">
+        断连演练是 M3b 必做项目。它验证系统能不能在网关断开时冻结开仓、发 CRIT 告警、重新对账，然后恢复 NORMAL。
+      </p>
+
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>运行带断连演练的 Paper</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+.venv/bin/python scripts/run_paper.py \
+  --strategy config/strategies/dual_ma_510300_paper.yaml \
+  --paper config/paper.yaml \
+  --max-bars 20 \
+  --disconnect-drill \
+  --disconnect-reason user-flow-demo</code></pre>
+      </div>
+
+      <div class="svg-wrap" aria-label="断连演练流程图">
+        <svg viewBox="0 0 1000 300" role="img" aria-labelledby="drill-svg-title drill-svg-desc">
+          <title id="drill-svg-title">断连演练流程</title>
+          <desc id="drill-svg-desc">断连后冻结开仓，发 CRIT 告警，对账 OK 后恢复 NORMAL。</desc>
+          <rect x="0" y="0" width="1000" height="300" fill="#ffffff"></rect>
+          <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">
+            <rect x="35" y="86" width="150" height="100" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2"></rect>
+            <text x="70" y="128" font-size="20" fill="#14532d" font-weight="800">NORMAL</text>
+            <text x="58" y="158" font-size="14" fill="#166534">正常运行</text>
+
+            <path d="M190 136 L275 136" stroke="#64748b" stroke-width="3" marker-end="url(#arrowhead2)"></path>
+            <text x="205" y="112" font-size="14" fill="#475569">模拟断连</text>
+
+            <rect x="285" y="86" width="165" height="100" rx="8" fill="#fffbeb" stroke="#b45309" stroke-width="2"></rect>
+            <text x="315" y="126" font-size="19" fill="#7c2d12" font-weight="800">FREEZE_OPEN</text>
+            <text x="318" y="158" font-size="14" fill="#92400e">禁止新开仓</text>
+
+            <path d="M455 136 L540 136" stroke="#64748b" stroke-width="3" marker-end="url(#arrowhead2)"></path>
+            <text x="462" y="112" font-size="14" fill="#475569">发告警</text>
+
+            <rect x="550" y="86" width="150" height="100" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"></rect>
+            <text x="596" y="126" font-size="20" fill="#7f1d1d" font-weight="800">CRIT</text>
+            <text x="575" y="158" font-size="14" fill="#991b1b">严重告警</text>
+
+            <path d="M705 136 L790 136" stroke="#64748b" stroke-width="3" marker-end="url(#arrowhead2)"></path>
+            <text x="713" y="112" font-size="14" fill="#475569">重新对账</text>
+
+            <rect x="800" y="86" width="160" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"></rect>
+            <text x="835" y="126" font-size="20" fill="#1d4ed8" font-weight="800">OK → NORMAL</text>
+            <text x="830" y="158" font-size="14" fill="#1e40af">恢复运行</text>
+          </g>
+          <defs>
+            <marker id="arrowhead2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+              <polygon points="0 0, 10 4, 0 8" fill="#64748b"></polygon>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="callout success">
+        <h3>你应该看到什么</h3>
+        <p>
+          命令输出里应该有 <code>final state: NORMAL</code>，并打印 <code>disconnect drill</code>。
+          事件日志里应该能看到 <code>gateway_disconnect</code>、<code>alert</code>、<code>reconciliation</code>、<code>recovery</code>。
+        </p>
+      </div>
+    </section>
+
+    <section id="m3b" aria-labelledby="m3b-title">
+      <h2 id="m3b-title">十、M3b：真钱前 10 个交易日观察</h2>
+      <p class="section-intro">
+        M3b 是从“系统能跑”到“系统值得接近实盘”的过渡。它要求至少 10 个交易日，每天有记录、每天对账零差异，并且完成断连和 CRIT 告警演练。
+      </p>
+
+      <div class="callout danger">
+        <h3>M4 之前不要接真金白银</h3>
+        <p>
+          只有 M3b 签收后，才有资格考虑 M4 的 QMT / 实盘接入。否则你只是在没有足够刹车和记录的情况下冒险。
+        </p>
+      </div>
+
+      <div class="grid three">
+        <article class="step-card">
+          <span class="tag cyan">08:45 盘前</span>
+          <h3>启动前检查</h3>
+          <p>确认测试通过、配置是 paper、启动 Paper、查看状态是 NORMAL。</p>
+        </article>
+        <article class="step-card">
+          <span class="tag amber">盘中</span>
+          <h3>盯住异常</h3>
+          <p>如果出现 CRIT 告警，先查事件日志和状态库。需要谨慎时用 freeze-open。</p>
+        </article>
+        <article class="step-card">
+          <span class="tag green">15:05 收盘</span>
+          <h3>收盘记录</h3>
+          <p>确认订单、成交、拒单、对账结果、告警，并归档 runtime 记录。</p>
+        </article>
+      </div>
+
+      <h3>每日打卡表模板</h3>
+      <table aria-label="M3b 每日记录模板">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>策略</th>
+            <th>最终状态</th>
+            <th>订单数</th>
+            <th>成交数</th>
+            <th>拒单数</th>
+            <th>对账结果</th>
+            <th>告警</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>YYYY-MM-DD</td>
+            <td><code>dual_ma_510300</code></td>
+            <td><code>NORMAL</code></td>
+            <td>0 或实际数量</td>
+            <td>0 或实际数量</td>
+            <td>0</td>
+            <td><code>OK</code></td>
+            <td>无 / 已处理</td>
+            <td>无未解决人工干预</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="checklist" aria-label="M3b 签收清单">
+        <div class="check-item">
+          <span class="box" aria-hidden="true"></span>
+          <div><strong>连续至少 10 个交易日</strong><br><span class="mini">少一天都不算完成。中间如果有未解决崩溃或丢日志，那天不能计入。</span></div>
+        </div>
+        <div class="check-item">
+          <span class="box" aria-hidden="true"></span>
+          <div><strong>每天对账零差异</strong><br><span class="mini">现金、持仓、账户信息都要对得上。</span></div>
+        </div>
+        <div class="check-item">
+          <span class="box" aria-hidden="true"></span>
+          <div><strong>完成一次断连演练</strong><br><span class="mini">断连后进入 FREEZE_OPEN，发 CRIT，重新对账，恢复 NORMAL。</span></div>
+        </div>
+        <div class="check-item">
+          <span class="box" aria-hidden="true"></span>
+          <div><strong>确认 CRIT 告警可送达</strong><br><span class="mini">告警内容要包含 run_id、strategy_id、account_id、last_event_seq、local_time、market_time。</span></div>
+        </div>
+        <div class="check-item">
+          <span class="box" aria-hidden="true"></span>
+          <div><strong>没有未解决人工干预</strong><br><span class="mini">每天结束时，不应该留下“我也不知道现在安全吗”的状态。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="errors" aria-labelledby="errors-title">
+      <h2 id="errors-title">十一、常见错误：看到这些别慌</h2>
+      <p class="section-intro">
+        新手最怕报错。下面这些是最常见的坑，大部分不是系统坏了，而是目录、命令或状态没对。
+      </p>
+
+      <table aria-label="常见错误处理表">
+        <thead>
+          <tr>
+            <th>你看到的问题</th>
+            <th>通常原因</th>
+            <th>怎么处理</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>command not found: python</code></td>
+            <td>系统没有 <code>python</code> 这个命令。</td>
+            <td>用 <code>.venv/bin/python</code>，或先进入虚拟环境。</td>
+          </tr>
+          <tr>
+            <td>提示找不到 <code>scripts/run_backtest.py</code></td>
+            <td>你没有进入 <code>quant</code> 目录。</td>
+            <td>先运行 <code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant</code>。</td>
+          </tr>
+          <tr>
+            <td>缺少 <code>pandas</code>、<code>pydantic</code> 等依赖</td>
+            <td>没有使用项目里的虚拟环境。</td>
+            <td>确认命令前缀是 <code>.venv/bin/python</code>。</td>
+          </tr>
+          <tr>
+            <td><code>status</code> 不是 <code>NORMAL</code></td>
+            <td>系统可能处于冻结或暂停状态。</td>
+            <td>先看 <code>runtime/paper/events.jsonl</code>，确认最近对账 OK 后再考虑 resume。</td>
+          </tr>
+          <tr>
+            <td>对账不是 <code>OK</code></td>
+            <td>现金或持仓可能出现差异。</td>
+            <td>不要恢复交易，先记录差异，查清原因。</td>
+          </tr>
+          <tr>
+            <td>误删 <code>runtime</code></td>
+            <td>运行记录被清掉。</td>
+            <td>普通练习可以重跑；M3b 连续观察期间则这天很可能不能计入。</td>
+          </tr>
+          <tr>
+            <td>回测没有成交</td>
+            <td>样例数据短，订单不一定撮合成交。</td>
+            <td>先确认流程产物完整；收益不是当前样例的重点。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="quickstart" aria-labelledby="quickstart-title">
+      <h2 id="quickstart-title">十二、一页速查：每天照着走</h2>
+      <p class="section-intro">
+        如果你不想读长文，至少保存下面这套最小流程。先练熟，再慢慢理解每个文件。
+      </p>
+      <div class="code-block" data-copy>
+        <div class="code-head">
+          <span>每日最小操作流</span>
+          <button class="copy-btn" type="button">复制</button>
+        </div>
+        <pre><code>cd /Users/shenxi/Desktop/WORK-SPACE/个人量化系统/quant
+
+# 1. 确认系统没坏
+.venv/bin/python -m pytest -q
+
+# 2. 跑一次回测练习
+.venv/bin/python scripts/run_backtest.py \
+  --strategy config/strategies/dual_ma_510300.yaml \
+  --data-root data_sample \
+  --out runtime/demo_backtest \
+  --initial-cash 100000
+
+# 3. 跑 Paper 模拟盘
+.venv/bin/python scripts/run_paper.py \
+  --strategy config/strategies/dual_ma_510300_paper.yaml \
+  --paper config/paper.yaml \
+  --max-bars 20
+
+# 4. 查 Paper 状态
+.venv/bin/python scripts/ops.py \
+  --store runtime/paper/meta.db \
+  --events runtime/paper/events.jsonl \
+  --operator shenxi \
+  status</code></pre>
+      </div>
+
+      <div class="callout success">
+        <h3>你看到 NORMAL 后该做什么</h3>
+        <p>
+          打开 <code>runtime/demo_backtest/</code> 看回测产物；打开 <code>runtime/paper/events.jsonl</code> 看 Paper 流水；
+          然后按 M3b 每日打卡表记录今天是否可计入观察。
+        </p>
+      </div>
+    </section>
+
+    <section id="next" aria-labelledby="next-title">
+      <h2 id="next-title">十三、下一步边界：什么时候才考虑 M4</h2>
+      <p class="section-intro">
+        真正的纪律是：系统没有完成观察和签收，就不升级风险。M4 不是“技术上能写代码就开始”，而是 M3b 用事实证明系统可控之后才开始。
+      </p>
+      <div class="grid two">
+        <article class="warning-card">
+          <span class="tag red">现在不要做</span>
+          <h3>不要接真实券商和真钱</h3>
+          <p>不要跳过 M3b，不要把 Paper 当实盘，不要在没有对账和告警闭环时接 QMT。</p>
+        </article>
+        <article class="warning-card">
+          <span class="tag green">现在应该做</span>
+          <h3>练流程、记日志、做观察</h3>
+          <p>每天跑 Paper，记录状态、订单、成交、对账、告警，完成 10 日观察和演练。</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <strong>最后一句话：</strong>
+      这个项目现在最有价值的地方，不是让你马上赚钱，而是让你建立一套可验证、可复盘、能刹车的量化交易工作流。
+      当你能解释每一条命令、每一个状态和每一次对账时，你才真的开始掌控系统。
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      function fallbackCopy(text) {
+        var area = document.createElement("textarea");
+        area.value = text;
+        area.setAttribute("readonly", "readonly");
+        area.style.position = "fixed";
+        area.style.left = "-9999px";
+        document.body.appendChild(area);
+        area.select();
+        try {
+          document.execCommand("copy");
+          return true;
+        } catch (error) {
+          return false;
+        } finally {
+          document.body.removeChild(area);
+        }
+      }
+
+      function setButton(button, label) {
+        var old = button.textContent;
+        button.textContent = label;
+        window.setTimeout(function () {
+          button.textContent = old;
+        }, 1400);
+      }
+
+      document.querySelectorAll("[data-copy]").forEach(function (block) {
+        var button = block.querySelector(".copy-btn");
+        var code = block.querySelector("code");
+        if (!button || !code) {
+          return;
+        }
+        button.addEventListener("click", function () {
+          var text = code.textContent;
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function () {
+              setButton(button, "已复制");
+            }).catch(function () {
+              setButton(button, fallbackCopy(text) ? "已复制" : "复制失败");
+            });
+            return;
+          }
+          setButton(button, fallbackCopy(text) ? "已复制" : "复制失败");
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
