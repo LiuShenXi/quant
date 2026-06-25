@@ -311,6 +311,22 @@ def test_m3b_signoff_validator_rejects_malformed_iso_event_timestamp(
         validate_m3b_signoff(signoff_path)
 
 
+def test_m3b_signoff_validator_rejects_malformed_crit_delivery_timestamp(
+    tmp_path,
+) -> None:
+    def mutate(signoff: dict[str, Any]) -> None:
+        signoff["crit_delivery_receipts"][0]["delivered_at"] = "not-an-iso-timestamp"
+        signoff["crit_delivery_receipts"][0]["event_seq"] = 9999
+
+    signoff_path = _write_valid_evidence(tmp_path, mutate_signoff=mutate)
+
+    with pytest.raises(
+        SignoffValidationError,
+        match="crit_delivery_receipts\\[1\\]\\.delivered_at must be a valid ISO timestamp",
+    ):
+        validate_m3b_signoff(signoff_path)
+
+
 @pytest.mark.parametrize(
     ("field", "value", "match"),
     [

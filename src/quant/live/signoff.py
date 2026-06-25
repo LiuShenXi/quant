@@ -87,9 +87,13 @@ def _validate_payload(payload: Any, *, base_dir: Path) -> list[str]:
     else:
         if final_signoff.get("approved") is not True:
             errors.append("final_signoff.approved must be true")
-        for field in ("operator", "signed_at"):
-            if not _non_empty_string(final_signoff.get(field)):
-                errors.append(f"final_signoff.{field} must be present")
+        if not _non_empty_string(final_signoff.get("operator")):
+            errors.append("final_signoff.operator must be present")
+        signed_at = final_signoff.get("signed_at")
+        if not _non_empty_string(signed_at):
+            errors.append("final_signoff.signed_at must be present")
+        elif _date_from_iso(signed_at) is None:
+            errors.append("final_signoff.signed_at must be a valid ISO timestamp")
 
     if isinstance(trading_days, list) and isinstance(disconnect_drill, dict) and isinstance(
         receipts,
@@ -331,6 +335,9 @@ def _validate_receipts(receipts: list[Any]) -> list[str]:
             errors.append(f"{prefix}.severity must be CRIT")
         if not _positive_int(receipt.get("event_seq")):
             errors.append(f"{prefix}.event_seq must be a positive integer")
+        delivered_at = receipt.get("delivered_at")
+        if _non_empty_string(delivered_at) and _date_from_iso(delivered_at) is None:
+            errors.append(f"{prefix}.delivered_at must be a valid ISO timestamp")
         for field in ("run_id", "strategy_id", "account_id"):
             if not _non_empty_string(receipt.get(field)):
                 errors.append(f"{prefix}.{field} must be present")
