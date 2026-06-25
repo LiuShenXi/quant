@@ -226,6 +226,18 @@ def test_store_round_trips_kv_values_and_defaults(tmp_path) -> None:
     }
 
 
+def test_store_allocates_order_ids_atomically(tmp_path) -> None:
+    store = OmsStore(tmp_path / "meta.db")
+    store.init_schema()
+
+    assert store.next_order_id() == "O-1"
+    assert store.next_order_id() == "O-2"
+
+    reopened = OmsStore(tmp_path / "meta.db")
+    reopened.init_schema()
+    assert reopened.next_order_id() == "O-3"
+
+
 class TrackedConnection:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self.connection = connection

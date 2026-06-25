@@ -1,22 +1,22 @@
 from collections.abc import Callable
 
-from quant.core.contract import Account, Bar, Order, Position, Trade
+from quant.core.contract import Account, Bar, Position
 from quant.live.types import BrokerOrderSnapshot, BrokerTradeSnapshot, OrderRequest
 
 
 class GatewayBase:
     def __init__(self) -> None:
         self.on_bar: Callable[[Bar], None] = lambda bar: None
-        self.on_order: Callable[[Order], None] = lambda order: None
-        self.on_trade: Callable[[Trade], None] = lambda trade: None
+        self.on_order: Callable[[BrokerOrderSnapshot], None] = lambda order: None
+        self.on_trade: Callable[[BrokerTradeSnapshot], None] = lambda trade: None
         self.on_disconnect: Callable[[str], None] = lambda reason: None
 
     def set_callbacks(
         self,
         *,
         on_bar: Callable[[Bar], None],
-        on_order: Callable[[Order], None],
-        on_trade: Callable[[Trade], None],
+        on_order: Callable[[BrokerOrderSnapshot], None],
+        on_trade: Callable[[BrokerTradeSnapshot], None],
         on_disconnect: Callable[[str], None],
     ) -> None:
         self.on_bar = on_bar

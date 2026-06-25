@@ -192,6 +192,24 @@ class OmsStore:
             rows = conn.execute("SELECT * FROM trades ORDER BY dt, trade_id").fetchall()
         return [_row_to_trade(row) for row in rows]
 
+    def next_order_id(self, prefix: str = "O") -> str:
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                "SELECT value FROM kv WHERE key = ?",
+                ("next_order_seq",),
+            ).fetchone()
+            seq = int(json.loads(row["value"])) if row is not None else 1
+            conn.execute(
+                """
+                INSERT INTO kv (key, value)
+                VALUES (?, ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """,
+                ("next_order_seq", json.dumps(seq + 1)),
+            )
+        return f"{prefix}-{seq}"
+
     def save_account_snapshot(
         self,
         account: Account,

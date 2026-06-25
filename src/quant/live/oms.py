@@ -202,6 +202,20 @@ class OrderManager:
             )
             self.halt(reason)
             raise
+        if _is_stale_or_regressive_snapshot(order, snapshot):
+            self._append_reconciliation_failure(
+                "broker_order",
+                "ignored_stale_or_regressive_snapshot",
+                order_id=snapshot.order_id,
+                broker_order_id=snapshot.broker_order_id,
+                current_status=order.status.value,
+                snapshot_status=snapshot.status.value,
+                current_filled_qty=order.filled_qty,
+                snapshot_filled_qty=snapshot.filled_qty,
+            )
+            return order
+        if _is_duplicate_snapshot(order, snapshot):
+            return order
         updated = replace(
             order,
             symbol=snapshot.symbol,
@@ -326,10 +340,7 @@ class OrderManager:
         self._set_engine_state(EngineState.NORMAL, reason)
 
     def _next_order_id(self) -> str:
-        value = self.store.load_kv("next_order_seq", 1)
-        seq = int(value)
-        self.store.save_kv("next_order_seq", seq + 1)
-        return f"O-{seq}"
+        return self.store.next_order_id()
 
     def _set_engine_state(self, state: EngineState, reason: str) -> None:
         self.store.set_engine_state(state, reason, updated_at=self.clock())
@@ -380,6 +391,37 @@ def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
     if rule_id and reason:
         return f"{rule_id}: {reason}"
     return reason or rule_id or "risk_reject"
+
+
+def _is_stale_or_regressive_snapshot(order: Order, snapshot: BrokerOrderSnapshot) -> bool:
+    if snapshot.updated_at < order.updated_at:
+        return True
+    if snapshot.filled_qty < order.filled_qty:
+        return True
+    return order.status in _TERMINAL_STATUSES and snapshot.status != order.status
+
+
+def _is_duplicate_snapshot(order: Order, snapshot: BrokerOrderSnapshot) -> bool:
+    return (
+        order.broker_order_id == snapshot.broker_order_id
+        and order.symbol == snapshot.symbol
+        and order.side == snapshot.side
+        and order.type == snapshot.type
+        and order.qty == snapshot.qty
+        and order.price == snapshot.price
+        and order.status == snapshot.status
+        and order.filled_qty == snapshot.filled_qty
+        and order.remaining_qty == snapshot.remaining_qty
+        and order.avg_fill_price == snapshot.avg_fill_price
+        and order.updated_at == snapshot.updated_at
+    )
+
+
+_TERMINAL_STATUSES = {
+    OrderStatus.FILLED,
+    OrderStatus.CANCELLED,
+    OrderStatus.REJECTED,
+}
 
 
 def _order_payload(order: Order) -> dict[str, Any]:

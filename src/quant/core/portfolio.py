@@ -18,6 +18,26 @@ class Portfolio:
         self.frozen = 0.0
         self.positions: dict[str, PositionState] = {}
 
+    @classmethod
+    def from_snapshot(
+        cls,
+        account: Account,
+        positions: dict[str, Position],
+    ) -> "Portfolio":
+        portfolio = cls(account_id=account.account_id, initial_cash=account.cash)
+        portfolio.cash = account.cash
+        portfolio.frozen = account.frozen
+        portfolio.positions = {
+            symbol: PositionState(
+                qty=position.qty,
+                sellable=position.sellable,
+                pending_sellable=max(position.qty - position.sellable, 0),
+                avg_price=position.avg_price,
+            )
+            for symbol, position in positions.items()
+        }
+        return portfolio
+
     def apply_trade(self, trade: Trade) -> None:
         state = self.positions.setdefault(trade.symbol, PositionState())
         value = trade.qty * trade.price

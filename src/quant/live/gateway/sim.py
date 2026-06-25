@@ -35,6 +35,45 @@ class SimGateway(GatewayBase):
         self._trades: list[Trade] = []
         self._last_prices: dict[str, float] = {}
 
+    @classmethod
+    def from_snapshot(
+        cls,
+        *,
+        account: Account,
+        positions: dict[str, Position],
+        active_orders: list[Order],
+        trades: list[Trade],
+        account_id: str,
+        initial_cash: float,
+        volume_limit_pct: float = 0.05,
+    ) -> "SimGateway":
+        gateway = cls(
+            initial_cash=initial_cash,
+            account_id=account_id,
+            volume_limit_pct=volume_limit_pct,
+        )
+        gateway._portfolio = Portfolio.from_snapshot(account, positions)
+        gateway._orders = {
+            order.broker_order_id: order
+            for order in active_orders
+            if order.broker_order_id is not None
+        }
+        gateway._trades = list(trades)
+        gateway._last_prices = {
+            symbol: _position_mark_price(position)
+            for symbol, position in positions.items()
+            if position.qty > 0
+        }
+        gateway._next_order_seq = _next_sequence(
+            [order.broker_order_id for order in active_orders],
+            prefix="PAPER-O-",
+        )
+        gateway._next_trade_seq = _next_sequence(
+            [trade.broker_trade_id for trade in trades],
+            prefix="PAPER-T-",
+        )
+        return gateway
+
     def send_order(self, req: OrderRequest) -> str:
         self._raise_if_disconnected()
         broker_order_id = f"PAPER-O-{self._next_order_seq}"
@@ -103,12 +142,11 @@ class SimGateway(GatewayBase):
                 broker_order_id=broker_order_id,
                 broker_trade_id=broker_trade_id,
             )
+            updated = _apply_fill(order, result.filled_qty, result.fill_price, bar.dt)
+            self._orders[broker_order_id] = updated
             self._trades.append(trade)
             self._portfolio.apply_trade(trade)
             self.on_trade(_trade_snapshot(trade))
-
-            updated = _apply_fill(order, result.filled_qty, result.fill_price, bar.dt)
-            self._orders[broker_order_id] = updated
             self.on_order(_order_snapshot(updated))
 
     def inject_disconnect(self, reason: str) -> None:
@@ -120,6 +158,9 @@ class SimGateway(GatewayBase):
         self.connected = True
         self._disconnect_reason = None
 
+    def mark_new_day(self) -> None:
+        self._portfolio.mark_new_day()
+
     def query_account(self) -> Account:
         return self._portfolio.account(self._last_prices)
 
@@ -130,9 +171,11 @@ class SimGateway(GatewayBase):
         }
 
     def query_orders(self, active_only: bool = True) -> list[BrokerOrderSnapshot]:
-        orders = self._orders.values()
-        if active_only:
-            orders = [order for order in orders if _is_active(order)]
+        orders = [
+            order
+            for order in self._orders.values()
+            if not active_only or _is_active(order)
+        ]
         return [_order_snapshot(order) for order in orders]
 
     def query_trades(self) -> list[BrokerTradeSnapshot]:
@@ -167,6 +210,24 @@ def _apply_fill(order: Order, qty: float, price: float, updated_at) -> Order:
         avg_fill_price=avg_fill_price,
         updated_at=updated_at,
     )
+
+
+def _position_mark_price(position: Position) -> float:
+    if position.qty == 0:
+        return position.avg_price
+    return position.market_value / position.qty if position.market_value > 0 else position.avg_price
+
+
+def _next_sequence(values: list[str | None], prefix: str) -> int:
+    seq = 1
+    for value in values:
+        if value is None or not value.startswith(prefix):
+            continue
+        try:
+            seq = max(seq, int(value.removeprefix(prefix)) + 1)
+        except ValueError:
+            continue
+    return seq
 
 
 def _order_snapshot(order: Order) -> BrokerOrderSnapshot:

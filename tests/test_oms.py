@@ -383,3 +383,110 @@ def test_duplicate_broker_trade_is_idempotent(tmp_path) -> None:
     assert manager.on_broker_trade(snap) is None
     assert len(manager.store.list_trades()) == 1
     assert manager.store.load_account_snapshot().account.cash == 100_000
+
+
+def test_broker_order_snapshot_cannot_regress_terminal_status(tmp_path) -> None:
+    manager = make_manager(tmp_path)
+    order_id = submit_known_order(manager)
+    filled_at = datetime(2024, 1, 2, 9, 35, tzinfo=ZoneInfo("Asia/Shanghai"))
+    filled = BrokerOrderSnapshot(
+        broker_order_id="PAPER-O-1",
+        order_id=order_id,
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.FILLED,
+        filled_qty=1000,
+        remaining_qty=0,
+        avg_fill_price=3.2,
+        updated_at=filled_at,
+    )
+    manager.on_broker_order(filled)
+    stale = BrokerOrderSnapshot(
+        broker_order_id="PAPER-O-1",
+        order_id=order_id,
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.SUBMITTED,
+        filled_qty=0,
+        remaining_qty=1000,
+        avg_fill_price=0,
+        updated_at=filled_at,
+    )
+
+    assert manager.on_broker_order(stale).status == OrderStatus.FILLED
+
+    order = manager.store.get_order(order_id)
+    assert order.status == OrderStatus.FILLED
+    events = read_events(manager)
+    assert events[-1]["payload"]["reason"] == "ignored_stale_or_regressive_snapshot"
+
+
+def test_broker_order_snapshot_cannot_decrease_filled_quantity(tmp_path) -> None:
+    manager = make_manager(tmp_path)
+    order_id = submit_known_order(manager)
+    now = datetime(2024, 1, 2, 9, 35, tzinfo=ZoneInfo("Asia/Shanghai"))
+    partial = BrokerOrderSnapshot(
+        broker_order_id="PAPER-O-1",
+        order_id=order_id,
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.PARTIAL,
+        filled_qty=600,
+        remaining_qty=400,
+        avg_fill_price=3.2,
+        updated_at=now,
+    )
+    manager.on_broker_order(partial)
+    lower_fill = BrokerOrderSnapshot(
+        broker_order_id="PAPER-O-1",
+        order_id=order_id,
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.PARTIAL,
+        filled_qty=500,
+        remaining_qty=500,
+        avg_fill_price=3.2,
+        updated_at=now,
+    )
+
+    assert manager.on_broker_order(lower_fill).filled_qty == 600
+    assert manager.store.get_order(order_id).filled_qty == 600
+
+
+def test_duplicate_broker_order_snapshot_does_not_append_order_event(tmp_path) -> None:
+    manager = make_manager(tmp_path)
+    order_id = submit_known_order(manager)
+    snapshot = BrokerOrderSnapshot(
+        broker_order_id="PAPER-O-1",
+        order_id=order_id,
+        symbol="510300.SH",
+        side=OrderSide.BUY,
+        type=OrderType.LIMIT,
+        qty=1000,
+        price=3.2,
+        status=OrderStatus.SUBMITTED,
+        filled_qty=0,
+        remaining_qty=1000,
+        avg_fill_price=0,
+        updated_at=datetime(2024, 1, 2, 9, 31, tzinfo=ZoneInfo("Asia/Shanghai")),
+    )
+    initial_order_events = [
+        event for event in read_events(manager) if event["type"] == "order"
+    ]
+
+    manager.on_broker_order(snapshot)
+
+    order_events = [event for event in read_events(manager) if event["type"] == "order"]
+    assert order_events == initial_order_events

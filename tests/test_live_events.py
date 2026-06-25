@@ -1,9 +1,11 @@
+import inspect
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from quant.core.contract import OrderSide, OrderStatus, OrderType
 from quant.live.events import EventJournal
+from quant.live.gateway.base import GatewayBase
 from quant.live.types import BrokerOrderSnapshot, EngineState, OrderRequest
 
 
@@ -51,3 +53,10 @@ def test_event_journal_appends_jsonl_with_sequence(tmp_path) -> None:
     assert lines[0]["type"] == "engine_state"
     assert lines[0]["written_at"] == written_at.isoformat()
     assert journal.last_seq == 2
+
+
+def test_gateway_callbacks_accept_broker_snapshots() -> None:
+    signature = inspect.signature(GatewayBase.set_callbacks)
+
+    assert "BrokerOrderSnapshot" in str(signature.parameters["on_order"].annotation)
+    assert "BrokerTradeSnapshot" in str(signature.parameters["on_trade"].annotation)
