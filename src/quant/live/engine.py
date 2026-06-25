@@ -83,6 +83,9 @@ class PaperEngine:
             cash_tolerance=paper_config.reconciliation.cash_tolerance,
             position_qty_tolerance=paper_config.reconciliation.position_qty_tolerance,
             auto_repair_cash_drift_below=paper_config.reconciliation.auto_repair_cash_drift_below,
+            run_id=self._run_id(),
+            strategy_id=strategy_config.id,
+            account_id=paper_config.account_id,
             clock=lambda: self.now,
         )
         self.alert_manager = AlertManager(

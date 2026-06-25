@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -206,6 +207,7 @@ def _validate_trading_days(
 ) -> list[str]:
     errors: list[str] = []
     previous_date: str | None = None
+    previous_reconciliation_seq: int | None = None
     for index, day in enumerate(trading_days, start=1):
         prefix = f"trading_days[{index}]"
         if not isinstance(day, dict):
@@ -229,6 +231,19 @@ def _validate_trading_days(
         for field in ("startup_reconciliation_status", "close_reconciliation_status"):
             if day.get(field) not in {"OK", "REPAIRED"}:
                 errors.append(f"{prefix}.{field} must be OK or REPAIRED")
+        startup_seq = day.get("startup_reconciliation_seq")
+        close_seq = day.get("close_reconciliation_seq")
+        if _positive_int(startup_seq) and _positive_int(close_seq) and close_seq <= startup_seq:
+            errors.append(
+                f"{prefix}.close_reconciliation_seq must be after "
+                "startup_reconciliation_seq"
+            )
+        for seq in (startup_seq, close_seq):
+            if not _positive_int(seq):
+                continue
+            if previous_reconciliation_seq is not None and seq <= previous_reconciliation_seq:
+                errors.append("trading_days reconciliation seq values must be strictly increasing")
+            previous_reconciliation_seq = seq
         if day.get("unresolved_difference_count") != 0:
             errors.append(f"{prefix}.unresolved_difference_count must be 0")
         if day.get("manual_intervention_unresolved") is not False:
@@ -292,8 +307,8 @@ def _validate_disconnect_drill(disconnect_drill: dict[str, Any]) -> list[str]:
         errors.append("disconnect_drill.seq must be a positive integer")
     if not _positive_int(disconnect_drill.get("recovery_seq")):
         errors.append("disconnect_drill.recovery_seq must be a positive integer")
-    if disconnect_drill.get("status") not in {"RECOVERED", "RECOVERY_BLOCKED"}:
-        errors.append("disconnect_drill.status must be RECOVERED or RECOVERY_BLOCKED")
+    if disconnect_drill.get("status") != "RECOVERED":
+        errors.append("disconnect_drill.status must be RECOVERED")
     if not _non_empty_string(disconnect_drill.get("reason")):
         errors.append("disconnect_drill.reason must be present")
     for field in ("run_id", "strategy_id", "account_id"):
@@ -391,7 +406,10 @@ def _event_expectations(
                 event_type="gateway_disconnect",
                 event_date=disconnect_drill["date"],
                 payload=_expected_context(disconnect_drill)
-                | {"reason": disconnect_drill.get("reason")},
+                | {
+                    "reason": disconnect_drill.get("reason"),
+                    "state": "FREEZE_OPEN",
+                },
             )
         )
     if _positive_int(disconnect_drill.get("recovery_seq")) and _non_empty_string(
@@ -403,7 +421,11 @@ def _event_expectations(
                 seq=disconnect_drill["recovery_seq"],
                 event_type="recovery",
                 event_date=disconnect_drill["date"],
-                payload=_expected_context(disconnect_drill),
+                payload=_expected_context(disconnect_drill)
+                | {
+                    "state": "NORMAL",
+                    "reason": "gateway_reconnected_reconciliation_ok",
+                },
             )
         )
 
@@ -457,7 +479,8 @@ def _validate_event(
     event_date = _date_from_iso(event.get("written_at"))
     if event_date is None:
         errors.append(
-            f"{expectation.label}: event seq {expectation.seq}.written_at must be present"
+            f"{expectation.label}: event seq {expectation.seq}.written_at must be "
+            "a valid ISO timestamp"
         )
     elif event_date != expectation.event_date:
         errors.append(
@@ -489,7 +512,13 @@ def _expected_context(row: dict[str, Any]) -> dict[str, object]:
 def _date_from_iso(value: Any) -> str | None:
     if not _non_empty_string(value):
         return None
-    return value.split("T", maxsplit=1)[0]
+    raw_value = value.strip()
+    if raw_value.endswith("Z"):
+        raw_value = f"{raw_value[:-1]}+00:00"
+    try:
+        return datetime.fromisoformat(raw_value).date().isoformat()
+    except ValueError:
+        return None
 
 
 def _positive_int(value: Any) -> bool:

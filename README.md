@@ -32,6 +32,9 @@ python scripts/run_paper.py --strategy config/strategies/dual_ma_510300_paper.ya
 python scripts/ops.py --store runtime/paper/meta.db --events runtime/paper/events.jsonl --operator shenxi status
 ```
 
+Live config examples may contain placeholders only. Real local overlays belong in
+`config/live/local/`, which is gitignored and must not be committed.
+
 ## Documents
 
 - `架构包/`: original architecture package.

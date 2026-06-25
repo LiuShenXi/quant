@@ -60,10 +60,7 @@ class RuntimeMonitor:
         self.store.save_kv("recoverable_freeze_reason", "gateway_disconnect")
         self.journal.append(
             "gateway_disconnect",
-            {
-                "state": state.value,
-                "reason": reason,
-            },
+            self._base_payload(now, reason=reason) | {"state": state.value},
         )
         self._append_engine_state(state, reason)
         self.alert_manager.emit(
@@ -92,25 +89,24 @@ class RuntimeMonitor:
         if state == current:
             return current
 
+        now = self.clock()
+        reason = "gateway_reconnected_reconciliation_ok"
         self.store.set_engine_state(
             state,
-            "gateway_reconnected_reconciliation_ok",
-            updated_at=self.clock(),
+            reason,
+            updated_at=now,
         )
         self.journal.append(
             "engine_state",
             {
                 "state": state.value,
-                "reason": "gateway_reconnected_reconciliation_ok",
+                "reason": reason,
             },
         )
         self.store.save_kv("recoverable_freeze_reason", False)
         self.journal.append(
             "recovery",
-            {
-                "state": state.value,
-                "reason": "gateway_reconnected_reconciliation_ok",
-            },
+            self._base_payload(now, reason=reason) | {"state": state.value},
         )
         return state
 
