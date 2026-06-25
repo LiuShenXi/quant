@@ -1,0 +1,26 @@
+gate: M3b
+required_trading_days: 10
+trading_days:
+  - date: YYYY-MM-DD
+    startup_reconciliation_seq: 0
+    startup_reconciliation_status: OK
+    close_reconciliation_seq: 0
+    close_reconciliation_status: OK
+    unresolved_difference_count: 0
+    manual_intervention_unresolved: false
+disconnect_drill:
+  seq: 0
+  recovery_seq: 0
+  status: RECOVERED
+crit_delivery_receipts:
+  - delivery_id: delivery-0
+    event_seq: 0
+    channel: dry-run-file
+    delivered_at: YYYY-MM-DDTHH:MM:SS+08:00
+manual_intervention:
+  unresolved: false
+  notes: none
+final_signoff:
+  approved: false
+  operator: ""
+  signed_at: ""
