@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ETF 轮动 v1 小白学习文档</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2433;
+      --muted: #667085;
+      --line: #d9e1ec;
+      --bg: #f6f8fb;
+      --paper: #ffffff;
+      --blue: #2563eb;
+      --green: #15803d;
+      --red: #b42318;
+      --amber: #a16207;
+      --slate: #344054;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.72;
+    }
+    header {
+      background: #102033;
+      color: white;
+      padding: 42px 22px 32px;
+    }
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+    .hero {
+      width: min(1040px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 5vw, 48px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0 0; }
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #eef2f7;
+      color: #23314a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+    .subtitle {
+      max-width: 800px;
+      margin: 0;
+      color: #d8e4f3;
+      font-size: 17px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #eef5ff;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfe;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .metric .value {
+      margin-top: 4px;
+      font-size: 24px;
+      font-weight: 720;
+      line-height: 1.15;
+    }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .amber { color: var(--amber); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--slate);
+      background: #f3f6fa;
+      font-weight: 650;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+      min-height: 110px;
+    }
+    .step strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--blue);
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 82px;
+      gap: 10px;
+      align-items: center;
+      margin: 11px 0;
+    }
+    .bar-track {
+      height: 18px;
+      border-radius: 999px;
+      background: #e7edf5;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+    .note {
+      border-left: 4px solid var(--blue);
+      padding: 10px 12px;
+      background: #eff6ff;
+      border-radius: 6px;
+      color: #1e3a5f;
+    }
+    .warn {
+      border-left-color: var(--amber);
+      background: #fffbeb;
+      color: #713f12;
+    }
+    .bad {
+      border-left-color: var(--red);
+      background: #fff1f0;
+      color: #7a271a;
+    }
+    ul, ol { padding-left: 22px; margin: 8px 0 0; }
+    li { margin: 5px 0; }
+    .footer {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px 0 0;
+    }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 1fr; gap: 4px; }
+      section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <h1>ETF 轮动 v1：给小白看的策略说明</h1>
+      <p class="subtitle">这是一份把本轮量化实验讲清楚的学习文档。它不是投资建议，也不是实盘承诺，而是解释“我为什么这样设计策略、它每天怎么做决定、这轮回测说明了什么”。</p>
+      <div class="meta">
+        <span class="pill">运行日期：2026-06-26</span>
+        <span class="pill">数据区间：2025-06-03 到 2026-06-25</span>
+        <span class="pill">标的：510300.SH / 510500.SH</span>
+        <span class="pill">模式：研究回测，未真钱交易</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>一句话先讲明白</h2>
+      <p>ETF 轮动 v1 做的是一件朴素的事：<strong>市场不强时少动或空仓；市场强时，在沪深300 ETF 和中证500 ETF 之间选更强的那一个。</strong></p>
+      <p>它不是预测明天涨跌，而是每天问三个问题：</p>
+      <ol>
+        <li>这只 ETF 现在是不是还在上升趋势里？</li>
+        <li>如果两只都还不错，哪只最近更强？</li>
+        <li>如果要换仓，是否应该先卖旧仓、等账户空出来，再买新仓？</li>
+      </ol>
+      <p class="note">这轮策略没有写进框架代码，只放在使用记录目录下，作为“使用框架做研究”的外部策略实验。</p>
+    </section>
+
+    <section>
+      <h2>为什么不用原来的双均线策略继续加码？</h2>
+      <p>上一轮用 <code>DualMA</code> 验证了系统链路，但它更像“管道测试策略”，不是成熟的赚钱策略。在这段样本里，双均线对上涨行情的捕捉不够好。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>策略或基准</th>
+            <th>收益率</th>
+            <th>最大回撤</th>
+            <th>怎么理解</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DualMA 510300 20/60</td>
+            <td class="red">-1.10%</td>
+            <td>-7.16%</td>
+            <td>验证框架可以跑通，但收益表现弱。</td>
+          </tr>
+          <tr>
+            <td>DualMA 510500 20/60</td>
+            <td class="green">5.86%</td>
+            <td>-14.21%</td>
+            <td>收益为正，但波动较大。</td>
+          </tr>
+          <tr>
+            <td>ETF 轮动 v1</td>
+            <td class="green">20.10%</td>
+            <td>-6.49%</td>
+            <td>本轮迭代后的策略，收益和回撤都明显改善。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>这两个 ETF 分别代表什么？</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>代码</th>
+            <th>名称</th>
+            <th>通俗理解</th>
+            <th>本轮买入持有收益</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>510300.SH</code></td>
+            <td>沪深300ETF</td>
+            <td>更偏大盘蓝筹，通常更稳一些。</td>
+            <td class="green">27.57%</td>
+          </tr>
+          <tr>
+            <td><code>510500.SH</code></td>
+            <td>中证500ETF</td>
+            <td>更偏中盘成长，行情好时弹性更大，波动也更大。</td>
+            <td class="green">59.30%</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="warn">注意：510500 在这段样本里买入持有收益最高，但这不等于它以后一定最好。策略的目标不是事后挑赢家，而是在每天只知道过去数据的情况下做相对稳健的选择。</p>
+    </section>
+
+    <section>
+      <h2>策略每天怎么做决定？</h2>
+      <div class="flow">
+        <div class="step">
+          <strong>1. 看趋势</strong>
+          <span>价格高于 60 日均线，才认为这只 ETF 处在可参与状态。</span>
+        </div>
+        <div class="step">
+          <strong>2. 算强弱</strong>
+          <span>用近 20 日涨幅做分数，谁更强谁排前面。</span>
+        </div>
+        <div class="step">
+          <strong>3. 只选一个</strong>
+          <span>最多只持有一只 ETF，另一只目标仓位设为 0。</span>
+        </div>
+        <div class="step">
+          <strong>4. 控制仓位</strong>
+          <span>最多用约 80% 账户资产买入，保留现金缓冲。</span>
+        </div>
+        <div class="step">
+          <strong>5. 两段换仓</strong>
+          <span>先卖旧仓，确认账户空出来后，再买新 ETF，避免现金不足拒单。</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>这轮关键参数</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>参数</th>
+            <th>值</th>
+            <th>小白解释</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>trend_window</code></td>
+            <td>60</td>
+            <td>用最近 60 个交易日判断大趋势。</td>
+          </tr>
+          <tr>
+            <td><code>momentum_window</code></td>
+            <td>20</td>
+            <td>用最近 20 个交易日涨幅比较谁更强。</td>
+          </tr>
+          <tr>
+            <td><code>target_exposure_pct</code></td>
+            <td>0.8</td>
+            <td>最多用 80% 资产买入，避免满仓导致换仓困难。</td>
+          </tr>
+          <tr>
+            <td><code>min_hold_days</code></td>
+            <td>5</td>
+            <td>至少持有一段时间，减少频繁来回切换。</td>
+          </tr>
+          <tr>
+            <td><code>score_buffer</code></td>
+            <td>0.01</td>
+            <td>新标的没有明显强过当前持仓时，不轻易换。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮回测结果</h2>
+      <div class="grid">
+        <div class="metric">
+          <div class="label">期末资产</div>
+          <div class="value">120,098.30</div>
+        </div>
+        <div class="metric">
+          <div class="label">策略收益</div>
+          <div class="value green">20.10%</div>
+        </div>
+        <div class="metric">
+          <div class="label">最大回撤</div>
+          <div class="value amber">-6.49%</div>
+        </div>
+        <div class="metric">
+          <div class="label">拒单数量</div>
+          <div class="value green">0</div>
+        </div>
+      </div>
+      <h3>收益对比</h3>
+      <div class="bar-row">
+        <div>510500 买入持有</div>
+        <div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div>
+        <div>59.30%</div>
+      </div>
+      <div class="bar-row">
+        <div>510300 买入持有</div>
+        <div class="bar-track"><div class="bar-fill" style="width: 46%;"></div></div>
+        <div>27.57%</div>
+      </div>
+      <div class="bar-row">
+        <div>ETF 轮动 v1</div>
+        <div class="bar-track"><div class="bar-fill" style="width: 34%;"></div></div>
+        <div>20.10%</div>
+      </div>
+      <div class="bar-row">
+        <div>DualMA 510500</div>
+        <div class="bar-track"><div class="bar-fill" style="width: 10%;"></div></div>
+        <div>5.86%</div>
+      </div>
+      <p class="note">ETF 轮动 v1 没有跑赢本轮最强的 510500 买入持有，但它比 DualMA 更好，而且最大回撤比 510500 的 DualMA 明显小。对一个第一版研究策略来说，这是可以继续观察的结果。</p>
+    </section>
+
+    <section>
+      <h2>本轮迭代中修正了什么？</h2>
+      <p>第一次跑轮动策略时，出现过一个策略层面的实际问题：从一只 ETF 切到另一只 ETF 时，策略同一天同时发出“卖旧仓”和“买新仓”，买单会因为旧仓资金还没释放而被拒。</p>
+      <p>后面改成了更保守的两段式换仓：</p>
+      <ol>
+        <li>发现要换仓，先把旧 ETF 的目标仓位设为 0。</li>
+        <li>等框架确认旧仓已经卖掉，账户处于空仓或现金充足状态。</li>
+        <li>下一交易日再买入新的 ETF。</li>
+      </ol>
+      <p class="note">最终版本：25 笔订单、25 笔成交、0 笔拒单。这说明策略和框架的资金检查节奏已经匹配。</p>
+    </section>
+
+    <section>
+      <h2>最后一天策略持有什么？</h2>
+      <p>本轮数据结束在 <code>2026-06-25</code>。最后一笔订单是买入 <code>510500.SH</code>：</p>
+      <table>
+        <thead>
+          <tr>
+            <th>订单</th>
+            <th>标的</th>
+            <th>方向</th>
+            <th>数量</th>
+            <th>价格</th>
+            <th>成交时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>O-25</td>
+            <td><code>510500.SH</code></td>
+            <td>买入</td>
+            <td>10,400</td>
+            <td>8.984</td>
+            <td>2026-06-25 15:00</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>这表示策略在本轮样本末尾认为中证500ETF 相对更值得持有。</p>
+    </section>
+
+    <section>
+      <h2>我对这轮策略的判断</h2>
+      <p><strong>结论：可以继续研究观察，但不应该直接实盘。</strong></p>
+      <ul>
+        <li>优点：比 DualMA 明显更好，回撤控制也更舒服，订单没有拒单。</li>
+        <li>缺点：没有跑赢 510500 买入持有，说明它还不是强 alpha 策略。</li>
+        <li>风险：样本只有一年左右，而且正好包含中小盘明显上涨阶段，不能说明长期有效。</li>
+        <li>下一步：至少加入更长历史区间、更多市场状态，并做 Paper 观察，不急着真钱交易。</li>
+      </ul>
+      <p class="bad">这份文档用于学习和复盘，不构成任何投资建议。真实交易前还需要更长周期测试、实盘前 Paper 观察、人工复核和风控签核。</p>
+    </section>
+
+    <section>
+      <h2>文件在哪里？</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>内容</th>
+            <th>路径</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>外部策略代码</td>
+            <td><code>量化使用记录2026-06-26/strategy_lab/etf_regime_rotation.py</code></td>
+          </tr>
+          <tr>
+            <td>外部策略配置</td>
+            <td><code>量化使用记录2026-06-26/strategy_lab/etf_regime_rotation_510300_510500.yaml</code></td>
+          </tr>
+          <tr>
+            <td>回测结果</td>
+            <td><code>量化使用记录2026-06-26/backtest/etf_regime_rotation_v1/</code></td>
+          </tr>
+          <tr>
+            <td>运行日志</td>
+            <td><code>量化使用记录2026-06-26/logs/12_backtest_etf_regime_rotation_v1_flat_wait.log</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="footer">
+      生成时间：2026-06-26。框架仅被用来运行外部策略实验；本学习文档保存在使用记录目录。
+    </div>
+  </main>
+</body>
+</html>

@@ -1,1 +1,2 @@
-
+trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id
+T-1,O-1,dual_ma_510300,backtest,510300.SH,BUY,10000.0,3.11,7.78,2024-01-05T15:00:00+08:00,,

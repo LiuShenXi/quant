@@ -1,0 +1,15 @@
+account_id: paper-record-510300-drill-20260626
+initial_cash: 100000
+timezone: Asia/Shanghai
+data_root: ../量化使用记录2026-06-26/data/etf_510300_20250601_20260626
+store_path: ../量化使用记录2026-06-26/paper/510300_disconnect_drill/meta.db
+events_path: ../量化使用记录2026-06-26/paper/510300_disconnect_drill/events.jsonl
+run_root: ../量化使用记录2026-06-26/paper/510300_disconnect_drill/runs
+reconciliation:
+  cash_tolerance: 0.01
+  position_qty_tolerance: 0
+  auto_repair_cash_drift_below: 1.0
+monitor:
+  market_data_staleness_sec: 60
+  gateway_heartbeat_sec: 30
+  alert_dedupe_sec: 300

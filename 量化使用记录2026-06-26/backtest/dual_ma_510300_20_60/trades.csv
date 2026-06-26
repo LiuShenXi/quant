@@ -1,0 +1,7 @@
+trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id
+T-1,O-1,dual_ma_510300_real_validation,backtest,510300.SH,BUY,10000.0,4.541,11.35,2025-08-27T15:00:00+08:00,,
+T-2,O-2,dual_ma_510300_real_validation,backtest,510300.SH,SELL,10000.0,4.711,11.78,2025-12-08T15:00:00+08:00,,
+T-3,O-4,dual_ma_510300_real_validation,backtest,510300.SH,BUY,10000.0,4.919,12.3,2026-01-07T15:00:00+08:00,,
+T-4,O-3,dual_ma_510300_real_validation,backtest,510300.SH,BUY,10000.0,4.844,12.11,2026-01-08T15:00:00+08:00,,
+T-5,O-5,dual_ma_510300_real_validation,backtest,510300.SH,SELL,20000.0,4.599,23.0,2026-03-20T15:00:00+08:00,,
+T-6,O-6,dual_ma_510300_real_validation,backtest,510300.SH,BUY,10000.0,4.755,11.89,2026-04-29T15:00:00+08:00,,

@@ -1,0 +1,6 @@
+trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id
+T-1,O-1,dual_ma_510500_record_probe,backtest,510500.SH,BUY,10000.0,7.046,17.62,2025-08-27T15:00:00+08:00,,
+T-2,O-2,dual_ma_510500_record_probe,backtest,510500.SH,SELL,10000.0,7.05,17.62,2025-11-28T15:00:00+08:00,,
+T-3,O-3,dual_ma_510500_record_probe,backtest,510500.SH,BUY,10000.0,7.581,18.95,2025-12-31T15:00:00+08:00,,
+T-4,O-4,dual_ma_510500_record_probe,backtest,510500.SH,SELL,10000.0,7.803,19.51,2026-03-30T15:00:00+08:00,,
+T-5,O-5,dual_ma_510500_record_probe,backtest,510500.SH,BUY,10000.0,8.715,21.79,2026-05-08T15:00:00+08:00,,

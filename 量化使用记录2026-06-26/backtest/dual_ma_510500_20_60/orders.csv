@@ -1,0 +1,6 @@
+order_id,strategy_id,account_id,symbol,side,type,qty,price,status,filled_qty,remaining_qty,avg_fill_price,created_at,updated_at,broker_order_id,reject_reason
+O-1,dual_ma_510500_record_probe,backtest,510500.SH,BUY,LIMIT,10000.0,7.048,FILLED,10000.0,0.0,7.046,2025-08-26T15:00:00+08:00,2025-08-27T15:00:00+08:00,,
+O-2,dual_ma_510500_record_probe,backtest,510500.SH,SELL,LIMIT,10000.0,7.05,FILLED,10000.0,0.0,7.05,2025-11-27T15:00:00+08:00,2025-11-28T15:00:00+08:00,,
+O-3,dual_ma_510500_record_probe,backtest,510500.SH,BUY,LIMIT,10000.0,7.581,FILLED,10000.0,0.0,7.581,2025-12-30T15:00:00+08:00,2025-12-31T15:00:00+08:00,,
+O-4,dual_ma_510500_record_probe,backtest,510500.SH,SELL,LIMIT,10000.0,7.803,FILLED,10000.0,0.0,7.803,2026-03-27T15:00:00+08:00,2026-03-30T15:00:00+08:00,,
+O-5,dual_ma_510500_record_probe,backtest,510500.SH,BUY,LIMIT,10000.0,8.771,FILLED,10000.0,0.0,8.715,2026-05-07T15:00:00+08:00,2026-05-08T15:00:00+08:00,,

@@ -10,5 +10,6 @@ __pycache__/
 .worktrees/
 runtime/
 results/
+data_real/
 tests/golden/current/
 config/live/local/

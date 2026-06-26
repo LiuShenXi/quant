@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>首轮量化使用记录</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #5c6875;
+      --line: #d8dee6;
+      --paper: #f7f8fb;
+      --panel: #ffffff;
+      --green: #168a53;
+      --green-soft: #e8f6ef;
+      --amber: #b56a08;
+      --amber-soft: #fff4df;
+      --red: #b42318;
+      --red-soft: #ffe8e5;
+      --blue: #2563a8;
+      --blue-soft: #e9f2ff;
+      --violet: #6d4cc2;
+      --violet-soft: #f0ebff;
+      --shadow: 0 18px 48px rgba(21, 32, 43, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #17324f 0%, #286257 52%, #5a6a35 100%);
+      color: #fff;
+      border-radius: 18px;
+      padding: 34px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -120px;
+      width: 360px;
+      height: 360px;
+      border: 52px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      position: relative;
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1.08;
+      letter-spacing: 0;
+      max-width: 780px;
+    }
+
+    .hero p {
+      position: relative;
+      max-width: 850px;
+      margin: 0;
+      color: rgba(255,255,255,0.90);
+      font-size: 18px;
+    }
+
+    .hero .meta {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 700;
+      font-size: 13px;
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.20);
+    }
+
+    .section {
+      margin-top: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px;
+      box-shadow: 0 8px 26px rgba(21,32,43,0.05);
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    .section h3 {
+      margin: 24px 0 10px;
+      font-size: 19px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-top: -4px;
+      max-width: 860px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .card.good { background: var(--green-soft); border-color: #b8e5cc; }
+    .card.warn { background: var(--amber-soft); border-color: #f3d294; }
+    .card.bad { background: var(--red-soft); border-color: #ffbbb5; }
+    .card.info { background: var(--blue-soft); border-color: #bdd7ff; }
+    .card.violet { background: var(--violet-soft); border-color: #d6caff; }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 7px;
+    }
+
+    .big {
+      font-size: 31px;
+      line-height: 1.1;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .small { color: var(--muted); font-size: 14px; }
+
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .dot-good { background: var(--green); }
+    .dot-warn { background: var(--amber); }
+    .dot-bad { background: var(--red); }
+    .dot-info { background: var(--blue); }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 128px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -17px;
+      top: 44px;
+      color: var(--blue);
+      font-weight: 900;
+      font-size: 22px;
+      z-index: 1;
+    }
+
+    .flow-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--blue);
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 24px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .event {
+      position: relative;
+      padding: 0 0 20px 20px;
+    }
+
+    .event::before {
+      content: "";
+      position: absolute;
+      left: -22px;
+      top: 7px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 4px solid var(--blue);
+    }
+
+    .event h3 {
+      margin: 0 0 5px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      color: #293848;
+      background: #eef2f7;
+      font-size: 13px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code, .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.94em;
+    }
+
+    .path {
+      display: block;
+      word-break: break-all;
+      color: #334155;
+      background: #f4f6f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 9px 10px;
+      margin-top: 8px;
+    }
+
+    .bar-chart {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 78px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar-track {
+      height: 26px;
+      border-radius: 999px;
+      background: #edf1f5;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      min-width: 2px;
+    }
+
+    .bar-fill.strategy { background: var(--blue); }
+    .bar-fill.hold { background: var(--green); }
+    .bar-fill.negative { background: var(--red); }
+
+    .warning-box {
+      border-left: 6px solid var(--amber);
+      background: var(--amber-soft);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .ok-box {
+      border-left: 6px solid var(--green);
+      background: var(--green-soft);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .no-box {
+      border-left: 6px solid var(--red);
+      background: var(--red-soft);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .mini-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 14px;
+    }
+
+    .footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 28px 0 0;
+      font-size: 14px;
+    }
+
+    @media (max-width: 920px) {
+      .grid.cards, .grid.two, .grid.three, .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        content: "↓";
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -24px;
+        transform: translateX(-50%);
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>首轮量化使用记录</h1>
+      <p>
+        这是一份给非技术读者看的图文记录：我们第一次把个人量化框架拿来跑真实 A 股 ETF 数据，
+        只做非真钱验证，不接券商、不下真钱单。重点不是证明策略能赚钱，而是证明“数据、模拟交易、对账、报警、台账”这条链路能不能站住。
+      </p>
+      <div class="meta">
+        <span class="pill">记录日期：2026-06-26</span>
+        <span class="pill">标的：510300.SH 沪深300ETF</span>
+        <span class="pill">模式：Paper 非真钱</span>
+        <span class="pill">状态：M3b 未完成</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>一句话结论</h2>
+      <p class="lead">
+        框架已经能用 A 股真实 ETF 数据跑非真钱验证，正常跑、断线演练、对账、台账、第二只 ETF 探针都做过了；
+        2026-06-26 收盘后已经跑出第 1 个可计数观察日。但现在还没有进入真钱阶段，也没有通过 M3b，因为还差 9 个观察日、手机报警确认和最终签字。
+      </p>
+
+      <div class="grid cards">
+        <div class="card good">
+          <div class="kicker">数据链路</div>
+          <div class="big">可用</div>
+          <div class="small">已支持新浪历史、腾讯日线和东财 ETF 快照交叉校验。</div>
+        </div>
+        <div class="card good">
+          <div class="kicker">Paper 运行</div>
+          <div class="big">NORMAL</div>
+          <div class="small">510300 非真钱回放最终状态正常，对账 OK。</div>
+        </div>
+        <div class="card warn">
+          <div class="kicker">M3b 进度</div>
+          <div class="big">1 / 10</div>
+          <div class="small">已有第 1 个可计数观察日，但不能进 M4/QMT。</div>
+        </div>
+        <div class="card bad">
+          <div class="kicker">真钱交易</div>
+          <div class="big">禁止</div>
+          <div class="small">还缺 9 天观察、手机报警确认和最终签字。</div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <strong>最重要的边界：</strong>
+        本轮所有运行都是“非真钱验证”。它验证机器能不能跑，不代表策略能赚钱，也不允许直接进入实盘。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>这套框架现在怎么跑</h2>
+      <p class="lead">下面这张流程图是本轮实际跑通的链路。可以把它理解成：先取真实行情，再过滤不可靠数据，再模拟交易，最后对账和记账。</p>
+
+      <div class="flow" aria-label="量化验证流程图">
+        <div class="flow-step">
+          <div class="flow-icon">1</div>
+          <strong>真实行情</strong>
+          <p class="small">从 AkShare 拉 ETF 日线，生成本地 CSV 数据集。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">2</div>
+          <strong>数据保护</strong>
+          <p class="small">15:10 前不接受当天日线，避免把盘中数据当收盘数据。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">3</div>
+          <strong>Paper 模拟</strong>
+          <p class="small">用非真钱账户跑策略，生成订单、成交和账户状态。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">4</div>
+          <strong>对账归档</strong>
+          <p class="small">检查现金、持仓、事件日志，保存 SQLite 和 JSONL 证据。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">5</div>
+          <strong>观察台账</strong>
+          <p class="small">把每次观察写入 CSV，区分“正式计数”和“非计数演练”。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>本轮实际做了什么</h2>
+      <div class="timeline">
+        <div class="event">
+          <h3>1. 接入真实 A 股 ETF 数据</h3>
+          <p>
+            新增了 AkShare ETF 数据构建能力，生成 <code>bars_1d.csv</code>、<code>adjust_factors.csv</code>、
+            <code>instruments.csv</code>、<code>trade_calendar.csv</code>。当前主数据目录是：
+            <span class="path">data_real/etf_510300_2025_2026_check/</span>
+          </p>
+        </div>
+        <div class="event">
+          <h3>2. 用你截图里的 K 线做人工核对</h3>
+          <p>
+            你用行情软件核对了 <code>510300</code> 在 <code>2025-06-19</code> 的前复权 K 线。
+            本地原始收盘价是 <code>3.873</code>，累计分红差是 <code>0.123</code>，
+            所以前复权收盘价是 <code>3.750</code>，和截图一致。
+          </p>
+        </div>
+        <div class="event">
+          <h3>3. 跑 510300 非真钱 Paper</h3>
+          <p>
+            使用 <code>dual_ma_510300_real_validation_paper.yaml</code> 和 <code>paper_real_510300.yaml</code>。
+            正常回放最终状态 <strong>NORMAL</strong>，5 笔订单、5 笔成交、0 个未完成订单，对账 <strong>OK</strong>。
+          </p>
+        </div>
+        <div class="event">
+          <h3>4. 做断线演练和报警演练</h3>
+          <p>
+            模拟网关断线后，状态从 <code>FREEZE_OPEN</code> 恢复到 <code>NORMAL</code>；
+            系统发出 1 条 CRIT 报警，并写到 dry-run 文件。手机端确认还没有做，所以 M3b 不能通过。
+          </p>
+        </div>
+        <div class="event">
+          <h3>5. 检查策略不是“赚钱策略”</h3>
+          <p>
+            20/60 双均线在 510300 上回测收益为 <strong>-1.10%</strong>，同期买入持有是 <strong>+27.57%</strong>。
+            附近参数也没有明显赢过买入持有。因此它只能当“验证机器用的策略”，不能当实盘赚钱策略。
+          </p>
+        </div>
+        <div class="event">
+          <h3>6. 用第二只 ETF 做旁路健康检查</h3>
+          <p>
+            用 <code>510500.SH</code> 再跑了一遍真实数据和回测探针。数据、回测输出、订单成交都能正常生成，
+            说明管道不是只对 510300 偶然可用。
+          </p>
+        </div>
+        <div class="event">
+          <h3>7. 加上“盘中同日 K 线保护”</h3>
+          <p>
+            发现 AkShare 中午可能就返回当天 <code>15:00</code> 标记的日线。我们加了保护：
+            上海时间 <strong>15:10</strong> 之前，请求今天数据也只接受到昨天，避免污染正式观察日。
+          </p>
+        </div>
+        <div class="event">
+          <h3>8. 建立台账、状态页和操作手册</h3>
+          <p>
+            新建每日观察台账、M3b 状态页、当前状态快照，并把真实 510300 验证命令写进日常 runbook。
+            目前台账有 4 行，其中 1 行是可计数观察，3 行是非计数演练。
+          </p>
+        </div>
+        <div class="event">
+          <h3>9. 收盘后补齐今天日线并记第 1 天</h3>
+          <p>
+            原默认源收盘后仍少 <code>2026-06-26</code>，所以加入了严格的多源补数：
+            腾讯日线和东财 ETF 快照的开、高、低、收一致，才允许补入当天完整日线。
+            补齐后重新跑 Paper，最终状态 <strong>NORMAL</strong>，对账 <strong>OK</strong>，记为 M3b 的第 1 个观察日。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>关键证据总览</h2>
+      <div class="grid two">
+        <div class="card good">
+          <div class="kicker">510300 正常 Paper</div>
+          <table>
+            <tr><th>项目</th><th>结果</th></tr>
+            <tr><td>最终状态</td><td><span class="status-dot dot-good"></span>NORMAL</td></tr>
+            <tr><td>订单 / 成交</td><td>5 / 5</td></tr>
+            <tr><td>未完成订单</td><td>0</td></tr>
+            <tr><td>对账</td><td>OK，现金差 0.0</td></tr>
+            <tr><td>归档</td><td><code>runtime/observations/2026-06-26-510300-counted/</code></td></tr>
+          </table>
+        </div>
+        <div class="card warn">
+          <div class="kicker">断线演练</div>
+          <table>
+            <tr><th>项目</th><th>结果</th></tr>
+            <tr><td>状态变化</td><td>FREEZE_OPEN → NORMAL</td></tr>
+            <tr><td>CRIT 报警</td><td>1 条</td></tr>
+            <tr><td>报警渠道</td><td>dry-run-file</td></tr>
+            <tr><td>手机确认</td><td><span class="status-dot dot-bad"></span>未完成</td></tr>
+            <tr><td>归档</td><td><code>runtime/observations/2026-06-26-510300-disconnect-drill/</code></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h3>数据质量检查</h3>
+      <table>
+        <tr>
+          <th>标的</th>
+          <th>K 线数量</th>
+          <th>最新完整日线</th>
+          <th>重复</th>
+          <th>坏 K 线</th>
+          <th>缺失状态</th>
+          <th>结论</th>
+        </tr>
+        <tr>
+          <td>510300.SH</td>
+          <td>260</td>
+          <td>2026-06-26 15:00</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><span class="status-dot dot-good"></span>已用于第 1 个可计数观察日</td>
+        </tr>
+        <tr>
+          <td>510500.SH</td>
+          <td>259</td>
+          <td>2026-06-25 15:00</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><span class="status-dot dot-good"></span>旁路探针通过</td>
+        </tr>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>策略表现：能跑，不等于能赚钱</h2>
+      <p class="lead">
+        这一节很重要。我们用双均线策略只是为了验证系统链路稳定，不是为了证明它能赚钱。从结果看，它明显跑输买入持有。
+      </p>
+
+      <div class="bar-chart" aria-label="策略和买入持有收益对比">
+        <div class="bar-row">
+          <strong>510300 双均线</strong>
+          <div class="bar-track"><div class="bar-fill negative" style="width: 3%;"></div></div>
+          <span>-1.10%</span>
+        </div>
+        <div class="bar-row">
+          <strong>510300 买入持有</strong>
+          <div class="bar-track"><div class="bar-fill hold" style="width: 47%;"></div></div>
+          <span>+27.57%</span>
+        </div>
+        <div class="bar-row">
+          <strong>510500 双均线</strong>
+          <div class="bar-track"><div class="bar-fill strategy" style="width: 10%;"></div></div>
+          <span>+5.86%</span>
+        </div>
+        <div class="bar-row">
+          <strong>510500 买入持有</strong>
+          <div class="bar-track"><div class="bar-fill hold" style="width: 100%;"></div></div>
+          <span>+59.30%</span>
+        </div>
+      </div>
+
+      <div class="no-box">
+        <strong>结论：</strong>
+        双均线策略现在只是“测试机器用的扳手”。它足够简单、低频、容易观察，但还不能当作实盘策略。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>M3b 为什么还没通过</h2>
+      <p class="lead">M3b 是真钱前的 Paper 观察门槛。现在只是开始了非真钱验证，还没达到放行条件。</p>
+
+      <svg class="mini-svg" viewBox="0 0 900 220" role="img" aria-label="M3b 进度图">
+        <rect x="32" y="38" width="836" height="42" rx="21" fill="#e8edf4"></rect>
+        <rect x="32" y="38" width="84" height="42" rx="21" fill="#168a53"></rect>
+        <text x="32" y="118" font-size="24" fill="#17212b" font-weight="700">正式观察日：1 / 10</text>
+        <text x="32" y="156" font-size="17" fill="#5c6875">今天已经有第 1 个可计数观察日，还需要继续积累 9 天。</text>
+        <circle cx="650" cy="130" r="36" fill="#fff4df" stroke="#f0c36d" stroke-width="2"></circle>
+        <text x="650" y="138" text-anchor="middle" font-size="24" fill="#b56a08" font-weight="700">缺</text>
+        <text x="705" y="125" font-size="17" fill="#5c6875">还缺 9 天观察</text>
+        <text x="705" y="150" font-size="17" fill="#5c6875">和手机报警确认</text>
+      </svg>
+
+      <table>
+        <tr>
+          <th>门槛</th>
+          <th>现在状态</th>
+          <th>结果</th>
+        </tr>
+        <tr>
+          <td>同一策略用 Paper 模式运行</td>
+          <td>已经使用 <code>runtime_mode: paper</code></td>
+          <td><span class="status-dot dot-warn"></span>部分满足</td>
+        </tr>
+        <tr>
+          <td>至少 10 个正式交易日观察</td>
+          <td>正式计数 1 天</td>
+          <td><span class="status-dot dot-bad"></span>缺失</td>
+        </tr>
+        <tr>
+          <td>每天收盘对账零差异</td>
+          <td>演练对账 OK，现金差 0.0</td>
+          <td><span class="status-dot dot-warn"></span>还需正式日积累</td>
+        </tr>
+        <tr>
+          <td>断线演练</td>
+          <td>dry-run 演练通过</td>
+          <td><span class="status-dot dot-good"></span>演练满足</td>
+        </tr>
+        <tr>
+          <td>CRIT 报警手机端可见</td>
+          <td>只有 dry-run 文件，未做手机确认</td>
+          <td><span class="status-dot dot-bad"></span>缺失</td>
+        </tr>
+        <tr>
+          <td>最终签字和验证器放行</td>
+          <td>未生成正式 <code>m3b_signoff.yaml</code></td>
+          <td><span class="status-dot dot-bad"></span>缺失</td>
+        </tr>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>盘中数据保护：为什么要等 15:10</h2>
+      <p class="lead">
+        中午时，数据源可能已经给出一根标着当天 15:00 的 K 线。但那时候市场还没收盘，这根 K 线可能会变。
+        如果直接拿来算正式观察日，就是把半成品当成成品。
+      </p>
+
+      <div class="grid three">
+        <div class="card bad">
+          <div class="kicker">错误做法</div>
+          <strong>中午拿到今天 K 线就记账</strong>
+          <p class="small">风险：下午价格变化后，证据和真实收盘不一致。</p>
+        </div>
+        <div class="card info">
+          <div class="kicker">现在的保护</div>
+          <strong>15:10 前只取到昨天</strong>
+          <p class="small">即使请求到今天，系统也自动过滤掉当天日线。</p>
+        </div>
+        <div class="card good">
+          <div class="kicker">正确做法</div>
+          <strong>15:10 后再刷新并确认</strong>
+          <p class="small">今天已按这个规则确认并写入第 1 个正式观察日。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>文件和证据在哪里</h2>
+      <div class="grid two">
+        <div class="card">
+          <div class="kicker">代码与配置</div>
+          <span class="path">src/quant/data/akshare_etf.py</span>
+          <span class="path">scripts/build_akshare_etf_data.py</span>
+          <span class="path">config/paper_real_510300.yaml</span>
+          <span class="path">config/strategies/dual_ma_510300_real_validation_paper.yaml</span>
+        </div>
+        <div class="card">
+          <div class="kicker">文档与台账</div>
+          <span class="path">首轮量化使用记录/原始记录/observations/2026-06-26-510300-paper.md</span>
+          <span class="path">首轮量化使用记录/原始记录/observations/2026-06-26-510300-counted.md</span>
+          <span class="path">首轮量化使用记录/原始记录/observations/current_paper_status.md</span>
+          <span class="path">首轮量化使用记录/原始记录/observations/m3b_readiness_status.md</span>
+          <span class="path">首轮量化使用记录/原始记录/observations/paper_daily_ledger.csv</span>
+          <span class="path">docs/runbooks/paper_daily_runbook.md</span>
+        </div>
+        <div class="card">
+          <div class="kicker">运行归档</div>
+          <span class="path">runtime/observations/2026-06-26-510300-normal/</span>
+          <span class="path">runtime/observations/2026-06-26-510300-counted/</span>
+          <span class="path">runtime/observations/2026-06-26-510300-disconnect-drill/</span>
+          <span class="path">runtime/observations/2026-06-26-510300-preclose-guard-check/</span>
+        </div>
+        <div class="card">
+          <div class="kicker">回测输出</div>
+          <span class="path">results/real_510300_2025_2026_ma20_60/</span>
+          <span class="path">results/real_510500_2025_2026_guard_probe/</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>给普通人的翻译</h2>
+      <table>
+        <tr><th>术语</th><th>大白话</th></tr>
+        <tr><td>Paper</td><td>模拟交易，不花真钱，但尽量像真的一样记录订单、成交和账户。</td></tr>
+        <tr><td>对账</td><td>检查系统里的现金和持仓有没有算错。</td></tr>
+        <tr><td>归档</td><td>把当时的日志和数据库保存起来，日后能复查。</td></tr>
+        <tr><td>前复权</td><td>把分红影响扣回去，让历史价格更适合连续比较。</td></tr>
+        <tr><td>M3b</td><td>真钱前的观察关卡，需要至少 10 个合格交易日和报警确认。</td></tr>
+        <tr><td>QMT/M4</td><td>更接近真实券商和实盘的阶段，现在还不能启动。</td></tr>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>下一步怎么继续</h2>
+      <div class="ok-box">
+        <strong>今天已经完成：</strong>
+        2026-06-26 收盘后已经补齐完整日线，重新跑 Paper，并把
+        <code>events.jsonl</code> 和 <code>meta.db</code> 归档到
+        <code>runtime/observations/2026-06-26-510300-counted/</code>。
+        今天记为 M3b 的第 1 个非真钱观察日。
+      </div>
+      <div class="warning-box">
+        <strong>后面每天都这么做：</strong>
+        等完整收盘日线出现后再跑 Paper；如果数据源少当天日线，只能在 15:10 后用多源交叉校验补数；
+        跑完必须对账 OK、现金差 0、未完成订单 0，才写入可计数台账。
+      </div>
+      <div class="no-box">
+        <strong>现在不能做的事：</strong>
+        不能真钱交易，不能接 QMT，不能说 M3b 通过，不能把双均线当成赚钱策略。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>本轮验证命令结果摘要</h2>
+      <table>
+        <tr><th>检查</th><th>结果</th><th>说明</th></tr>
+        <tr><td>全量测试</td><td><code>156 passed</code></td><td>包含当天补数、盘中保护、分红前复权、Paper 和文档门禁。</td></tr>
+        <tr><td>ruff</td><td><code>All checks passed</code></td><td>相关 Python 文件格式/静态检查通过。</td></tr>
+        <tr><td>导入边界</td><td><code>2 kept, 0 broken</code></td><td>核心模块依赖边界没有被破坏。</td></tr>
+        <tr><td>台账核对</td><td>4 行均可对上归档</td><td>其中 1 行可计数，3 行是非计数演练。</td></tr>
+      </table>
+    </section>
+
+    <div class="footer">
+      首轮量化使用记录 · 生成于本地工作区 · 当前结论：继续非真钱验证，M4/QMT/真钱仍然阻塞
+    </div>
+  </main>
+</body>
+</html>

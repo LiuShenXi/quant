@@ -1,0 +1,17 @@
+class: strategies.dual_ma:DualMA
+freq: 1d
+id: dual_ma_510300_real_validation
+params:
+  fast: 20
+  slow: 60
+  symbol: 510300.SH
+  target_qty: 10000
+risk:
+  max_gross_exposure_pct: null
+  max_order_value: 100000.0
+  max_orders_per_minute: null
+  max_position_value: 100000.0
+runtime_mode: backtest
+universe:
+- 510300.SH
+version: 1.0.0

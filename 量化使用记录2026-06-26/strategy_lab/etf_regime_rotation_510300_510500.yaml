@@ -1,0 +1,17 @@
+id: etf_regime_rotation_510300_510500_v1
+class: etf_regime_rotation:EtfRegimeRotation
+version: "1.0.0"
+universe: ["510300.SH", "510500.SH"]
+freq: "1d"
+params:
+  symbols: ["510300.SH", "510500.SH"]
+  trend_window: 60
+  momentum_window: 20
+  target_exposure_pct: 0.8
+  min_hold_days: 5
+  score_buffer: 0.01
+risk:
+  max_order_value: 100000
+  max_position_value: 100000
+  max_gross_exposure_pct: 0.95
+runtime_mode: backtest

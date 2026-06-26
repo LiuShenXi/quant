@@ -1,12 +1,30 @@
 # Paper Daily Runbook
 
+## Current Real-Data Validation Path
+
+Use this path for the current `510300.SH` non-money validation:
+
+```text
+strategy: config/strategies/dual_ma_510300_real_validation_paper.yaml
+paper: config/paper_real_510300.yaml
+risk: config/risk/global.yaml
+data_root: data_real/etf_510300_2025_2026_check/
+runtime: runtime/paper_real_510300/
+ledger: 首轮量化使用记录/原始记录/observations/paper_daily_ledger.csv
+```
+
+Same-day daily bars are accepted only after `15:10` Asia/Shanghai. Before that time, a
+refresh may be run as a health check, but the row must not be counted for M3b.
+
 ## 08:45 Pre-Open
 
 - Pull latest code and confirm `pytest -q`, `ruff check .`, and `lint-imports` pass.
 - Confirm `config/strategies/*_paper.yaml` uses `runtime_mode: paper`.
 - Remove stale local runtime state only for deliberate dry runs; never delete state during a continuity test.
 - Start Paper replay with `python scripts/run_paper.py --strategy config/strategies/dual_ma_510300_paper.yaml --paper config/paper.yaml`.
+- For the current real-data validation path, use `.venv/bin/python scripts/run_paper.py --strategy config/strategies/dual_ma_510300_real_validation_paper.yaml --paper config/paper_real_510300.yaml --risk config/risk/global.yaml`.
 - Check `python scripts/ops.py --store runtime/paper/meta.db --events runtime/paper/events.jsonl --operator shenxi status`; expected `NORMAL`.
+- For the current real-data validation path, check `.venv/bin/python scripts/ops.py --store runtime/paper_real_510300/meta.db --events runtime/paper_real_510300/events.jsonl --operator shenxi status`; expected `NORMAL`.
 
 ## During Session
 
@@ -19,6 +37,8 @@
 - Confirm no active orders remain unless they are intentionally carried by the simulator.
 - Run reconciliation from the engine or next startup.
 - Archive `runtime/paper/meta.db`, `runtime/paper/events.jsonl`, and the strategy config snapshot.
+- For the current real-data validation path, wait until `15:10` Asia/Shanghai, refresh `510300.SH` through the current trade date, confirm the latest bar is the current date at `15:00`, then archive `runtime/paper_real_510300/meta.db` and `runtime/paper_real_510300/events.jsonl`.
+- Append a counted ledger row only when the final state is `NORMAL`, reconciliation is `OK`, cash difference is `0.0`, there are no active orders, the event journal exists, and no unresolved manual intervention remains.
 
 ## Acceptance Log
 

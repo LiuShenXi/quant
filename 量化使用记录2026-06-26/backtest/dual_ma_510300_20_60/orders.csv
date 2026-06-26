@@ -1,0 +1,7 @@
+order_id,strategy_id,account_id,symbol,side,type,qty,price,status,filled_qty,remaining_qty,avg_fill_price,created_at,updated_at,broker_order_id,reject_reason
+O-1,dual_ma_510300_real_validation,backtest,510300.SH,BUY,LIMIT,10000.0,4.541,FILLED,10000.0,0.0,4.541,2025-08-26T15:00:00+08:00,2025-08-27T15:00:00+08:00,,
+O-2,dual_ma_510300_real_validation,backtest,510300.SH,SELL,LIMIT,10000.0,4.698,FILLED,10000.0,0.0,4.711,2025-12-05T15:00:00+08:00,2025-12-08T15:00:00+08:00,,
+O-3,dual_ma_510300_real_validation,backtest,510300.SH,BUY,LIMIT,10000.0,4.844,FILLED,10000.0,0.0,4.844,2026-01-05T15:00:00+08:00,2026-01-08T15:00:00+08:00,,
+O-4,dual_ma_510300_real_validation,backtest,510300.SH,BUY,LIMIT,10000.0,4.919,FILLED,10000.0,0.0,4.919,2026-01-06T15:00:00+08:00,2026-01-07T15:00:00+08:00,,
+O-5,dual_ma_510300_real_validation,backtest,510300.SH,SELL,LIMIT,20000.0,4.599,FILLED,20000.0,0.0,4.599,2026-03-19T15:00:00+08:00,2026-03-20T15:00:00+08:00,,
+O-6,dual_ma_510300_real_validation,backtest,510300.SH,BUY,LIMIT,10000.0,4.77,FILLED,10000.0,0.0,4.755,2026-04-28T15:00:00+08:00,2026-04-29T15:00:00+08:00,,

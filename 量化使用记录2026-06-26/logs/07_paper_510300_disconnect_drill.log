@@ -1,0 +1,4 @@
+paper events: ../量化使用记录2026-06-26/paper/510300_disconnect_drill/events.jsonl
+paper store: ../量化使用记录2026-06-26/paper/510300_disconnect_drill/meta.db
+final state: NORMAL
+disconnect drill: {'reason': '2026-06-26 quant usage record drill', 'reconciliation_status': 'OK', 'final_state': 'NORMAL'}
