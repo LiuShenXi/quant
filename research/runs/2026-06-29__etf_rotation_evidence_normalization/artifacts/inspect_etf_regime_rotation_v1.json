@@ -1,0 +1,81 @@
+{
+  "artifact_dir": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\backtest\\etf_regime_rotation_v1",
+  "blocking_issues": [],
+  "exists": true,
+  "files": {
+    "config_snapshot": {
+      "bytes": 448,
+      "error": null,
+      "exists": true
+    },
+    "equity": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "dt",
+        "total_value",
+        "cash"
+      ],
+      "rows": 518
+    },
+    "events": {
+      "error": null,
+      "exists": true,
+      "invalid_rows": 0,
+      "rows": 50,
+      "types": {
+        "order": 25,
+        "trade": 25
+      }
+    },
+    "orders": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "order_id",
+        "strategy_id",
+        "account_id",
+        "symbol",
+        "side",
+        "type",
+        "qty",
+        "price",
+        "status",
+        "filled_qty",
+        "remaining_qty",
+        "avg_fill_price",
+        "created_at",
+        "updated_at",
+        "broker_order_id",
+        "reject_reason"
+      ],
+      "rows": 25
+    },
+    "report": {
+      "bytes": 41,
+      "error": null,
+      "exists": true
+    },
+    "trades": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "trade_id",
+        "order_id",
+        "strategy_id",
+        "account_id",
+        "symbol",
+        "side",
+        "qty",
+        "price",
+        "commission",
+        "dt",
+        "broker_order_id",
+        "broker_trade_id"
+      ],
+      "rows": 25
+    }
+  },
+  "status": "PASS",
+  "warnings": []
+}

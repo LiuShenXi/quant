@@ -1,0 +1,38 @@
+{
+  "benchmarks": {
+    "510300.SH": {
+      "end": "2026-06-25T15:00:00+08:00",
+      "max_drawdown_pct": -9.941,
+      "return_pct": 27.5714,
+      "rows": 259,
+      "start": "2025-06-03T15:00:00+08:00"
+    },
+    "510500.SH": {
+      "end": "2026-06-25T15:00:00+08:00",
+      "max_drawdown_pct": -14.0208,
+      "return_pct": 59.3021,
+      "rows": 259,
+      "start": "2025-06-03T15:00:00+08:00"
+    },
+    "equal_weight": {
+      "end": "2026-06-25T15:00:00+08:00",
+      "max_drawdown_pct": -10.7071,
+      "return_pct": 43.4368,
+      "rows": 259,
+      "start": "2025-06-03T15:00:00+08:00",
+      "symbols": [
+        "510300.SH",
+        "510500.SH"
+      ]
+    }
+  },
+  "data_root": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\data\\etf_rotation_510300_510500_20250601_20260626",
+  "method": "close_to_close_normalized_buy_and_hold",
+  "not_trading_permission": true,
+  "period": {
+    "end": "2026-06-25T15:00:00+08:00",
+    "rows": 259,
+    "start": "2025-06-03T15:00:00+08:00"
+  },
+  "status": "PASS"
+}

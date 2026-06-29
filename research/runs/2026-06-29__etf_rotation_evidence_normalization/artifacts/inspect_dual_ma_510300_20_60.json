@@ -1,0 +1,81 @@
+{
+  "artifact_dir": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\backtest\\dual_ma_510300_20_60",
+  "blocking_issues": [],
+  "exists": true,
+  "files": {
+    "config_snapshot": {
+      "bytes": 333,
+      "error": null,
+      "exists": true
+    },
+    "equity": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "dt",
+        "total_value",
+        "cash"
+      ],
+      "rows": 259
+    },
+    "events": {
+      "error": null,
+      "exists": true,
+      "invalid_rows": 0,
+      "rows": 12,
+      "types": {
+        "order": 6,
+        "trade": 6
+      }
+    },
+    "orders": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "order_id",
+        "strategy_id",
+        "account_id",
+        "symbol",
+        "side",
+        "type",
+        "qty",
+        "price",
+        "status",
+        "filled_qty",
+        "remaining_qty",
+        "avg_fill_price",
+        "created_at",
+        "updated_at",
+        "broker_order_id",
+        "reject_reason"
+      ],
+      "rows": 6
+    },
+    "report": {
+      "bytes": 41,
+      "error": null,
+      "exists": true
+    },
+    "trades": {
+      "error": null,
+      "exists": true,
+      "headers": [
+        "trade_id",
+        "order_id",
+        "strategy_id",
+        "account_id",
+        "symbol",
+        "side",
+        "qty",
+        "price",
+        "commission",
+        "dt",
+        "broker_order_id",
+        "broker_trade_id"
+      ],
+      "rows": 6
+    }
+  },
+  "status": "PASS",
+  "warnings": []
+}

@@ -1,0 +1,119 @@
+{
+  "artifact_dir": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\backtest\\etf_regime_rotation_v1",
+  "costs": {
+    "total_commission": 553.7
+  },
+  "hashes": {
+    "config_snapshot.yaml": "96ACA58367F275B23AB3AFA795875903D1709770E446D31CF8532FE359B077F7",
+    "equity.csv": "BE9D9957D0E059FA77F0CBA7B15818715928F30113B20ADB348241DDAD5DE571",
+    "events.jsonl": "5619947BC5C36381BCF21EA769034811C2FE582665532FFF6C1380FF4B04A21B",
+    "orders.csv": "92A5505769C0CF2ACD8BCDDABC9B7A91EEF35C223E27032FBE08C3B306455C37",
+    "report.md": "4EBC620D5623F2193703067F7C1B5767EF04E9E2F7DF197540CA3441352D3568",
+    "trades.csv": "B5DCB64F630EAAA4432C3688FF2F9A2CAA0B76D9E7EB4E333BAA7794851DA7D9"
+  },
+  "inspection": {
+    "artifact_dir": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\backtest\\etf_regime_rotation_v1",
+    "blocking_issues": [],
+    "exists": true,
+    "files": {
+      "config_snapshot": {
+        "bytes": 448,
+        "error": null,
+        "exists": true
+      },
+      "equity": {
+        "error": null,
+        "exists": true,
+        "headers": [
+          "dt",
+          "total_value",
+          "cash"
+        ],
+        "rows": 518
+      },
+      "events": {
+        "error": null,
+        "exists": true,
+        "invalid_rows": 0,
+        "rows": 50,
+        "types": {
+          "order": 25,
+          "trade": 25
+        }
+      },
+      "orders": {
+        "error": null,
+        "exists": true,
+        "headers": [
+          "order_id",
+          "strategy_id",
+          "account_id",
+          "symbol",
+          "side",
+          "type",
+          "qty",
+          "price",
+          "status",
+          "filled_qty",
+          "remaining_qty",
+          "avg_fill_price",
+          "created_at",
+          "updated_at",
+          "broker_order_id",
+          "reject_reason"
+        ],
+        "rows": 25
+      },
+      "report": {
+        "bytes": 41,
+        "error": null,
+        "exists": true
+      },
+      "trades": {
+        "error": null,
+        "exists": true,
+        "headers": [
+          "trade_id",
+          "order_id",
+          "strategy_id",
+          "account_id",
+          "symbol",
+          "side",
+          "qty",
+          "price",
+          "commission",
+          "dt",
+          "broker_order_id",
+          "broker_trade_id"
+        ],
+        "rows": 25
+      }
+    },
+    "status": "PASS",
+    "warnings": []
+  },
+  "metrics": {
+    "final_value": 120098.3,
+    "initial_value": 100000.0,
+    "max_drawdown_pct": -6.4892,
+    "return_pct": 20.0983
+  },
+  "not_trading_permission": true,
+  "orders": {
+    "rejected": 0,
+    "rows": 25
+  },
+  "period": {
+    "end": "2026-06-25T15:00:00+08:00",
+    "equity_rows": 518,
+    "start": "2025-06-03T15:00:00+08:00"
+  },
+  "status": "PASS",
+  "trades": {
+    "rows": 25,
+    "symbols": [
+      "510300.SH",
+      "510500.SH"
+    ]
+  }
+}

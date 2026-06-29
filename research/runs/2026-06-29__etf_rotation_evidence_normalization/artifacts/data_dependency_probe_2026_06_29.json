@@ -1,0 +1,14 @@
+{
+  "missing": [
+    "akshare"
+  ],
+  "modules": {
+    "akshare": {
+      "available": false
+    },
+    "pandas": {
+      "available": true
+    }
+  },
+  "status": "FAIL"
+}

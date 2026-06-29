@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quant CIO Orchestrator"
+  short_description: "Classify and route quant strategy system requests"
+  default_prompt: "Build a Quant CIO decision package for this request."

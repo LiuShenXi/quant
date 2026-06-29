@@ -1,0 +1,73 @@
+{
+  "artifact_dir": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\backtest\\etf_regime_rotation_v1",
+  "data_root": "research\\imported\\usage_records\\2026-06-26__quant_usage_record\\data\\etf_rotation_510300_510500_20250601_20260626",
+  "method": "unique_date_halves_daily_last_equity",
+  "not_trading_permission": true,
+  "splits": {
+    "first_half": {
+      "benchmarks": {
+        "510300.SH": {
+          "max_drawdown_pct": -6.2731,
+          "return_pct": 19.5855,
+          "rows": 129
+        },
+        "510500.SH": {
+          "max_drawdown_pct": -9.5045,
+          "return_pct": 27.617,
+          "rows": 129
+        },
+        "equal_weight": {
+          "max_drawdown_pct": -7.5438,
+          "return_pct": 23.6013,
+          "rows": 129,
+          "symbols": [
+            "510300.SH",
+            "510500.SH"
+          ]
+        }
+      },
+      "period": {
+        "end": "2025-12-08T15:00:00+08:00",
+        "rows": 129,
+        "start": "2025-06-03T15:00:00+08:00"
+      },
+      "strategy": {
+        "max_drawdown_pct": -5.7348,
+        "return_pct": 1.3941
+      }
+    },
+    "second_half": {
+      "benchmarks": {
+        "510300.SH": {
+          "max_drawdown_pct": -9.941,
+          "return_pct": 7.2218,
+          "rows": 130
+        },
+        "510500.SH": {
+          "max_drawdown_pct": -14.0208,
+          "return_pct": 25.7614,
+          "rows": 130
+        },
+        "equal_weight": {
+          "max_drawdown_pct": -10.5916,
+          "return_pct": 16.4916,
+          "rows": 130,
+          "symbols": [
+            "510300.SH",
+            "510500.SH"
+          ]
+        }
+      },
+      "period": {
+        "end": "2026-06-25T15:00:00+08:00",
+        "rows": 130,
+        "start": "2025-12-09T15:00:00+08:00"
+      },
+      "strategy": {
+        "max_drawdown_pct": -6.4892,
+        "return_pct": 18.9313
+      }
+    }
+  },
+  "status": "PASS"
+}
