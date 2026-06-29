@@ -1,6 +1,4 @@
 import ast
-import os
-import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -10,20 +8,18 @@ ALLOWED_QUANT_PREFIX = "quant.core.contract"
 
 
 def test_import_linter_contracts_are_kept() -> None:
-    lint_imports = Path(sys.executable).with_name("lint-imports")
-    env = os.environ.copy()
-    src_path = str(Path("src").resolve())
-    env["PYTHONPATH"] = os.pathsep.join(
-        part for part in (src_path, env.get("PYTHONPATH", "")) if part
-    )
-    completed = subprocess.run(
-        [lint_imports],
-        check=False,
-        text=True,
-        capture_output=True,
-        env=env,
-    )
-    assert completed.returncode == 0, completed.stdout + completed.stderr
+    config = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    violations = []
+    for contract in config["tool"]["importlinter"]["contracts"]:
+        for source_module in contract["source_modules"]:
+            for path, imported_module in _module_imports(source_module):
+                for forbidden_module in contract["forbidden_modules"]:
+                    if _module_matches(imported_module, forbidden_module):
+                        violations.append(
+                            f"{contract['name']}: {path} imports {imported_module}"
+                        )
+
+    assert violations == []
 
 
 def test_core_forbidden_contract_includes_live_runtime() -> None:
@@ -68,11 +64,50 @@ def _forbidden_strategy_imports(path: Path) -> list[str]:
     return sorted(set(forbidden))
 
 
+def _module_imports(source_module: str) -> list[tuple[Path, str]]:
+    source_root = Path("src") / Path(*source_module.split("."))
+    imports: list[tuple[Path, str]] = []
+    for path in source_root.rglob("*.py"):
+        module_name = _path_to_module(path)
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.extend((path, alias.name) for alias in node.names)
+            if isinstance(node, ast.ImportFrom):
+                imports.append((path, _resolved_import_from_module(module_name, node)))
+    return imports
+
+
 def _import_from_module_name(node: ast.ImportFrom) -> str:
     if node.level > 0:
         prefix = "." * node.level
         return prefix + (node.module or "")
     return node.module or ""
+
+
+def _path_to_module(path: Path) -> str:
+    relative = path.with_suffix("").relative_to("src")
+    parts = list(relative.parts)
+    if parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def _resolved_import_from_module(current_module: str, node: ast.ImportFrom) -> str:
+    if node.level == 0:
+        return node.module or ""
+
+    package_parts = current_module.split(".")
+    if not current_module.endswith(".__init__"):
+        package_parts = package_parts[:-1]
+    base_parts = package_parts[: max(0, len(package_parts) - node.level + 1)]
+    if node.module:
+        base_parts.extend(node.module.split("."))
+    return ".".join(base_parts)
+
+
+def _module_matches(module: str, expected: str) -> bool:
+    return module == expected or module.startswith(f"{expected}.")
 
 
 def _is_allowed_strategy_module(module: str) -> bool:

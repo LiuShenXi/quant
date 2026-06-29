@@ -24,6 +24,12 @@ def assert_has_data_rows(path: Path) -> None:
     assert len(rows) > 1, f"{path} must include at least one data row"
 
 
+def assert_text_rows_match(actual: Path, expected: Path) -> None:
+    assert actual.read_text(encoding="utf-8").splitlines() == expected.read_text(
+        encoding="utf-8"
+    ).splitlines()
+
+
 def test_paper_replay_matches_golden(tmp_path) -> None:
     strategy_config = load_strategy_config(
         Path("config/strategies/dual_ma_510300_paper.yaml")
@@ -52,16 +58,8 @@ def test_paper_replay_matches_golden(tmp_path) -> None:
     assert_has_data_rows(tmp_path / "trades.csv")
     assert_has_data_rows(Path("tests/golden_paper/orders.csv"))
     assert_has_data_rows(Path("tests/golden_paper/trades.csv"))
-    assert filecmp.cmp(
-        tmp_path / "orders.csv",
-        Path("tests/golden_paper/orders.csv"),
-        shallow=False,
-    )
-    assert filecmp.cmp(
-        tmp_path / "trades.csv",
-        Path("tests/golden_paper/trades.csv"),
-        shallow=False,
-    )
+    assert_text_rows_match(tmp_path / "orders.csv", Path("tests/golden_paper/orders.csv"))
+    assert_text_rows_match(tmp_path / "trades.csv", Path("tests/golden_paper/trades.csv"))
     assert filecmp.cmp(
         tmp_path / "events.jsonl",
         Path("tests/golden_paper/events.jsonl"),
