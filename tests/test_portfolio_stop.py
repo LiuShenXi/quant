@@ -131,6 +131,100 @@ def test_reentry_predicate_false_keeps_defensive_target_and_records_audit_event(
     assert check.payload["inputs"][0]["visible_bar_dt"] == "2024-01-03T15:00:00+08:00"
 
 
+def test_reentry_predicate_true_resets_state_emits_audit_and_allows_opening_exposure() -> None:
+    events: list[PortfolioStopEvent] = []
+    engine = RiskEngine(
+        RiskLimits(
+            universe={"AAA.SH"},
+            max_order_value=500_000,
+            max_position_value_per_symbol=500_000,
+            max_gross_exposure_pct=2,
+            portfolio_stop=PortfolioStopConfig(
+                trailing_drawdown_pct=0.05,
+                cooldown=timedelta(hours=1),
+                defensive_target={"mode": "flat"},
+            ),
+        )
+    )
+    assert engine.portfolio_stop is not None
+    engine.portfolio_stop.set_event_sink(events.append)
+
+    engine.portfolio_stop.on_equity(ts("2024-01-02T09:31:00+08:00"), 100_000)
+    engine.portfolio_stop.on_equity(ts("2024-01-02T10:31:00+08:00"), 94_000)
+    assert engine.portfolio_stop.state.cycle_state == "COOLDOWN"
+    assert engine.portfolio_stop.state.cooldown_until == ts("2024-01-02T11:31:00+08:00")
+    assert engine.portfolio_stop.state.defensive_target == {"mode": "flat"}
+
+    blocked = engine.check_order(
+        make_req(OrderSide.BUY, created_at=ts("2024-01-02T10:45:00+08:00")),
+        latest_price=94,
+        account=make_account(total_value=94_000),
+        positions={},
+        active_orders=[],
+        now=ts("2024-01-02T10:45:00+08:00"),
+        state="NORMAL",
+    )
+    assert blocked.allowed is False
+    assert blocked.rule_id == "portfolio_stop_cooldown"
+
+    result = engine.portfolio_stop.check_reentry(
+        ReentryPredicateInput(
+            predicate_id="toy_reentry",
+            as_of=ts("2024-01-02T13:01:00+08:00"),
+            decision_time=ts("2024-01-02T13:01:00+08:00"),
+            required_cooling_until=ts("2024-01-02T11:31:00+08:00"),
+            result=True,
+            inputs=[
+                ReentryPredicateValue(
+                    name="toy_signal",
+                    source_component="tests",
+                    freq="1d",
+                    visible_bar_dt=ts("2024-01-02T10:31:00+08:00"),
+                    construction="closed_bar_fixture",
+                    value={"ok": True},
+                    fully_closed=True,
+                )
+            ],
+        )
+    )
+
+    assert result is True
+    assert engine.portfolio_stop.state.cycle_state == "ACTIVE"
+    assert engine.portfolio_stop.state.cycle_peak_value is None
+    assert engine.portfolio_stop.state.stop_triggered_at is None
+    assert engine.portfolio_stop.state.cooldown_until is None
+    assert engine.portfolio_stop.state.defensive_target is None
+    assert engine.portfolio_stop.state.last_reentry_check is not None
+    assert engine.portfolio_stop.state.last_reentry_check["result"] is True
+    assert engine.portfolio_stop.state.last_reentry_check["reason"] == "predicate_true"
+
+    reentry_events = [
+        event
+        for event in events
+        if event.event_type in {"risk_reentry_check", "risk_portfolio_reentry"}
+    ]
+    assert [event.event_type for event in reentry_events] == [
+        "risk_reentry_check",
+        "risk_portfolio_reentry",
+    ]
+    assert reentry_events[0].payload["predicate_id"] == "toy_reentry"
+    assert reentry_events[0].payload["result"] is True
+    assert reentry_events[0].payload["reason"] == "predicate_true"
+    assert reentry_events[1].payload["predicate_id"] == "toy_reentry"
+    assert reentry_events[1].payload["result"] is True
+
+    allowed = engine.check_order(
+        make_req(OrderSide.BUY, created_at=ts("2024-01-02T13:01:00+08:00")),
+        latest_price=94,
+        account=make_account(total_value=94_000),
+        positions={},
+        active_orders=[],
+        now=ts("2024-01-02T13:01:00+08:00"),
+        state="NORMAL",
+    )
+    assert allowed.allowed is True
+
+
 def test_missing_or_future_reentry_inputs_default_false_and_record_events() -> None:
     events: list[PortfolioStopEvent] = []
     stop = stopped_portfolio_stop(events)
@@ -244,7 +338,12 @@ def stopped_portfolio_stop(events: list[PortfolioStopEvent]) -> PortfolioStop:
     return stop
 
 
-def make_req(side: OrderSide) -> object:
+def make_req(
+    side: OrderSide,
+    *,
+    created_at: datetime | None = None,
+) -> object:
+    created_at = created_at or ts("2024-01-04T09:31:00+08:00")
     return type(
         "Req",
         (),
@@ -257,7 +356,7 @@ def make_req(side: OrderSide) -> object:
             "type": OrderType.LIMIT,
             "qty": 100,
             "price": 94,
-            "created_at": ts("2024-01-04T09:31:00+08:00"),
+            "created_at": created_at,
         },
     )()
 
