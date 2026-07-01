@@ -1,0 +1,4 @@
+symbol,dt,open,high,low,close,volume,amount,pre_close,limit_up,limit_down,suspended,data_status,source,updated_at
+BTC,2026-01-01T00:00:00+00:00,100,101,99,100,1000,100000,100,,,False,ok,fixture,2026-01-01T09:00:00+00:00
+ETH,2026-01-01T00:00:00+00:00,50,51,49,50,1000,50000,50,,,False,ok,fixture,2026-01-01T09:00:00+00:00
+SOL,2026-01-01T00:00:00+00:00,20,21,19,20,1000,20000,20,,,False,ok,fixture,2026-01-01T09:00:00+00:00

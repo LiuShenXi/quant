@@ -29,6 +29,7 @@ class RiskConfig(BaseModel):
     max_position_value: RiskMoneyLimit | float | None = None
     max_gross_exposure_pct: float | None = None
     max_orders_per_minute: int | None = None
+    portfolio_stop: dict[str, Any] | None = None
 
 
 class FrequencyConfig(BaseModel):

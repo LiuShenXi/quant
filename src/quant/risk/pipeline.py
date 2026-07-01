@@ -16,6 +16,7 @@ class RiskDecision:
 @dataclass(frozen=True)
 class RiskLimits:
     universe: set[str]
+    calendar: str | None = None
     price_collar_pct: float = 0.02
     max_order_value: float = 200_000
     max_position_value_per_symbol: float = 500_000
@@ -111,7 +112,10 @@ class RiskEngine:
         if req.symbol not in self.limits.universe:
             return _reject(f"symbol {req.symbol} is outside the risk universe", "symbol_whitelist")
 
-        if not is_cn_continuous_auction(now.time()):
+        if (
+            self.limits.calendar != "continuous_24x7"
+            and not is_cn_continuous_auction(now.time())
+        ):
             return _reject("order is outside A-share continuous auction hours", "trading_session")
 
         if req.price is not None:

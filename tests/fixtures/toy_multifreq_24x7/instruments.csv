@@ -1,0 +1,4 @@
+symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status,allow_fractional
+AAA,Toy Asset AAA,synthetic_spot,TEST,2026-01-01,,0.001,0.001,0.01,0,active,true
+BBB,Toy Asset BBB,synthetic_spot,TEST,2026-01-01,,0.001,0.001,0.01,0,active,true
+CCC,Toy Asset CCC,synthetic_spot,TEST,2026-01-01,,0.001,0.001,0.01,0,active,true

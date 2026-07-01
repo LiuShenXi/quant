@@ -34,6 +34,16 @@ def test_core_forbidden_contract_includes_live_runtime() -> None:
     assert "quant.live" in core_contract["forbidden_modules"]
 
 
+def test_backtest_does_not_import_live_runtime() -> None:
+    violations = [
+        f"{path} imports {imported_module}"
+        for path, imported_module in _module_imports("quant.backtest")
+        if _module_matches(imported_module, "quant.live")
+    ]
+
+    assert violations == []
+
+
 def test_strategy_imports_only_contract_and_allowed_libraries() -> None:
     for path in Path("strategies").glob("*.py"):
         if path.name == "__init__.py":

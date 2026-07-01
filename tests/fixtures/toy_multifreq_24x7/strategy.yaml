@@ -1,0 +1,57 @@
+id: toy_multifreq_24x7
+class: tests.toy_multifreq_acceptance_strategy:ToyMultifreqAcceptanceStrategy
+version: 1.0.0
+universe:
+  - AAA
+  - BBB
+  - CCC
+frequencies:
+  primary: 4h
+  history:
+    - 4h
+    - 1d
+calendar: continuous_24x7
+account:
+  currency: USD
+  settlement: t0
+  allow_fractional: true
+params:
+  signal_symbol: AAA
+  target_weights:
+    AAA: 0.35
+    BBB: 0.25
+risk:
+  max_order_value:
+    value: 500
+    unit: quote_currency
+    currency: USD
+  max_position_value:
+    value: 800
+    unit: quote_currency
+    currency: USD
+  max_gross_exposure_pct: 0.90
+  max_orders_per_minute: 50
+  portfolio_stop:
+    enabled: true
+    trailing_drawdown_pct: 0.10
+    cooldown_hours: 24
+    defensive_target:
+      mode: flat
+costs:
+  model: bps
+  preset: toy_acceptance
+  fee_bps: 10
+  slippage_bps: 20
+benchmarks:
+  - id: cash_usd
+    type: cash
+  - id: hold_aaa
+    type: single_asset_buy_hold
+    symbol: AAA
+  - id: equal_weight_toy
+    type: equal_weight_buy_hold
+    symbols:
+      - AAA
+      - BBB
+      - CCC
+runtime_mode: backtest

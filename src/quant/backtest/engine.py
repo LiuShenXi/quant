@@ -9,7 +9,7 @@ import pandas as pd
 from quant.backtest.clock import BacktestClock
 from quant.backtest.events import EventJournal, JournalEvent
 from quant.backtest.matcher import Matcher
-from quant.core.config import StrategyConfig
+from quant.core.config import RiskMoneyLimit, StrategyConfig
 from quant.core.contract import (
     Bar,
     EngineState,
@@ -1041,11 +1041,23 @@ class BacktestEngine:
 
     def _build_risk_limits(self) -> RiskLimits:
         risk = self.config.risk
+        account_value = self.portfolio.account({}).total_value
         return RiskLimits(
             universe=set(self.config.universe),
-            max_order_value=risk.max_order_value if risk.max_order_value is not None else 200_000,
+            calendar=self.config.calendar,
+            max_order_value=_resolve_money_limit(
+                risk.max_order_value,
+                account_currency=self.config.account.currency,
+                account_value=account_value,
+                default=200_000,
+            ),
             max_position_value_per_symbol=(
-                risk.max_position_value if risk.max_position_value is not None else 500_000
+                _resolve_money_limit(
+                    risk.max_position_value,
+                    account_currency=self.config.account.currency,
+                    account_value=account_value,
+                    default=500_000,
+                )
             ),
             max_gross_exposure_pct=(
                 risk.max_gross_exposure_pct if risk.max_gross_exposure_pct is not None else 0.95
@@ -1118,6 +1130,27 @@ def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
     if rule_id and reason:
         return f"{rule_id}: {reason}"
     return reason or rule_id or "risk rejected order"
+
+
+def _resolve_money_limit(
+    limit: RiskMoneyLimit | float | None,
+    *,
+    account_currency: str,
+    account_value: float,
+    default: float,
+) -> float:
+    if limit is None:
+        return default
+    if isinstance(limit, RiskMoneyLimit):
+        if limit.unit == "equity_pct":
+            return float(account_value * limit.value)
+        if limit.unit == "currency" and limit.currency != account_currency:
+            raise ValueError(
+                f"risk money limit currency {limit.currency} does not match account currency "
+                f"{account_currency}"
+            )
+        return float(limit.value)
+    return float(limit)
 
 
 def _coerce_bool(value: object, *, default: bool) -> bool:

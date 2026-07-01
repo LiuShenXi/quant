@@ -1,0 +1,64 @@
+id: crypto_trend_breadth_top2_v1
+class: strategies.crypto_trend_breadth:CryptoTrendBreadthTop2
+version: 1.0.0
+universe:
+  - BTC
+  - ETH
+  - SOL
+frequencies:
+  primary: 4h
+  history:
+    - 4h
+    - 1d
+calendar: continuous_24x7
+account:
+  currency: USDT
+  settlement: t0
+  allow_fractional: true
+params:
+  rank_symbols:
+    - BTC
+    - ETH
+    - SOL
+  breadth_min_uptrends: 2
+  top_n: 2
+  target_weights:
+    leader: 0.60
+    runner_up: 0.40
+  trend_freq: 1d
+  rebalance_freq: 4h
+risk:
+  max_order_value:
+    value: 10000
+    unit: quote_currency
+    currency: USDT
+  max_position_value:
+    value: 20000
+    unit: quote_currency
+    currency: USDT
+  max_gross_exposure_pct: 1.0
+  max_orders_per_minute: 20
+  portfolio_stop:
+    enabled: true
+    trailing_drawdown_pct: 0.20
+    cooldown_days: 5
+    defensive_target:
+      mode: flat
+costs:
+  model: bps
+  preset: baseline
+  fee_bps: 10
+  slippage_bps: 20
+benchmarks:
+  - id: cash_usdt
+    type: cash
+  - id: hold_btc
+    type: single_asset_buy_hold
+    symbol: BTC
+  - id: equal_weight_crypto
+    type: equal_weight_buy_hold
+    symbols:
+      - BTC
+      - ETH
+      - SOL
+runtime_mode: backtest
