@@ -1,4 +1,4 @@
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, time
 from importlib import import_module
 from typing import Any
@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from quant.backtest.clock import BacktestClock
+from quant.backtest.events import EventJournal, JournalEvent
 from quant.backtest.matcher import Matcher
 from quant.core.config import StrategyConfig
 from quant.core.contract import (
@@ -32,6 +33,7 @@ class BacktestResult:
     orders: list[Order]
     trades: list[Trade]
     equity: list[dict[str, object]]
+    events: list[JournalEvent] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,7 @@ class TargetIntent:
     symbol: str
     target_qty: float
     created_at: datetime
+    correlation_id: str
 
 
 class BacktestContext:
@@ -138,9 +141,17 @@ class BacktestContext:
 
 
 class BacktestEngine:
-    def __init__(self, config: StrategyConfig, data: DataService, initial_cash: float) -> None:
+    def __init__(
+        self,
+        config: StrategyConfig,
+        data: DataService,
+        initial_cash: float,
+        run_id: str | None = None,
+    ) -> None:
         self.config = config
         self.data = data
+        self.run_id = run_id or config.id
+        self.journal = EventJournal(run_id=self.run_id)
         self.now = datetime(1970, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai"))
         self.portfolio = Portfolio(account_id="backtest", initial_cash=initial_cash)
         self.matcher = Matcher(volume_limit_pct=0.05)
@@ -152,6 +163,7 @@ class BacktestEngine:
             transfer_fee=0,
         )
         self.open_orders: list[Order] = []
+        self.order_correlation_ids: dict[str, str | None] = {}
         self.pending_targets: list[TargetIntent] = []
         self.orders: list[Order] = []
         self.trades: list[Trade] = []
@@ -163,8 +175,13 @@ class BacktestEngine:
         self.loaded_frequencies: set[str] = set()
         self.clock: BacktestClock | None = None
         self.state: dict[str, object] = {}
+        self._target_seq = 0
 
     def run(self) -> BacktestResult:
+        self._append_event(
+            "engine_state",
+            payload={"state": "STARTED"},
+        )
         strategy = self._load_strategy()
         ctx = BacktestContext(self)
         strategy.on_init(ctx)
@@ -180,7 +197,16 @@ class BacktestEngine:
         else:
             self._run_primary_timeline(strategy, ctx, bars_by_frequency)
         strategy.on_stop(ctx)
-        return BacktestResult(orders=self.orders, trades=self.trades, equity=self.equity)
+        self._append_event(
+            "engine_state",
+            payload={"state": "STOPPED"},
+        )
+        return BacktestResult(
+            orders=self.orders,
+            trades=self.trades,
+            equity=self.equity,
+            events=list(self.journal.events),
+        )
 
     def _run_daily_sessions(
         self,
@@ -238,13 +264,22 @@ class BacktestEngine:
             self._record_equity()
 
     def set_target(self, *, symbol: str, target_qty: float) -> None:
+        self._target_seq += 1
+        correlation_id = f"target-{self._target_seq}"
         self.pending_targets.append(
             TargetIntent(
                 strategy_id=self.config.id,
                 symbol=symbol,
                 target_qty=target_qty,
                 created_at=self.now,
+                correlation_id=correlation_id,
             )
+        )
+        self._append_event(
+            "target_intent",
+            symbol=symbol,
+            correlation_id=correlation_id,
+            payload={"target_qty": target_qty},
         )
 
     def submit_order(
@@ -257,6 +292,7 @@ class BacktestEngine:
         *,
         now: datetime | None = None,
         latest_price: float | None = None,
+        correlation_id: str | None = None,
     ) -> str:
         order_id = f"O-{len(self.orders) + 1}"
         created_at = now or self.now
@@ -276,6 +312,7 @@ class BacktestEngine:
             created_at=created_at,
             updated_at=created_at,
         )
+        self.order_correlation_ids[order_id] = correlation_id
         decision = self.risk.check_order(
             OrderRequest(
                 order_id=order_id,
@@ -300,6 +337,22 @@ class BacktestEngine:
             now=created_at,
             state=EngineState.NORMAL,
         )
+        self._append_event(
+            "risk_check",
+            timestamp=created_at,
+            symbol=symbol,
+            order_id=order_id,
+            risk_rule_id=decision.rule_id,
+            correlation_id=correlation_id,
+            payload={
+                "allowed": decision.allowed,
+                "reason": decision.reason,
+                "side": side.value,
+                "type": type.value,
+                "qty": qty,
+                "price": price,
+            },
+        )
         if not decision.allowed:
             rejected = replace(
                 order,
@@ -307,9 +360,40 @@ class BacktestEngine:
                 reject_reason=_risk_reject_reason(decision.rule_id, decision.reason),
             )
             self.orders.append(rejected)
+            self._append_event(
+                "order_rejected",
+                timestamp=created_at,
+                symbol=symbol,
+                order_id=order_id,
+                risk_rule_id=decision.rule_id,
+                correlation_id=correlation_id,
+                payload={
+                    "side": side.value,
+                    "type": type.value,
+                    "qty": qty,
+                    "price": price,
+                    "status": OrderStatus.REJECTED.value,
+                    "reason": decision.reason,
+                    "reject_reason": rejected.reject_reason,
+                },
+            )
             return order_id
         self.orders.append(order)
         self.open_orders.append(order)
+        self._append_event(
+            "order_submitted",
+            timestamp=created_at,
+            symbol=symbol,
+            order_id=order_id,
+            correlation_id=correlation_id,
+            payload={
+                "side": side.value,
+                "type": type.value,
+                "qty": qty,
+                "price": price,
+                "status": OrderStatus.SUBMITTED.value,
+            },
+        )
         return order_id
 
     def cancel_order(self, order_id: str) -> None:
@@ -332,10 +416,32 @@ class BacktestEngine:
         for intent in pending:
             price = latest_prices.get(intent.symbol)
             if price is None or price <= 0:
+                self._append_event(
+                    "rebalance_decision",
+                    symbol=intent.symbol,
+                    correlation_id=intent.correlation_id,
+                    payload={
+                        "target_qty": intent.target_qty,
+                        "action": "retained",
+                        "reason": "missing_latest_price",
+                    },
+                )
                 retained.append(intent)
                 continue
             current = self._effective_target_qty(intent.symbol)
             diff = intent.target_qty - current
+            self._append_event(
+                "rebalance_decision",
+                symbol=intent.symbol,
+                correlation_id=intent.correlation_id,
+                payload={
+                    "target_qty": intent.target_qty,
+                    "current_qty": current,
+                    "diff_qty": diff,
+                    "price": price,
+                    "action": "noop" if diff == 0 else "submit_order",
+                },
+            )
             if diff == 0:
                 continue
             side = OrderSide.BUY if diff > 0 else OrderSide.SELL
@@ -352,6 +458,7 @@ class BacktestEngine:
                     type=OrderType.LIMIT,
                     now=self.now,
                     latest_price=price,
+                    correlation_id=intent.correlation_id,
                 )
         self.pending_targets = retained + self.pending_targets
 
@@ -402,6 +509,7 @@ class BacktestEngine:
                 remaining.append(order)
                 continue
             commission = self.cost_model.calculate(order.side, result.filled_qty, result.fill_price)
+            cash_before = self.portfolio.account(self.last_prices).cash
             trade = Trade(
                 trade_id=f"T-{len(self.trades) + 1}",
                 order_id=order.order_id,
@@ -416,6 +524,7 @@ class BacktestEngine:
             )
             self.trades.append(trade)
             self.portfolio.apply_trade(trade)
+            cash_after = self.portfolio.account(self.last_prices).cash
             remaining_qty = order.remaining_qty - result.filled_qty
             status = OrderStatus.FILLED if remaining_qty == 0 else OrderStatus.PARTIAL
             updated_order = replace(
@@ -429,6 +538,36 @@ class BacktestEngine:
             self.orders = [
                 updated_order if old.order_id == order.order_id else old for old in self.orders
             ]
+            correlation_id = self.order_correlation_ids.get(order.order_id)
+            self._append_event(
+                "fill",
+                timestamp=bar.dt,
+                symbol=order.symbol,
+                order_id=order.order_id,
+                trade_id=trade.trade_id,
+                correlation_id=correlation_id,
+                payload={
+                    "side": order.side.value,
+                    "qty": result.filled_qty,
+                    "price": result.fill_price,
+                    "commission": commission,
+                    "order_status": status.value,
+                    "remaining_qty": remaining_qty,
+                },
+            )
+            self._append_event(
+                "cash_transition",
+                timestamp=bar.dt,
+                symbol=order.symbol,
+                order_id=order.order_id,
+                trade_id=trade.trade_id,
+                correlation_id=correlation_id,
+                payload={
+                    "cash_before": cash_before,
+                    "cash_after": cash_after,
+                    "delta": round(cash_after - cash_before, 2),
+                },
+            )
             if remaining_qty > 0:
                 remaining.append(updated_order)
         self.open_orders = remaining
@@ -457,6 +596,35 @@ class BacktestEngine:
                 bar.symbol: bar for bar in bars if visible_time is not None and bar.dt == visible_time
             }
         self.current_bars = self.current_bars_by_frequency.get(self.config.primary_frequency, {})
+
+    def _append_event(
+        self,
+        event_type: str,
+        *,
+        timestamp: datetime | None = None,
+        source_component: str = "backtest.engine",
+        payload: dict[str, Any] | None = None,
+        strategy_id: str | None = None,
+        account_id: str | None = None,
+        symbol: str | None = None,
+        order_id: str | None = None,
+        trade_id: str | None = None,
+        risk_rule_id: str | None = None,
+        correlation_id: str | None = None,
+    ) -> JournalEvent:
+        return self.journal.append(
+            event_type,
+            timestamp=timestamp or self.now,
+            source_component=source_component,
+            payload=payload or {},
+            strategy_id=strategy_id or self.config.id,
+            account_id=account_id or "backtest",
+            symbol=symbol,
+            order_id=order_id,
+            trade_id=trade_id,
+            risk_rule_id=risk_rule_id,
+            correlation_id=correlation_id,
+        )
 
     def _build_risk_limits(self) -> RiskLimits:
         risk = self.config.risk

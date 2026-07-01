@@ -24,22 +24,8 @@ def write_result(result: BacktestResult, output_dir: Path, config: StrategyConfi
     )
     pd.DataFrame(result.equity).to_csv(output_dir / "equity.csv", index=False)
     with (output_dir / "events.jsonl").open("w", encoding="utf-8") as file:
-        for order in result.orders:
-            file.write(
-                json.dumps(
-                    {"type": "order", "payload": _serializable(order)},
-                    ensure_ascii=False,
-                )
-                + "\n"
-            )
-        for trade in result.trades:
-            file.write(
-                json.dumps(
-                    {"type": "trade", "payload": _serializable(trade)},
-                    ensure_ascii=False,
-                )
-                + "\n"
-            )
+        for event in result.events:
+            file.write(json.dumps(_serializable(event), ensure_ascii=False) + "\n")
     final_value = result.equity[-1]["total_value"] if result.equity else 0
     (output_dir / "report.md").write_text(
         f"# Backtest Report\n\nFinal value: {final_value}\n",
@@ -49,9 +35,16 @@ def write_result(result: BacktestResult, output_dir: Path, config: StrategyConfi
 
 def _serializable(value) -> dict[str, object]:
     data = asdict(value)
-    for key, item in data.items():
-        if isinstance(item, Enum):
-            data[key] = item.value
-        elif hasattr(item, "isoformat"):
-            data[key] = item.isoformat()
-    return data
+    return {key: _json_value(item) for key, item in data.items()}
+
+
+def _json_value(value):
+    if isinstance(value, Enum):
+        return value.value
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {key: _json_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_value(item) for item in value]
+    return value
