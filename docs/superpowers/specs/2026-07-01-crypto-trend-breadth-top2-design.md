@@ -196,9 +196,20 @@ Risk review must reject promotion if capital, max order value, max position valu
 
 These tickets are for a later programming agent. They are not part of this design implementation.
 
+These are generic framework capability requests, not custom engine work for `crypto_trend_breadth_top2_v1`. This strategy is only the first acceptance scenario for the new capabilities.
+
+Framework generality guardrails:
+
+- Engine modules must not import this strategy, reference this strategy ID, or branch on this strategy's name.
+- Engine modules must not hard-code BTC, ETH, SOL, stablecoin symbols, 4-hour bars, daily bars, 50-day EMA, 20-bar ranking, 60/40 weights, 20% stop, 5-day cooldown, or 35% review limit.
+- Asset universe, bar frequency, calendar, cost model, benchmark set, drawdown threshold, cooldown, and ranking/trend parameters must be configuration or strategy-layer inputs.
+- Risk controls must remain independently reviewable and reusable; strategy-specific thresholds may configure generic risk components, but the risk engine must not contain strategy-specific signal logic.
+- Data, execution, risk, and reporting changes should support at least one non-crypto or toy fixture in tests where practical, so the framework does not become a one-strategy adapter.
+- The implementation may include `crypto_trend_breadth_top2_v1` as an example strategy or acceptance fixture, but not as a dependency of the framework.
+
 ### CRYPTO-DATA-001: Crypto Spot OHLCV Dataset
 
-Support BTC, ETH, and SOL spot OHLCV import at 4-hour frequency.
+Support configurable crypto spot OHLCV import for arbitrary spot symbols and source-declared bar frequencies. BTC, ETH, and SOL 4-hour data are the first research dataset, not hard-coded framework assumptions.
 
 Acceptance criteria:
 
@@ -207,30 +218,33 @@ Acceptance criteria:
 - Detect missing expected 4-hour bars under a 7x24 calendar.
 - Preserve exchange/source metadata.
 - Produce deterministic data audit summaries.
+- Accept the research universe from dataset metadata or config rather than from engine constants.
 
 ### CRYPTO-CALENDAR-001: 7x24 Market Calendar
 
-Add a 7x24 calendar mode for crypto assets.
+Add a reusable 7x24 calendar mode for assets that trade continuously.
 
 Acceptance criteria:
 
 - Do not reuse A-share trading sessions or holiday calendars.
 - Support daily aggregation boundaries in a declared timezone, defaulting to UTC for research unless overridden.
 - Make missing bars explicit rather than silently skipping sessions.
+- Expose the calendar as a selectable framework calendar, not as a crypto-strategy special case.
 
 ### MULTI-TF-001: Daily Trend Plus 4-Hour Execution
 
-Allow a strategy to use daily trend state and 4-hour execution/ranking bars in the same backtest.
+Allow strategies to use multiple bar frequencies in the same backtest without future leakage. Daily trend plus 4-hour execution is the first acceptance scenario.
 
 Acceptance criteria:
 
 - Daily state must only use data available at the decision time.
 - 4-hour decisions cannot see incomplete future daily bars.
 - Report the exact timestamp used for daily trend confirmation.
+- The framework API should support configurable primary and secondary frequencies rather than fixed daily/4-hour names.
 
 ### CRYPTO-EXEC-001: Spot Quantity and Stablecoin Accounting
 
-Support crypto spot quantities and quote-currency accounting.
+Support fractional spot quantities and quote-currency accounting for spot assets.
 
 Acceptance criteria:
 
@@ -238,37 +252,39 @@ Acceptance criteria:
 - Track stablecoin cash separately from risky asset positions.
 - Calculate equity in a declared quote currency.
 - Persist every rebalance, fill, rejection, cash transition, and state change as events.
+- Do not assume a single stablecoin symbol; quote currency must come from config or dataset metadata.
 
 ### COST-001: Crypto Fee and Slippage Model
 
-Support bps-based crypto spot fee and slippage assumptions.
+Support reusable bps-based fee and slippage assumptions for asset classes that choose this cost model. Crypto spot is the first use case.
 
 Acceptance criteria:
 
 - Configure fee bps and slippage bps independently.
 - Run mild, baseline, and stress cost presets.
 - Include total fee, estimated slippage cost, and turnover in the report.
+- Cost presets must be named configurations, not hard-coded to this strategy.
 
 ### RISK-001: Portfolio Drawdown Stop and Re-Entry Gate
 
-Support portfolio-level trailing drawdown stop, cooling period, and re-entry condition.
+Support configurable portfolio-level trailing drawdown stops, cooling periods, and re-entry gates as reusable risk components.
 
 Acceptance criteria:
 
 - Track rolling portfolio peak.
-- Trigger cash state at 20% drawdown.
-- Enforce 5-day cooling period.
-- Require breadth recovery before re-entry.
+- Trigger a configured defensive target when the configured drawdown threshold is breached; 20% cash exit is this strategy's first scenario.
+- Enforce a configured cooling period; 5 days is this strategy's first scenario.
+- Support a configured re-entry predicate; breadth recovery is this strategy's first scenario.
 - Persist risk stop and re-entry events.
 - Make this independently testable outside the strategy's signal logic.
 
-### REPORT-001: Crypto Strategy Benchmark Report
+### REPORT-001: Generic Strategy Benchmark Report
 
-Generate a benchmark report for crypto strategies.
+Generate configurable benchmark reports for research strategies. Crypto benchmarks are the first scenario.
 
 Acceptance criteria:
 
-- Compare strategy to cash, BTC, ETH, SOL, equal-weight, and ablated variants.
+- Compare strategy to configured cash, single-asset, equal-weight, and ablated variants; cash, BTC, ETH, SOL, and equal-weight are this strategy's first benchmark set.
 - Report return, CAGR, max drawdown, turnover, time in cash, and costs.
 - Emit machine-readable JSON and human-readable Markdown.
 - Include a clear research-only disclaimer.
