@@ -6,11 +6,13 @@
 Task 1: config and manifest models
 Task 2: calendar and multi-frequency DataService
 Task 3: BacktestClock and no-lookahead context
-Task 4: quote-currency portfolio and settlement rules
-Task 5: bps cost/slippage model
-Task 6: portfolio risk overlay
-Task 7: generic report and benchmarks
-Task 8: crypto acceptance fixture and architecture compliance tests
+Task 4: append-only event journal schema
+Task 5: target weight/value contract and target-to-order conversion
+Task 6: quote-currency portfolio and settlement rules
+Task 7: bps cost/slippage model
+Task 8: portfolio risk overlay with re-entry predicate audit contract
+Task 9: generic report and benchmarks
+Task 10: crypto acceptance fixture and architecture compliance tests
 ```
 
 每个 task 都必须 TDD: 先写失败测试，确认失败原因，再写最小实现。
@@ -24,6 +26,7 @@ src/quant/data/calendar.py
 src/quant/data/manifest.py
 src/quant/data/bars.py
 src/quant/backtest/clock.py
+src/quant/backtest/events.py
 src/quant/core/settlement.py
 src/quant/risk/portfolio_stop.py
 src/quant/backtest/reporting.py
@@ -54,6 +57,8 @@ tests/test_import_boundaries.py
 - `tests/test_dataset_manifest.py`
 - `tests/test_multifrequency_data_service.py`
 - `tests/test_backtest_clock.py`
+- `tests/test_backtest_event_journal.py`
+- `tests/test_target_weight_contract.py`
 - `tests/test_spot_portfolio_accounting.py`
 - `tests/test_bps_costs.py`
 - `tests/test_portfolio_stop.py`

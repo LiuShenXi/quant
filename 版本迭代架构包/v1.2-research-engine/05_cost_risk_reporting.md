@@ -37,7 +37,32 @@ is_tradable_now(symbol, now) -> bool
 
 风险模块只负责拒绝不可交易时段订单并记录 `risk_rule_id=trading_session`。
 
-## 3. Portfolio Stop
+## 3. 风险金额语义
+
+所有金额类风控限制必须声明单位，不能裸写数字:
+
+```yaml
+risk:
+  max_order_value:
+    value: 10000
+    unit: quote_currency
+    currency: USD
+  max_position_value:
+    value: 60000
+    unit: quote_currency
+    currency: USD
+  max_single_asset_exposure_pct: 0.60
+```
+
+允许单位:
+
+- `quote_currency`: 账户报价币种金额，currency 必须等于 account currency。
+- `currency`: 指定币种金额；若不同于 account currency，本轮不自动换汇，默认拒绝配置。
+- `equity_pct`: 占账户总权益百分比。
+
+业务侧的 CNY equivalent 只能进入 research assumption 或 report 注释；引擎运行时必须使用明确 quote currency 或 equity percentage。
+
+## 4. Portfolio Stop
 
 组合级 trailing drawdown stop 是独立风控组件，不属于策略信号。
 
@@ -60,9 +85,65 @@ last_reentry_check
 - cooling period 结束后，调用配置的 re-entry predicate。
 - stop、cooldown、re-entry 都写事件流水。
 
-第一轮 re-entry predicate 可以是策略层/配置层提供的布尔状态输入；风险组件不能 hard-code breadth 规则。
+### Re-Entry Predicate Contract
 
-## 4. Reporting
+第一轮 re-entry predicate 可以由策略层或配置层提供布尔状态，但必须通过可审计输入对象进入风险组件。风险组件不能 hard-code breadth 规则，也不能直接调用策略信号函数。
+
+最小输入:
+
+```text
+predicate_id
+as_of
+decision_time
+required_cooling_until
+inputs:
+  - name
+    source_component
+    freq
+    visible_bar_dt
+    construction
+    value
+```
+
+要求:
+
+- `as_of` 必须等于或早于当前 decision time。
+- 所有输入都必须来自已闭合 bar 或已持久化状态。
+- 多频输入必须记录 `freq` 和 `visible_bar_dt`。
+- predicate 结果必须写 `risk_reentry_check` event，包含 predicate id、inputs metadata、result、reason。
+- 如果输入缺失、timestamp 大于 decision time、或无法证明 fully closed，默认 result 为 false，并记录拒绝原因。
+
+## 5. Event Journal Schema
+
+v1.2 的 `events.jsonl` 是 append-only event journal，不是回测结束后从 orders/trades 派生的摘要文件。每行一个 JSON object，最小 schema:
+
+```json
+{
+  "run_id": "research-run-id",
+  "seq": 1,
+  "event_type": "order_submitted",
+  "timestamp": "2024-01-01T04:00:00Z",
+  "source_component": "backtest.engine",
+  "strategy_id": "example_strategy",
+  "account_id": "backtest",
+  "symbol": "AAA-USD",
+  "order_id": "O-1",
+  "trade_id": null,
+  "risk_rule_id": null,
+  "correlation_id": "target-batch-1",
+  "payload": {}
+}
+```
+
+要求:
+
+- `seq` 在单个 run 内单调递增，不允许重排。
+- journal append-only；修正用新 event 表达，不能改写旧 event。
+- `event_type` 至少覆盖 target intent、rebalance decision、order submitted、order rejected、fill、cash transition、risk stop、cooldown start、re-entry check、engine state。
+- 风控拒绝必须填 `risk_rule_id` 和 reason。
+- order/trade CSV 可以由 journal 或内存对象导出，但不能替代 journal。
+
+## 6. Reporting
 
 v1.2 result directory:
 
@@ -91,7 +172,7 @@ results/{run_id}/
 
 `report.md` 是给人看的同内容摘要，必须包含 research-only disclaimer。
 
-## 5. Benchmarks
+## 7. Benchmarks
 
 Benchmark 不应写死 crypto。配置形态:
 

@@ -14,7 +14,10 @@
 验收:
 
 - 7x24 calendar 能生成连续 4h expected timestamps。
-- 缺失一个 expected 4h bar 时，data audit summary 稳定报错。
+- 缺失一个 active window 内 expected 4h bar 时，data audit summary 稳定报错。
+- active window 之前的缺失不会被误判，较晚上市资产不会参与上市前回测。
+- manifest 声明 dataset coverage、symbol active window、freq coverage 和 construction 口径。
+- 1d/4h 同源聚合或独立源一致性检查有确定性输出。
 - A股日线旧 fixture 继续通过旧测试。
 - dataset manifest 中的 timezone、quote currency、freq 被加载，不写死在引擎中。
 
@@ -26,11 +29,14 @@
 - `ctx.history(..., freq="1d")` 最后一行 `dt <= ctx.now`。
 - report 或 events 中记录 daily confirmation timestamp。
 - 构造一个会因未来日线泄露而错误交易的 fixture，测试必须证明不会交易。
+- re-entry predicate 的输入必须记录 `as_of`、`freq`、`visible_bar_dt` 和 result event。
 
 ## 4. Slice C: Execution And Accounting
 
 验收:
 
+- `set_target_weight` 能从目标权重生成 target intent，并由框架转换为目标数量。
+- target intent event 记录估值价格、source bar timestamp、target weight 和 target qty。
 - fractional quantity 可以成交和估值。
 - account currency 来自配置，不固定 CNY。
 - T+0 spot 可在下一 bar 卖出，A股 T+1 旧测试仍保持。
@@ -54,6 +60,7 @@
 - drawdown breach 触发 defensive target 和 risk event。
 - cooldown 未结束前不允许 re-entry。
 - re-entry predicate 为 false 时继续 defensive target；为 true 时恢复允许开仓。
+- predicate 输入缺失或使用未来 timestamp 时默认拒绝 re-entry，并写 `risk_reentry_check` event。
 - 测试使用 toy predicate，不写死 breadth。
 
 ## 7. Slice F: Generic Report
@@ -63,6 +70,7 @@
 - 输出 `report.json` 和 `report.md`。
 - JSON 包含 `not_trading_permission: true`。
 - benchmark 从配置生成 cash、single asset、equal-weight。
+- `events.jsonl` 符合 append-only schema，包含 run_id、seq、event_type、timestamp、source_component 和关联 id。
 - report 不包含“可以 paper/live/真钱”的表述。
 
 ## 8. 不通过条件

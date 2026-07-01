@@ -9,6 +9,14 @@
 
 这不是投资建议、投资推荐、paper 批准、live 批准、QMT 批准、交易所接入批准或真钱交易许可。
 
+## Superpowers Trace
+
+- Process: `superpowers:brainstorming` for architecture design, then code-review reception for review findings.
+- User-approved scope: first vertical research slice, not all framework tickets at once.
+- Current artifact: architecture package only.
+- Next gate: user review of this package before implementation planning.
+- Not allowed from this package alone: code implementation, paper/live/QMT/exchange/broker/real-money work.
+
 ## 版本目标
 
 v1.2 第一轮只做一个垂直切片:
@@ -16,8 +24,10 @@ v1.2 第一轮只做一个垂直切片:
 - 可配置市场日历，先支持 A股交易日历和 7x24 连续日历。
 - 多频 bar 时间轴，先支持日线状态 + 4h 执行的无未来函数语义。
 - 报价币种账户和 fractional spot 记账，不能把 CNY、整手、T+1 写死进框架。
+- 目标权重接口，至少支持 `set_target_weight` 进入通用 target-to-order 路径。
 - bps fee/slippage 成本模型，作为可复用成本模型而非 crypto 特例。
 - 组合级 trailing drawdown stop、cooldown 和 re-entry gate，作为独立可审查风控组件。
+- append-only event journal schema，让状态变化、风控动作和回测产物可审计。
 - 通用 benchmark/report 产物，支持 JSON + Markdown，并带 research-only disclaimer。
 
 ## 文档地图

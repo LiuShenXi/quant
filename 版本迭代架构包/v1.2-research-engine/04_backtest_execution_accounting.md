@@ -31,7 +31,7 @@ ctx.get_bar(symbol, freq="1d")
 ctx.set_target(symbol, target_qty)
 ```
 
-建议新增或后续扩展:
+v1.2 第一轮必须新增:
 
 ```python
 ctx.set_target_value(symbol, target_value)
@@ -39,7 +39,15 @@ ctx.set_target_weight(symbol, target_weight)
 ctx.get_visible_bar_time(freq)
 ```
 
-第一轮可先不暴露新增 API，策略仍可用现有 `set_target`，但框架内部要允许从 target weight/value 生成目标数量，以免业务策略把账户估值和交易单位逻辑写死。
+`set_target_weight` 是 Slice C 的必交付接口。策略表达“目标组合权重”，框架负责读取账户权益、当前 mark price、instrument metadata、qty step、lot size、fractional 规则和风险上限，再生成目标数量与订单。策略不得为了表达 60/40 这类组合目标而自行计算账户估值、交易单位或报价币种换算。
+
+最小语义:
+
+- `target_weight` 以账户总权益为分母，范围默认 `0.0 <= weight <= 1.0`；是否允许 short/杠杆由 risk config 显式声明。
+- 多个 `set_target_weight` 在同一决策时刻组成一个 target batch。
+- batch 总权重超过风险允许上限时，框架拒绝或按配置归一化，并写 risk event。
+- `set_target_value` 的 value 必须声明或继承 account quote currency。
+- target intent 事件记录 signal timestamp、source bar timestamp、target weight/value、估值价格和转换后的 target qty。
 
 ## 3. Target To Order
 
