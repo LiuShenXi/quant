@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
+from quant.backtest.clock import BacktestClock
 from quant.backtest.matcher import Matcher
 from quant.core.config import StrategyConfig
 from quant.core.contract import (
@@ -22,7 +23,6 @@ from quant.core.contract import (
 from quant.core.portfolio import Portfolio
 from quant.core.sizing import split_qty_by_order_value
 from quant.costs import CostModel
-from quant.data.quality import reject_missing_rows
 from quant.data.service import DataService
 from quant.risk.pipeline import RiskEngine, RiskLimits
 
@@ -62,9 +62,21 @@ class BacktestContext:
         fields=None,
         adjust: str = "qfq",
     ) -> pd.DataFrame:
+        if not self.engine.has_frequency(freq):
+            return self.engine.data.history(
+                symbol,
+                end=self.now,
+                n=n,
+                freq=freq,
+                fields=fields,
+                adjust=adjust,
+            )
+        end = self.engine.get_visible_bar_time(freq)
+        if end is None:
+            return _empty_history(fields)
         return self.engine.data.history(
             symbol,
-            end=self.now,
+            end=end,
             n=n,
             freq=freq,
             fields=fields,
@@ -104,7 +116,10 @@ class BacktestContext:
         self.engine.cancel_order(order_id)
 
     def get_bar(self, symbol: str, freq: str = "1d") -> Bar | None:
-        return self.engine.current_bars.get(symbol)
+        return self.engine.current_bars_by_frequency.get(freq, {}).get(symbol)
+
+    def get_visible_bar_time(self, freq: str) -> datetime | None:
+        return self.engine.get_visible_bar_time(freq)
 
     def get_instrument(self, symbol: str):
         return self.engine.data.get_instrument(symbol)
@@ -143,6 +158,10 @@ class BacktestEngine:
         self.equity: list[dict[str, object]] = []
         self.last_prices: dict[str, float] = {}
         self.current_bars: dict[str, Bar] = {}
+        self.current_bars_by_frequency: dict[str, dict[str, Bar]] = {}
+        self.visible_bar_times: dict[str, datetime | None] = {}
+        self.loaded_frequencies: set[str] = set()
+        self.clock: BacktestClock | None = None
         self.state: dict[str, object] = {}
 
     def run(self) -> BacktestResult:
@@ -150,7 +169,26 @@ class BacktestEngine:
         ctx = BacktestContext(self)
         strategy.on_init(ctx)
         strategy.on_start(ctx)
-        bars = self._load_bars()
+        bars_by_frequency = self._load_bars_by_frequency()
+        self.loaded_frequencies = set(bars_by_frequency)
+        self.clock = BacktestClock(
+            bars_by_frequency=bars_by_frequency,
+            primary_frequency=self.config.primary_frequency,
+        )
+        if self.config.primary_frequency == "1d":
+            self._run_daily_sessions(strategy, ctx, bars_by_frequency)
+        else:
+            self._run_primary_timeline(strategy, ctx, bars_by_frequency)
+        strategy.on_stop(ctx)
+        return BacktestResult(orders=self.orders, trades=self.trades, equity=self.equity)
+
+    def _run_daily_sessions(
+        self,
+        strategy: StrategyBase,
+        ctx: BacktestContext,
+        bars_by_frequency: dict[str, list[Bar]],
+    ) -> None:
+        bars = bars_by_frequency[self.config.primary_frequency]
         for day_bars in _group_bars_by_session(bars):
             first_bar = day_bars[0]
             if self.now.date() != first_bar.dt.date():
@@ -165,12 +203,39 @@ class BacktestEngine:
             self.current_bars.update({bar.symbol: bar for bar in day_bars})
             close_prices = {bar.symbol: bar.close for bar in day_bars}
             self.last_prices.update(close_prices)
+            self._set_visible_bars(first_bar.dt, bars_by_frequency)
             for bar in day_bars:
                 self.now = bar.dt
                 strategy.on_bar(ctx, bar)
             self._record_equity()
-        strategy.on_stop(ctx)
-        return BacktestResult(orders=self.orders, trades=self.trades, equity=self.equity)
+
+    def _run_primary_timeline(
+        self,
+        strategy: StrategyBase,
+        ctx: BacktestContext,
+        bars_by_frequency: dict[str, list[Bar]],
+    ) -> None:
+        primary_frequency = self.config.primary_frequency
+        primary_bars_by_time = _index_bars_by_time(bars_by_frequency[primary_frequency])
+        if self.clock is None:
+            raise RuntimeError("backtest clock is not initialized")
+        for decision_time in self.clock.primary_timeline():
+            if self.now.date() != decision_time.date():
+                self.portfolio.mark_new_day()
+            self.now = decision_time
+            primary_bars = primary_bars_by_time[decision_time]
+            open_prices = {bar.symbol: bar.open for bar in primary_bars}
+            self.last_prices.update(open_prices)
+            self._flush_pending_targets(open_prices)
+            for bar in primary_bars:
+                self._match_open_orders(bar)
+
+            self._set_visible_bars(decision_time, bars_by_frequency)
+            close_prices = {bar.symbol: bar.close for bar in primary_bars}
+            self.last_prices.update(close_prices)
+            for bar in primary_bars:
+                strategy.on_bar(ctx, bar)
+            self._record_equity()
 
     def set_target(self, *, symbol: str, target_qty: float) -> None:
         self.pending_targets.append(
@@ -250,6 +315,16 @@ class BacktestEngine:
     def cancel_order(self, order_id: str) -> None:
         self.open_orders = [order for order in self.open_orders if order.order_id != order_id]
 
+    def get_visible_bar_time(self, freq: str) -> datetime | None:
+        if freq in self.visible_bar_times:
+            return self.visible_bar_times[freq]
+        if self.clock is None:
+            return None
+        return self.clock.visible_bar_time(freq, self.now)
+
+    def has_frequency(self, freq: str) -> bool:
+        return freq in self.loaded_frequencies
+
     def _flush_pending_targets(self, latest_prices: dict[str, float]) -> None:
         pending = self.pending_targets
         self.pending_targets = []
@@ -304,30 +379,17 @@ class BacktestEngine:
         strategy_class = getattr(module, class_name)
         return strategy_class()
 
-    def _load_bars(self) -> list[Bar]:
-        rows = self.data._bars[self.data._bars["symbol"].isin(self.config.universe)].sort_values(
-            ["dt", "symbol"]
+    def _load_bars_by_frequency(self) -> dict[str, list[Bar]]:
+        frequencies = _unique_frequencies(
+            [self.config.primary_frequency, *self.config.history_frequencies]
         )
-        reject_missing_rows(rows)
-        return [
-            Bar(
-                symbol=row.symbol,
-                freq="1d",
-                dt=row.dt.to_pydatetime(),
-                open=float(row.open),
-                high=float(row.high),
-                low=float(row.low),
-                close=float(row.close),
-                volume=float(row.volume),
-                amount=float(row.amount),
-                pre_close=float(row.pre_close),
-                limit_up=float(row.limit_up),
-                limit_down=float(row.limit_down),
-                suspended=bool(row.suspended),
-            )
-            for row in rows.itertuples()
-            if row.data_status == "ok"
-        ]
+        return {
+            freq: self.data.load_bars(self.config.universe, freq=freq)
+            for freq in frequencies
+        }
+
+    def _load_bars(self) -> list[Bar]:
+        return self.data.load_bars(self.config.universe, freq=self.config.primary_frequency)
 
     def _match_open_orders(self, bar: Bar) -> None:
         remaining: list[Order] = []
@@ -377,6 +439,25 @@ class BacktestEngine:
             {"dt": self.now.isoformat(), "total_value": account.total_value, "cash": account.cash}
         )
 
+    def _set_visible_bars(
+        self,
+        decision_time: datetime,
+        bars_by_frequency: dict[str, list[Bar]],
+    ) -> None:
+        if self.clock is None:
+            raise RuntimeError("backtest clock is not initialized")
+        self.visible_bar_times = {
+            freq: self.clock.visible_bar_time(freq, decision_time)
+            for freq in bars_by_frequency
+        }
+        self.current_bars_by_frequency = {}
+        for freq, bars in bars_by_frequency.items():
+            visible_time = self.visible_bar_times[freq]
+            self.current_bars_by_frequency[freq] = {
+                bar.symbol: bar for bar in bars if visible_time is not None and bar.dt == visible_time
+            }
+        self.current_bars = self.current_bars_by_frequency.get(self.config.primary_frequency, {})
+
     def _build_risk_limits(self) -> RiskLimits:
         risk = self.config.risk
         return RiskLimits(
@@ -410,6 +491,29 @@ def _group_bars_by_session(bars: list[Bar]) -> list[list[Bar]]:
             continue
         sessions[-1].append(bar)
     return sessions
+
+
+def _index_bars_by_time(bars: list[Bar]) -> dict[datetime, list[Bar]]:
+    indexed: dict[datetime, list[Bar]] = {}
+    for bar in bars:
+        indexed.setdefault(bar.dt, []).append(bar)
+    return indexed
+
+
+def _unique_frequencies(frequencies: list[str]) -> list[str]:
+    unique: list[str] = []
+    for freq in frequencies:
+        if freq not in unique:
+            unique.append(freq)
+    return unique
+
+
+def _empty_history(fields) -> pd.DataFrame:
+    if fields is not None:
+        return pd.DataFrame(columns=["dt", *fields])
+    return pd.DataFrame(
+        columns=["symbol", "dt", "open", "high", "low", "close", "volume", "amount"]
+    )
 
 
 def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
