@@ -7,10 +7,17 @@ import pandas as pd
 import yaml
 
 from quant.backtest.engine import BacktestResult
+from quant.backtest.reporting import write_research_report_artifacts
 from quant.core.config import StrategyConfig
 
 
-def write_result(result: BacktestResult, output_dir: Path, config: StrategyConfig) -> None:
+def write_result(
+    result: BacktestResult,
+    output_dir: Path,
+    config: StrategyConfig,
+    *,
+    data_root: Path | None = None,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     with (output_dir / "config_snapshot.yaml").open("w", encoding="utf-8") as file:
         yaml.safe_dump(config.model_dump(mode="json", by_alias=True), file, allow_unicode=True)
@@ -26,11 +33,7 @@ def write_result(result: BacktestResult, output_dir: Path, config: StrategyConfi
     with (output_dir / "events.jsonl").open("w", encoding="utf-8") as file:
         for event in result.events:
             file.write(json.dumps(_serializable(event), ensure_ascii=False) + "\n")
-    final_value = result.equity[-1]["total_value"] if result.equity else 0
-    (output_dir / "report.md").write_text(
-        f"# Backtest Report\n\nFinal value: {final_value}\n",
-        encoding="utf-8",
-    )
+    write_research_report_artifacts(result, output_dir, config, data_root=data_root)
 
 
 def _serializable(value) -> dict[str, object]:
