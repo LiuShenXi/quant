@@ -72,13 +72,9 @@ class BacktestContext:
         adjust: str = "qfq",
     ) -> pd.DataFrame:
         if not self.engine.has_frequency(freq):
-            return self.engine.data.history(
-                symbol,
-                end=self.now,
-                n=n,
-                freq=freq,
-                fields=fields,
-                adjust=adjust,
+            raise ValueError(
+                f"history frequency {freq!r} is not configured for BacktestClock; "
+                "add it to frequencies.history"
             )
         end = self.engine.get_visible_bar_time(freq)
         if end is None:
@@ -163,6 +159,7 @@ class BacktestEngine:
         self.config = config
         self.data = data
         self.run_id = run_id or config.id
+        self._validate_currency_coherence()
         self.journal = EventJournal(run_id=self.run_id)
         self.now = datetime(1970, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai"))
         self.portfolio = Portfolio(
@@ -209,7 +206,7 @@ class BacktestEngine:
             bars_by_frequency=bars_by_frequency,
             primary_frequency=self.config.primary_frequency,
         )
-        if self.config.primary_frequency == "1d":
+        if self.config.primary_frequency == "1d" and self.config.calendar != "continuous_24x7":
             self._run_daily_sessions(strategy, ctx, bars_by_frequency)
         else:
             self._run_primary_timeline(strategy, ctx, bars_by_frequency)
@@ -1042,12 +1039,14 @@ class BacktestEngine:
     def _build_risk_limits(self) -> RiskLimits:
         risk = self.config.risk
         account_value = self.portfolio.account({}).total_value
+        quote_currency = self._quote_currency()
         return RiskLimits(
             universe=set(self.config.universe),
             calendar=self.config.calendar,
             max_order_value=_resolve_money_limit(
                 risk.max_order_value,
                 account_currency=self.config.account.currency,
+                quote_currency=quote_currency,
                 account_value=account_value,
                 default=200_000,
             ),
@@ -1055,6 +1054,7 @@ class BacktestEngine:
                 _resolve_money_limit(
                     risk.max_position_value,
                     account_currency=self.config.account.currency,
+                    quote_currency=quote_currency,
                     account_value=account_value,
                     default=500_000,
                 )
@@ -1069,6 +1069,22 @@ class BacktestEngine:
                 getattr(risk, "portfolio_stop", None)
             ),
         )
+
+    def _quote_currency(self) -> str:
+        manifest = getattr(self.data, "_manifest", None)
+        if manifest is None:
+            return self.config.account.currency
+        return manifest.quote_currency
+
+    def _validate_currency_coherence(self) -> None:
+        manifest = getattr(self.data, "_manifest", None)
+        if manifest is None:
+            return
+        if not _same_currency(manifest.quote_currency, self.config.account.currency):
+            raise ValueError(
+                f"dataset quote_currency {manifest.quote_currency} does not match "
+                f"account currency {self.config.account.currency}"
+            )
 
 
 def _continuous_auction_open(value: datetime) -> datetime:
@@ -1136,6 +1152,7 @@ def _resolve_money_limit(
     limit: RiskMoneyLimit | float | None,
     *,
     account_currency: str,
+    quote_currency: str,
     account_value: float,
     default: float,
 ) -> float:
@@ -1144,13 +1161,26 @@ def _resolve_money_limit(
     if isinstance(limit, RiskMoneyLimit):
         if limit.unit == "equity_pct":
             return float(account_value * limit.value)
-        if limit.unit == "currency" and limit.currency != account_currency:
-            raise ValueError(
-                f"risk money limit currency {limit.currency} does not match account currency "
-                f"{account_currency}"
-            )
+        if limit.unit == "currency":
+            if not _same_currency(limit.currency, account_currency):
+                raise ValueError(
+                    f"risk money limit currency {limit.currency} does not match account "
+                    f"currency {account_currency}"
+                )
+        if limit.unit == "quote_currency" and limit.currency is not None:
+            if not _same_currency(limit.currency, quote_currency):
+                raise ValueError(
+                    f"risk money limit quote currency {limit.currency} does not match "
+                    f"account currency {account_currency}"
+                )
         return float(limit.value)
     return float(limit)
+
+
+def _same_currency(left: str | None, right: str | None) -> bool:
+    if left is None or right is None:
+        return left == right
+    return left.strip().upper() == right.strip().upper()
 
 
 def _coerce_bool(value: object, *, default: bool) -> bool:

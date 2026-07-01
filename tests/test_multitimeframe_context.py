@@ -61,6 +61,11 @@ def test_4h_context_cannot_see_daily_bar_until_daily_close(
             "universe": ["AAA-USD"],
             "frequencies": {"primary": "4h", "history": ["4h", "1d"]},
             "calendar": "continuous_24x7",
+            "account": {
+                "currency": "USD",
+                "settlement": "t0",
+                "allow_fractional": True,
+            },
             "params": {"symbol": "AAA-USD"},
             "risk": RiskConfig(
                 max_order_value=10_000,
@@ -127,12 +132,63 @@ def test_context_history_raises_for_unconfigured_frequency(
             "universe": ["AAA-USD"],
             "frequencies": {"primary": "4h", "history": ["4h", "1d"]},
             "calendar": "continuous_24x7",
+            "account": {
+                "currency": "USD",
+                "settlement": "t0",
+                "allow_fractional": True,
+            },
             "params": {},
             "runtime_mode": "backtest",
         }
     )
 
     with pytest.raises(ValueError, match="2h"):
+        BacktestEngine(
+            config=config,
+            data=DataService(_write_multitimeframe_dataset(tmp_path)),
+            initial_cash=1_000,
+        ).run()
+
+
+def test_context_history_raises_for_manifest_frequency_omitted_from_clock(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    strategy_module = ModuleType("tests.undeclared_daily_history_strategy")
+
+    class UndeclaredDailyHistoryStrategy(StrategyBase):
+        def on_bar(self, ctx, bar) -> None:
+            ctx.history("AAA-USD", n=1, freq="1d", adjust="raw")
+
+    strategy_module.UndeclaredDailyHistoryStrategy = UndeclaredDailyHistoryStrategy
+    monkeypatch.setattr(
+        "quant.backtest.engine.import_module",
+        lambda name: (
+            strategy_module if name == "tests.undeclared_daily_history_strategy" else None
+        ),
+    )
+    config = StrategyConfig.model_validate(
+        {
+            "id": "undeclared_daily_history",
+            "class": (
+                "tests.undeclared_daily_history_strategy:"
+                "UndeclaredDailyHistoryStrategy"
+            ),
+            "version": "1.0",
+            "universe": ["AAA-USD"],
+            "frequencies": {"primary": "4h", "history": ["4h"]},
+            "calendar": "continuous_24x7",
+            "account": {
+                "currency": "USD",
+                "settlement": "t0",
+                "allow_fractional": True,
+            },
+            "params": {},
+            "runtime_mode": "backtest",
+        }
+    )
+
+    with pytest.raises(ValueError, match="history frequency '1d' is not configured"):
         BacktestEngine(
             config=config,
             data=DataService(_write_multitimeframe_dataset(tmp_path)),

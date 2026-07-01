@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, time
 from pathlib import Path
 from types import ModuleType
 
+import pytest
 import yaml
 
 from quant.backtest.engine import BacktestEngine
 from quant.backtest.results import write_result
-from quant.core.config import load_strategy_config
+from quant.core.config import RiskConfig, RiskMoneyLimit, StrategyConfig, load_strategy_config
 from quant.core.contract import OrderSide, StrategyBase
 from quant.data.service import DataService
 
@@ -191,6 +192,116 @@ def test_platform_source_has_no_strategy_specific_research_constants() -> None:
     assert _platform_source_scan_violations(PLATFORM_SOURCE_ROOTS) == []
 
 
+def test_daily_continuous_24x7_primary_uses_bar_clock_without_a_share_open(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    strategy_module = ModuleType("tests.daily_24x7_target_strategy")
+
+    class Daily24x7TargetStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            self.symbol = ctx.params["symbol"]
+            self.sent = False
+
+        def on_bar(self, ctx, bar) -> None:
+            if bar.symbol == self.symbol and not self.sent:
+                self.sent = True
+                ctx.set_target_weight(self.symbol, 0.50)
+
+    strategy_module.Daily24x7TargetStrategy = Daily24x7TargetStrategy
+    monkeypatch.setattr(
+        "quant.backtest.engine.import_module",
+        lambda name: strategy_module if name == "tests.daily_24x7_target_strategy" else None,
+    )
+    config = StrategyConfig.model_validate(
+        {
+            "id": "daily_24x7_target",
+            "class": "tests.daily_24x7_target_strategy:Daily24x7TargetStrategy",
+            "version": "1.0",
+            "universe": ["AAA-USD"],
+            "frequencies": {"primary": "1d", "history": ["1d"]},
+            "calendar": "continuous_24x7",
+            "account": {
+                "currency": "USD",
+                "settlement": "t0",
+                "allow_fractional": True,
+            },
+            "params": {"symbol": "AAA-USD"},
+            "risk": {
+                "max_order_value": 10_000,
+                "max_position_value": 10_000,
+                "max_gross_exposure_pct": 1.0,
+            },
+            "runtime_mode": "backtest",
+        }
+    )
+
+    result = BacktestEngine(
+        config=config,
+        data=DataService(_write_daily_24x7_dataset(tmp_path)),
+        initial_cash=1_000,
+    ).run()
+
+    order_submitted = next(event for event in result.events if event.event_type == "order_submitted")
+    fill = next(event for event in result.events if event.event_type == "fill")
+    target_intent = next(event for event in result.events if event.event_type == "target_intent")
+    expected_execution_time = datetime.fromisoformat("2026-01-02T00:00:00+00:00")
+
+    assert target_intent.payload["source_bar_timestamp"] == "2026-01-01T00:00:00+00:00"
+    assert result.orders[0].created_at == expected_execution_time
+    assert result.trades[0].dt == expected_execution_time
+    assert order_submitted.timestamp == expected_execution_time
+    assert fill.timestamp == expected_execution_time
+    assert fill.timestamp >= order_submitted.timestamp
+    assert all(event.timestamp.time() != time(9, 31) for event in result.events)
+
+
+def test_manifest_quote_currency_must_match_account_currency(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    strategy_module = ModuleType("tests.currency_noop_strategy")
+
+    class CurrencyNoopStrategy(StrategyBase):
+        pass
+
+    strategy_module.CurrencyNoopStrategy = CurrencyNoopStrategy
+    monkeypatch.setattr(
+        "quant.backtest.engine.import_module",
+        lambda name: strategy_module if name == "tests.currency_noop_strategy" else None,
+    )
+    config = _daily_currency_config(
+        class_path="tests.currency_noop_strategy:CurrencyNoopStrategy",
+        account_currency="CNY",
+        risk=RiskConfig(max_order_value=10_000, max_position_value=10_000),
+    )
+
+    with pytest.raises(ValueError, match="quote_currency.*USD.*account currency.*CNY"):
+        BacktestEngine(
+            config=config,
+            data=DataService(_write_daily_24x7_dataset(tmp_path)),
+            initial_cash=1_000,
+        )
+
+
+def test_quote_currency_risk_limit_must_match_account_currency() -> None:
+    config = _daily_currency_config(
+        class_path="strategies.dual_ma:DualMA",
+        account_currency="CNY",
+        risk=RiskConfig(
+            max_order_value=RiskMoneyLimit(
+                value=10_000,
+                unit="quote_currency",
+                currency="USD",
+            ),
+            max_position_value=10_000,
+        ),
+    )
+
+    with pytest.raises(ValueError, match="risk money limit quote currency USD.*account currency CNY"):
+        BacktestEngine(config=config, data=DataService(Path("data_sample")), initial_cash=100_000)
+
+
 def test_platform_source_scan_rejects_strategy_specific_literals(tmp_path: Path) -> None:
     source_root = tmp_path / "src" / "quant" / "backtest"
     source_root.mkdir(parents=True)
@@ -238,3 +349,84 @@ def _platform_source_scan_violations(roots: list[Path]) -> list[PlatformSourceVi
                         )
                     )
     return violations
+
+
+def _daily_currency_config(
+    *,
+    class_path: str,
+    account_currency: str,
+    risk: RiskConfig,
+) -> StrategyConfig:
+    return StrategyConfig.model_validate(
+        {
+            "id": "currency_coherence",
+            "class": class_path,
+            "version": "1.0",
+            "universe": ["AAA-USD"],
+            "frequencies": {"primary": "1d", "history": ["1d"]},
+            "calendar": "continuous_24x7",
+            "account": {
+                "currency": account_currency,
+                "settlement": "t0",
+                "allow_fractional": True,
+            },
+            "params": {"symbol": "AAA-USD", "fast": 1, "slow": 2, "target_qty": 1},
+            "risk": risk,
+            "runtime_mode": "backtest",
+        }
+    )
+
+
+def _write_daily_24x7_dataset(tmp_path: Path) -> Path:
+    data_root = tmp_path / "daily_24x7"
+    data_root.mkdir()
+    (data_root / "bars_1d.csv").write_text(
+        "\n".join(
+            [
+                "symbol,dt,open,high,low,close,volume,amount,pre_close,limit_up,limit_down,suspended,data_status,source,updated_at",
+                "AAA-USD,2026-01-01T00:00:00+00:00,10,11,9,10,10000,100000,10,,,False,ok,test,2026-01-02T00:00:00+00:00",
+                "AAA-USD,2026-01-02T00:00:00+00:00,11,12,10,11,10000,110000,10,,,False,ok,test,2026-01-02T00:00:00+00:00",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (data_root / "instruments.csv").write_text(
+        "\n".join(
+            [
+                "symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status,allow_fractional",
+                "AAA-USD,AAA,spot,TEST,2025-01-01,,0.001,0.001,0.01,0,active,True",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (data_root / "dataset_manifest.yaml").write_text(
+        """
+dataset_id: daily_24x7_fixture
+source: test_fixture
+timezone: UTC
+calendar: continuous_24x7
+quote_currency: USD
+coverage:
+  start: "2026-01-01T00:00:00Z"
+  end: "2026-01-02T00:00:00Z"
+symbols:
+  - symbol: AAA-USD
+    type: spot
+    exchange: TEST
+    active_from: "2026-01-01T00:00:00Z"
+    active_to: null
+    qty_step: 0.001
+    lot_size: 0.001
+    t_plus: 0
+frequencies:
+  - freq: 1d
+    file: bars_1d.csv
+    expected_interval: P1D
+    coverage:
+      start: "2026-01-01T00:00:00Z"
+      end: "2026-01-02T00:00:00Z"
+    construction: source
+""",
+        encoding="utf-8",
+    )
+    return data_root
