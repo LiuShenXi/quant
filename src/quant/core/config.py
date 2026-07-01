@@ -10,6 +10,19 @@ class RiskMoneyLimit(BaseModel):
     unit: Literal["quote_currency", "currency", "equity_pct"]
     currency: str | None = None
 
+    @field_validator("currency")
+    @classmethod
+    def currency_must_not_be_empty(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("currency must not be empty")
+        return value
+
+    @model_validator(mode="after")
+    def currency_unit_requires_currency(self) -> "RiskMoneyLimit":
+        if self.unit == "currency" and self.currency is None:
+            raise ValueError("currency is required when unit is currency")
+        return self
+
 
 class RiskConfig(BaseModel):
     max_order_value: RiskMoneyLimit | float | None = None
@@ -56,6 +69,21 @@ class AccountConfig(BaseModel):
         return value
 
 
+class CostConfig(BaseModel):
+    model: str | None = None
+    preset: str | None = None
+    fee_bps: float | None = None
+    slippage_bps: float | None = None
+
+
+class BenchmarkConfig(BaseModel):
+    id: str
+    type: str
+    symbol: str | None = None
+    symbols: list[str] = Field(default_factory=list)
+    params_patch: dict[str, Any] = Field(default_factory=dict)
+
+
 class StrategyConfig(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -69,6 +97,8 @@ class StrategyConfig(BaseModel):
     account: AccountConfig = Field(default_factory=AccountConfig)
     params: dict[str, Any]
     risk: RiskConfig = Field(default_factory=RiskConfig)
+    costs: CostConfig = Field(default_factory=CostConfig)
+    benchmarks: list[BenchmarkConfig] = Field(default_factory=list)
     runtime_mode: Literal["backtest", "paper"]
 
     @field_validator("universe")

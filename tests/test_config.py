@@ -1,8 +1,9 @@
 from pathlib import Path
 
+import pytest
 from pydantic import ValidationError
 
-from quant.core.config import StrategyConfig, load_strategy_config
+from quant.core.config import RiskMoneyLimit, StrategyConfig, load_strategy_config
 
 
 def test_strategy_config_loads_runtime_mode_outside_params() -> None:
@@ -113,3 +114,73 @@ def test_strategy_config_rejects_money_limit_dict_without_unit() -> None:
         assert "unit" in str(exc)
     else:
         raise AssertionError("money risk limit dicts must declare unit")
+
+
+def test_strategy_config_exposes_costs_and_benchmarks_defaults() -> None:
+    config = load_strategy_config(Path("config/strategies/dual_ma_510300.yaml"))
+
+    assert config.costs.model is None
+    assert config.costs.fee_bps is None
+    assert config.costs.slippage_bps is None
+    assert config.benchmarks == []
+
+
+def test_strategy_config_retains_costs_and_benchmarks_surface() -> None:
+    config = StrategyConfig.model_validate(
+        {
+            "id": "research_slice",
+            "class": "strategies.example:ExampleStrategy",
+            "version": "1.0.0",
+            "universe": ["AAA-USD", "BBB-USD"],
+            "frequencies": {"primary": "4h"},
+            "params": {},
+            "risk": {},
+            "costs": {
+                "model": "bps",
+                "preset": "baseline",
+                "fee_bps": 10,
+                "slippage_bps": 20,
+            },
+            "benchmarks": [
+                {"id": "cash", "type": "cash"},
+                {
+                    "id": "buy_hold_AAA",
+                    "type": "single_asset_buy_hold",
+                    "symbol": "AAA-USD",
+                },
+                {
+                    "id": "equal_weight_universe",
+                    "type": "equal_weight_buy_hold",
+                    "symbols": ["AAA-USD", "BBB-USD"],
+                },
+                {
+                    "id": "ablation_no_stop",
+                    "type": "strategy_variant",
+                    "params_patch": {"risk.portfolio_stop.enabled": False},
+                },
+            ],
+            "runtime_mode": "backtest",
+        }
+    )
+
+    assert config.costs.model == "bps"
+    assert config.costs.preset == "baseline"
+    assert config.costs.fee_bps == 10
+    assert config.costs.slippage_bps == 20
+    assert config.benchmarks[0].id == "cash"
+    assert config.benchmarks[1].symbol == "AAA-USD"
+    assert config.benchmarks[2].symbols == ["AAA-USD", "BBB-USD"]
+    assert config.benchmarks[3].params_patch == {
+        "risk.portfolio_stop.enabled": False
+    }
+
+    dumped = config.model_dump(mode="json", by_alias=True)
+    assert dumped["costs"]["model"] == "bps"
+    assert dumped["benchmarks"][3]["params_patch"] == {
+        "risk.portfolio_stop.enabled": False
+    }
+
+
+def test_risk_money_limit_requires_currency_when_unit_is_currency() -> None:
+    with pytest.raises(ValidationError, match="currency"):
+        RiskMoneyLimit(value=10_000, unit="currency")
