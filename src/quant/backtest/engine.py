@@ -26,6 +26,7 @@ from quant.core.portfolio import Portfolio
 from quant.costs import cost_model_from_config
 from quant.data.service import DataService
 from quant.risk.pipeline import RiskEngine, RiskLimits
+from quant.risk.portfolio_stop import PortfolioStopEvent, portfolio_stop_config_from_mapping
 
 
 @dataclass(frozen=True)
@@ -173,6 +174,8 @@ class BacktestEngine:
         )
         self.matcher = Matcher(volume_limit_pct=0.05)
         self.risk = RiskEngine(self._build_risk_limits())
+        if self.risk.portfolio_stop is not None:
+            self.risk.portfolio_stop.set_event_sink(self._append_portfolio_stop_event)
         self.cost_model = cost_model_from_config(config.costs)
         self.open_orders: list[Order] = []
         self.order_correlation_ids: dict[str, str | None] = {}
@@ -518,6 +521,7 @@ class BacktestEngine:
         pending = self.pending_targets
         self.pending_targets = []
         pending = self._reject_over_gross_target_weight_batches(pending)
+        pending = self._reject_portfolio_stop_opening_targets(pending)
         retained: list[TargetIntent] = []
         for intent in pending:
             price = latest_prices.get(intent.symbol)
@@ -668,6 +672,64 @@ class BacktestEngine:
             for intent in pending
             if intent.correlation_id not in rejected_correlation_ids
         ]
+
+    def _reject_portfolio_stop_opening_targets(
+        self,
+        pending: list[TargetIntent],
+    ) -> list[TargetIntent]:
+        stop = self.risk.portfolio_stop
+        if stop is None or stop.allows_opening_exposure(self.now):
+            return pending
+
+        allowed: list[TargetIntent] = []
+        reason = stop.opening_exposure_reject_reason(self.now)
+        for intent in pending:
+            current = self._effective_target_qty(intent.symbol)
+            if intent.target_qty > current:
+                self._reject_target_intent(
+                    symbol=intent.symbol,
+                    correlation_id=intent.correlation_id,
+                    risk_rule_id="portfolio_stop_cooldown",
+                    reason=reason,
+                    payload=_target_intent_payload(intent),
+                )
+                continue
+            allowed.append(intent)
+        return allowed
+
+    def _enqueue_defensive_targets(self, defensive_target: dict[str, Any] | None) -> None:
+        if defensive_target is None or defensive_target.get("mode") != "flat":
+            return
+        for symbol, state in self.portfolio.positions.items():
+            mark = self.last_prices.get(symbol, state.avg_price)
+            current_qty = self.portfolio.position(symbol, mark_price=mark).qty
+            if current_qty <= 0:
+                continue
+            correlation_id = self._next_target_correlation_id()
+            intent = TargetIntent(
+                strategy_id=self.config.id,
+                symbol=symbol,
+                target_qty=0.0,
+                created_at=self.now,
+                correlation_id=correlation_id,
+                source_bar_timestamp=self._source_bar_timestamp(),
+                target_value=0.0,
+                target_weight=0.0,
+                valuation_price=mark,
+            )
+            self.pending_targets.append(intent)
+            self._append_event(
+                "target_intent",
+                source_component="quant.risk.portfolio_stop",
+                symbol=symbol,
+                risk_rule_id="portfolio_stop_drawdown",
+                correlation_id=correlation_id,
+                payload={
+                    **_target_intent_payload(intent),
+                    "reason": "portfolio_stop_defensive_target",
+                    "defensive_target": dict(defensive_target),
+                },
+            )
 
     def _target_valuation_price(self, symbol: str) -> float | None:
         price = self.last_prices.get(symbol)
@@ -907,6 +969,11 @@ class BacktestEngine:
         self.equity.append(
             {"dt": self.now.isoformat(), "total_value": account.total_value, "cash": account.cash}
         )
+        if self.risk.portfolio_stop is None:
+            return
+        decision = self.risk.portfolio_stop.on_equity(self.now, account.total_value)
+        if decision.triggered:
+            self._enqueue_defensive_targets(decision.defensive_target)
 
     def _cost_report_inputs(self) -> dict[str, object]:
         return {
@@ -963,6 +1030,15 @@ class BacktestEngine:
             correlation_id=correlation_id,
         )
 
+    def _append_portfolio_stop_event(self, event: PortfolioStopEvent) -> None:
+        self._append_event(
+            event.event_type,
+            timestamp=event.timestamp,
+            source_component="quant.risk.portfolio_stop",
+            risk_rule_id=event.risk_rule_id,
+            payload=event.payload,
+        )
+
     def _build_risk_limits(self) -> RiskLimits:
         risk = self.config.risk
         return RiskLimits(
@@ -976,6 +1052,9 @@ class BacktestEngine:
             ),
             max_orders_per_minute=(
                 risk.max_orders_per_minute if risk.max_orders_per_minute is not None else 10
+            ),
+            portfolio_stop=portfolio_stop_config_from_mapping(
+                getattr(risk, "portfolio_stop", None)
             ),
         )
 

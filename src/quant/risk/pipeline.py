@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 
 from quant.core.contract import Account, EngineState, Order, OrderRequest, OrderSide, Position
 from quant.risk.checks import is_cn_continuous_auction
+from quant.risk.portfolio_stop import PortfolioStop, PortfolioStopConfig
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,7 @@ class RiskLimits:
     max_orders_per_minute: int = 10
     daily_loss_freeze_pct: float = 0.02
     daily_loss_halt_pct: float = 0.04
+    portfolio_stop: PortfolioStopConfig | None = None
 
 
 @dataclass
@@ -30,6 +32,11 @@ class RiskEngine:
     day_start_value: float | None = None
     day: date | None = None
     order_timestamps: list[datetime] = field(default_factory=list)
+    portfolio_stop: PortfolioStop | None = field(init=False, default=None)
+
+    def __post_init__(self) -> None:
+        if self.limits.portfolio_stop is not None:
+            self.portfolio_stop = PortfolioStop(self.limits.portfolio_stop)
 
     def check_order(
         self,
@@ -91,6 +98,15 @@ class RiskEngine:
             return _reject("engine is halted", "engine_state")
         if state == EngineState.FREEZE_OPEN and req.side == OrderSide.BUY:
             return _reject("engine freezes new opening orders", "engine_state")
+        if (
+            self.portfolio_stop is not None
+            and req.side == OrderSide.BUY
+            and not self.portfolio_stop.allows_opening_exposure(now)
+        ):
+            return _reject(
+                self.portfolio_stop.opening_exposure_reject_reason(now),
+                "portfolio_stop_cooldown",
+            )
 
         if req.symbol not in self.limits.universe:
             return _reject(f"symbol {req.symbol} is outside the risk universe", "symbol_whitelist")
