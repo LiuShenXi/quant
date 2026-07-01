@@ -1,0 +1,4826 @@
+{
+  "status": "research_only",
+  "not_trading_permission": true,
+  "experiment": "v1b_low_turnover_parameter_neighborhood_stability",
+  "data_root": "research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630",
+  "strategy": "etf_regime_rotation_v1b_low_turnover",
+  "method_note": "3x3x3 neighborhood around target_exposure_pct=0.6, min_hold_days=40, score_buffer=0.05; trend_window=60 and momentum_window=20 fixed; slippage 0 bps and 20 bps; session-fixed execution.",
+  "comparison_gate": {
+    "equal_weight_fixed_60_return_pct": 23.7395,
+    "equal_weight_fixed_60_max_drawdown_pct": -28.4041,
+    "hard_gates": [
+      "0 bps return >= equal-weight fixed 60%",
+      "0 bps max drawdown no worse than equal-weight fixed 60%",
+      "20 bps return > 0",
+      "rejected orders = 0"
+    ],
+    "stability_warning_gate": "20 bps 504-session rolling windows should not be negative"
+  },
+  "cases": [
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_03",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 30,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_05",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 30,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_07",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 30,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_03",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 40,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_05",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 40,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_07",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 40,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_03",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 50,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_05",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 50,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_07",
+      "target_exposure_pct": 0.5,
+      "min_hold_days": 50,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_03",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 30,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_05",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 30,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_07",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 30,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_03",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 40,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_05",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 40,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_07",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 40,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_03",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 50,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_05",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 50,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_07",
+      "target_exposure_pct": 0.6,
+      "min_hold_days": 50,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_03",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 30,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_05",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 30,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_07",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 30,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_03",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 40,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_05",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 40,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_07",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 40,
+      "score_buffer": 0.07
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_03",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 50,
+      "score_buffer": 0.03
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_05",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 50,
+      "score_buffer": 0.05
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_07",
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 50,
+      "score_buffer": 0.07
+    }
+  ],
+  "case_summary": {
+    "exposure_0_5_hold_30_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 17.1745,
+      "max_drawdown_0bps": -16.7488,
+      "return_20bps": 5.5492,
+      "max_drawdown_20bps": -21.061,
+      "orders_0bps": 103,
+      "orders_20bps": 103,
+      "turnover_0bps": 53.8576,
+      "average_exposure_0bps": 30.7413,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.1837,
+        "median_return_pct": -2.215,
+        "max_return_pct": 19.3404,
+        "worst_max_drawdown_pct": -19.1837,
+        "negative_return_windows": 592
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_30_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 22.8046,
+      "max_drawdown_0bps": -15.5387,
+      "return_20bps": 11.7949,
+      "max_drawdown_20bps": -19.477,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 50.15,
+      "average_exposure_0bps": 31.2341,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.9059,
+        "median_return_pct": -0.8438,
+        "max_return_pct": 21.9421,
+        "worst_max_drawdown_pct": -17.9059,
+        "negative_return_windows": 566
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_30_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 23.5438,
+      "max_drawdown_0bps": -15.0023,
+      "return_20bps": 12.4803,
+      "max_drawdown_20bps": -18.9729,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 50.3226,
+      "average_exposure_0bps": 31.2725,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.3904,
+        "median_return_pct": -0.8391,
+        "max_return_pct": 21.9075,
+        "worst_max_drawdown_pct": -17.3904,
+        "negative_return_windows": 566
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_40_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 21.9326,
+      "max_drawdown_0bps": -15.6331,
+      "return_20bps": 10.665,
+      "max_drawdown_20bps": -19.5681,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 52.3661,
+      "average_exposure_0bps": 31.0318,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.0047,
+        "median_return_pct": -0.8416,
+        "max_return_pct": 20.8196,
+        "worst_max_drawdown_pct": -18.0047,
+        "negative_return_windows": 566
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_40_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 21.9071,
+      "max_drawdown_0bps": -16.1348,
+      "return_20bps": 10.9633,
+      "max_drawdown_20bps": -20.0411,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 49.9964,
+      "average_exposure_0bps": 31.2625,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.4891,
+        "median_return_pct": -0.844,
+        "max_return_pct": 21.8528,
+        "worst_max_drawdown_pct": -18.4891,
+        "negative_return_windows": 566
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_40_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 23.5438,
+      "max_drawdown_0bps": -15.0023,
+      "return_20bps": 12.4803,
+      "max_drawdown_20bps": -18.9729,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 50.3226,
+      "average_exposure_0bps": 31.2725,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.3904,
+        "median_return_pct": -0.8391,
+        "max_return_pct": 21.9075,
+        "worst_max_drawdown_pct": -17.3904,
+        "negative_return_windows": 566
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_50_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 19.6609,
+      "max_drawdown_0bps": -17.1529,
+      "return_20bps": 8.6159,
+      "max_drawdown_20bps": -20.981,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 51.7878,
+      "average_exposure_0bps": 31.0327,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.4473,
+        "median_return_pct": -1.0091,
+        "max_return_pct": 20.7872,
+        "worst_max_drawdown_pct": -19.4473,
+        "negative_return_windows": 571
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_50_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 22.8688,
+      "max_drawdown_0bps": -16.6433,
+      "return_20bps": 12.0471,
+      "max_drawdown_20bps": -20.491,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 49.3222,
+      "average_exposure_0bps": 31.4824,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.944,
+        "median_return_pct": -0.9787,
+        "max_return_pct": 21.873,
+        "worst_max_drawdown_pct": -18.944,
+        "negative_return_windows": 570
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_5_hold_50_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 22.8688,
+      "max_drawdown_0bps": -16.6433,
+      "return_20bps": 12.0471,
+      "max_drawdown_20bps": -20.491,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 49.3222,
+      "average_exposure_0bps": 31.4824,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.944,
+        "median_return_pct": -0.9787,
+        "max_return_pct": 21.873,
+        "worst_max_drawdown_pct": -18.944,
+        "negative_return_windows": 570
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_6_hold_30_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 20.3739,
+      "max_drawdown_0bps": -19.8064,
+      "return_20bps": 6.4011,
+      "max_drawdown_20bps": -24.7136,
+      "orders_0bps": 103,
+      "orders_20bps": 103,
+      "turnover_0bps": 65.145,
+      "average_exposure_0bps": 36.7725,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.567,
+        "median_return_pct": -2.7755,
+        "max_return_pct": 23.2661,
+        "worst_max_drawdown_pct": -22.567,
+        "negative_return_windows": 592
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_6_hold_30_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 27.2938,
+      "max_drawdown_0bps": -18.3969,
+      "return_20bps": 13.9535,
+      "max_drawdown_20bps": -22.8855,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 61.012,
+      "average_exposure_0bps": 37.3106,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.0831,
+        "median_return_pct": -1.1263,
+        "max_return_pct": 26.5509,
+        "worst_max_drawdown_pct": -21.0831,
+        "negative_return_windows": 568
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_30_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 28.2824,
+      "max_drawdown_0bps": -17.7745,
+      "return_20bps": 14.7695,
+      "max_drawdown_20bps": -22.3024,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 61.2482,
+      "average_exposure_0bps": 37.3343,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.4814,
+        "median_return_pct": -1.1407,
+        "max_return_pct": 26.4502,
+        "worst_max_drawdown_pct": -20.4814,
+        "negative_return_windows": 568
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_40_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 26.2812,
+      "max_drawdown_0bps": -18.501,
+      "return_20bps": 12.3006,
+      "max_drawdown_20bps": -22.9992,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 63.6414,
+      "average_exposure_0bps": 37.0356,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.1968,
+        "median_return_pct": -1.2388,
+        "max_return_pct": 24.8494,
+        "worst_max_drawdown_pct": -21.1968,
+        "negative_return_windows": 570
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_40_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 26.1822,
+      "max_drawdown_0bps": -19.0827,
+      "return_20bps": 12.9798,
+      "max_drawdown_20bps": -23.5427,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 60.7123,
+      "average_exposure_0bps": 37.2802,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.7476,
+        "median_return_pct": -1.1376,
+        "max_return_pct": 26.5224,
+        "worst_max_drawdown_pct": -21.7476,
+        "negative_return_windows": 568
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_40_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 28.2824,
+      "max_drawdown_0bps": -17.7745,
+      "return_20bps": 14.7695,
+      "max_drawdown_20bps": -22.3024,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 61.2482,
+      "average_exposure_0bps": 37.3343,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.4814,
+        "median_return_pct": -1.1407,
+        "max_return_pct": 26.4502,
+        "worst_max_drawdown_pct": -20.4814,
+        "negative_return_windows": 568
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_50_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 23.5585,
+      "max_drawdown_0bps": -20.2335,
+      "return_20bps": 10.0643,
+      "max_drawdown_20bps": -24.6111,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 62.9286,
+      "average_exposure_0bps": 37.0843,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.8447,
+        "median_return_pct": -1.359,
+        "max_return_pct": 25.0753,
+        "worst_max_drawdown_pct": -22.8447,
+        "negative_return_windows": 574
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_6_hold_50_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 27.2918,
+      "max_drawdown_0bps": -19.6779,
+      "return_20bps": 14.256,
+      "max_drawdown_20bps": -24.0553,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 60.0902,
+      "average_exposure_0bps": 37.5479,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.2677,
+        "median_return_pct": -1.3252,
+        "max_return_pct": 26.4481,
+        "worst_max_drawdown_pct": -22.2677,
+        "negative_return_windows": 573
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_6_hold_50_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 27.2918,
+      "max_drawdown_0bps": -19.6779,
+      "return_20bps": 14.256,
+      "max_drawdown_20bps": -24.0553,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 60.0902,
+      "average_exposure_0bps": 37.5479,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.2677,
+        "median_return_pct": -1.3252,
+        "max_return_pct": 26.4481,
+        "worst_max_drawdown_pct": -22.2677,
+        "negative_return_windows": 573
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_30_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 23.3646,
+      "max_drawdown_0bps": -22.7172,
+      "return_20bps": 6.9073,
+      "max_drawdown_20bps": -28.3449,
+      "orders_0bps": 103,
+      "orders_20bps": 103,
+      "turnover_0bps": 76.6269,
+      "average_exposure_0bps": 42.7069,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.9258,
+        "median_return_pct": -3.3616,
+        "max_return_pct": 27.3719,
+        "worst_max_drawdown_pct": -25.9258,
+        "negative_return_windows": 592
+      },
+      "passes_return_gate_vs_equal_weight_60": false,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": false
+    },
+    "exposure_0_7_hold_30_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 31.716,
+      "max_drawdown_0bps": -21.1944,
+      "return_20bps": 15.7584,
+      "max_drawdown_20bps": -26.1763,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 72.1375,
+      "average_exposure_0bps": 43.2758,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.1539,
+        "median_return_pct": -1.4659,
+        "max_return_pct": 31.0589,
+        "worst_max_drawdown_pct": -24.1539,
+        "negative_return_windows": 570
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_30_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 32.8948,
+      "max_drawdown_0bps": -20.4959,
+      "return_20bps": 16.7671,
+      "max_drawdown_20bps": -25.5298,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 72.4359,
+      "average_exposure_0bps": 43.2969,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -23.4894,
+        "median_return_pct": -1.522,
+        "max_return_pct": 31.0382,
+        "worst_max_drawdown_pct": -23.4894,
+        "negative_return_windows": 571
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_40_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 30.5898,
+      "max_drawdown_0bps": -21.3302,
+      "return_20bps": 14.0566,
+      "max_drawdown_20bps": -26.3018,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 75.3076,
+      "average_exposure_0bps": 43.0097,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.2794,
+        "median_return_pct": -1.5608,
+        "max_return_pct": 29.3695,
+        "worst_max_drawdown_pct": -24.2794,
+        "negative_return_windows": 572
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_40_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 30.4794,
+      "max_drawdown_0bps": -21.9673,
+      "return_20bps": 14.5175,
+      "max_drawdown_20bps": -26.9128,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 71.7753,
+      "average_exposure_0bps": 43.2849,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.9085,
+        "median_return_pct": -1.5333,
+        "max_return_pct": 30.9487,
+        "worst_max_drawdown_pct": -24.9085,
+        "negative_return_windows": 572
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_40_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 32.8948,
+      "max_drawdown_0bps": -20.4959,
+      "return_20bps": 16.7671,
+      "max_drawdown_20bps": -25.5298,
+      "orders_0bps": 93,
+      "orders_20bps": 93,
+      "turnover_0bps": 72.4359,
+      "average_exposure_0bps": 43.2969,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -23.4894,
+        "median_return_pct": -1.522,
+        "max_return_pct": 31.0382,
+        "worst_max_drawdown_pct": -23.4894,
+        "negative_return_windows": 571
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_50_buffer_0_03": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_0bps": 27.277,
+      "max_drawdown_0bps": -23.2017,
+      "return_20bps": 11.1384,
+      "max_drawdown_20bps": -28.1424,
+      "orders_0bps": 97,
+      "orders_20bps": 97,
+      "turnover_0bps": 74.2634,
+      "average_exposure_0bps": 43.0382,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -26.1731,
+        "median_return_pct": -1.7953,
+        "max_return_pct": 29.321,
+        "worst_max_drawdown_pct": -26.1731,
+        "negative_return_windows": 576
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_50_buffer_0_05": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_0bps": 31.7248,
+      "max_drawdown_0bps": -22.6592,
+      "return_20bps": 16.1163,
+      "max_drawdown_20bps": -27.5484,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 71.1342,
+      "average_exposure_0bps": 43.5005,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.5518,
+        "median_return_pct": -1.7456,
+        "max_return_pct": 31.1193,
+        "worst_max_drawdown_pct": -25.5518,
+        "negative_return_windows": 576
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    },
+    "exposure_0_7_hold_50_buffer_0_07": {
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_0bps": 31.7248,
+      "max_drawdown_0bps": -22.6592,
+      "return_20bps": 16.1163,
+      "max_drawdown_20bps": -27.5484,
+      "orders_0bps": 91,
+      "orders_20bps": 91,
+      "turnover_0bps": 71.1342,
+      "average_exposure_0bps": 43.5005,
+      "rejected_orders_0bps": 0,
+      "rejected_orders_20bps": 0,
+      "negative_years_20bps": [
+        "2021",
+        "2022",
+        "2023"
+      ],
+      "rolling_504_20bps": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.5518,
+        "median_return_pct": -1.7456,
+        "max_return_pct": 31.1193,
+        "worst_max_drawdown_pct": -25.5518,
+        "negative_return_windows": 576
+      },
+      "passes_return_gate_vs_equal_weight_60": true,
+      "passes_drawdown_gate_vs_equal_weight_60": true,
+      "passes_20bps_positive_gate": true,
+      "passes_no_reject_gate": true,
+      "passes_rolling_20bps_gate": false,
+      "passes_all_hard_gates": true
+    }
+  },
+  "passing_hard_gate_cases": [
+    "exposure_0_6_hold_30_buffer_0_05",
+    "exposure_0_6_hold_30_buffer_0_07",
+    "exposure_0_6_hold_40_buffer_0_03",
+    "exposure_0_6_hold_40_buffer_0_05",
+    "exposure_0_6_hold_40_buffer_0_07",
+    "exposure_0_6_hold_50_buffer_0_05",
+    "exposure_0_6_hold_50_buffer_0_07",
+    "exposure_0_7_hold_30_buffer_0_05",
+    "exposure_0_7_hold_30_buffer_0_07",
+    "exposure_0_7_hold_40_buffer_0_03",
+    "exposure_0_7_hold_40_buffer_0_05",
+    "exposure_0_7_hold_40_buffer_0_07",
+    "exposure_0_7_hold_50_buffer_0_03",
+    "exposure_0_7_hold_50_buffer_0_05",
+    "exposure_0_7_hold_50_buffer_0_07"
+  ],
+  "passing_full_stability_cases": [],
+  "best_20bps_case": {
+    "case": "exposure_0_7_hold_30_buffer_0_07",
+    "params": {
+      "symbols": [
+        "510300.SH",
+        "510500.SH"
+      ],
+      "trend_window": 60,
+      "momentum_window": 20,
+      "target_exposure_pct": 0.7,
+      "min_hold_days": 30,
+      "score_buffer": 0.07
+    },
+    "return_0bps": 32.8948,
+    "max_drawdown_0bps": -20.4959,
+    "return_20bps": 16.7671,
+    "max_drawdown_20bps": -25.5298,
+    "orders_0bps": 93,
+    "orders_20bps": 93,
+    "turnover_0bps": 72.4359,
+    "average_exposure_0bps": 43.2969,
+    "rejected_orders_0bps": 0,
+    "rejected_orders_20bps": 0,
+    "negative_years_20bps": [
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "rolling_504_20bps": {
+      "window_sessions": 504,
+      "windows": 1068,
+      "min_return_pct": -23.4894,
+      "median_return_pct": -1.522,
+      "max_return_pct": 31.0382,
+      "worst_max_drawdown_pct": -23.4894,
+      "negative_return_windows": 571
+    },
+    "passes_return_gate_vs_equal_weight_60": true,
+    "passes_drawdown_gate_vs_equal_weight_60": true,
+    "passes_20bps_positive_gate": true,
+    "passes_no_reject_gate": true,
+    "passes_rolling_20bps_gate": false,
+    "passes_all_hard_gates": true
+  },
+  "neighborhood_health": {
+    "total_cases": 27,
+    "hard_gate_pass_count": 15,
+    "full_stability_pass_count": 0,
+    "worst_20bps_return_pct": 5.5492,
+    "all_cases_20bps_positive": true
+  },
+  "raw_results": [
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 17.1745,
+      "max_drawdown_pct": -16.7488,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 53.8576,
+      "average_exposure_pct": 30.7413,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.0657,
+          "max_drawdown_pct": -5.2441
+        },
+        "2021": {
+          "return_pct": 1.288,
+          "max_drawdown_pct": -7.7702
+        },
+        "2022": {
+          "return_pct": -8.1313,
+          "max_drawdown_pct": -10.7104
+        },
+        "2023": {
+          "return_pct": -2.9676,
+          "max_drawdown_pct": -5.9685
+        },
+        "2024": {
+          "return_pct": 11.3411,
+          "max_drawdown_pct": -6.7523
+        },
+        "2025": {
+          "return_pct": 2.3817,
+          "max_drawdown_pct": -8.5448
+        },
+        "2026": {
+          "return_pct": 4.2684,
+          "max_drawdown_pct": -4.7892
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -15.4635,
+        "median_return_pct": 0.9013,
+        "max_return_pct": 22.6899,
+        "worst_max_drawdown_pct": -15.4635,
+        "negative_return_windows": 508
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 5.5492,
+      "max_drawdown_pct": -21.061,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 51.1427,
+      "average_exposure_pct": 30.7485,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 5.2043,
+          "max_drawdown_pct": -6.0826
+        },
+        "2021": {
+          "return_pct": -0.4975,
+          "max_drawdown_pct": -8.9277
+        },
+        "2022": {
+          "return_pct": -9.463,
+          "max_drawdown_pct": -11.6452
+        },
+        "2023": {
+          "return_pct": -4.9729,
+          "max_drawdown_pct": -7.9139
+        },
+        "2024": {
+          "return_pct": 10.0781,
+          "max_drawdown_pct": -6.7419
+        },
+        "2025": {
+          "return_pct": 0.8362,
+          "max_drawdown_pct": -8.934
+        },
+        "2026": {
+          "return_pct": 3.6395,
+          "max_drawdown_pct": -5.1622
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.1837,
+        "median_return_pct": -2.215,
+        "max_return_pct": 19.3404,
+        "worst_max_drawdown_pct": -19.1837,
+        "negative_return_windows": 592
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 22.8046,
+      "max_drawdown_pct": -15.5387,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 50.15,
+      "average_exposure_pct": 31.2341,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.2095,
+          "max_drawdown_pct": -5.2389
+        },
+        "2021": {
+          "return_pct": 1.3176,
+          "max_drawdown_pct": -7.7363
+        },
+        "2022": {
+          "return_pct": -6.2906,
+          "max_drawdown_pct": -9.1175
+        },
+        "2023": {
+          "return_pct": -3.5368,
+          "max_drawdown_pct": -6.518
+        },
+        "2024": {
+          "return_pct": 12.2507,
+          "max_drawdown_pct": -6.7893
+        },
+        "2025": {
+          "return_pct": 2.885,
+          "max_drawdown_pct": -8.5455
+        },
+        "2026": {
+          "return_pct": 4.2601,
+          "max_drawdown_pct": -4.7579
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -14.234,
+        "median_return_pct": 1.9942,
+        "max_return_pct": 24.2351,
+        "worst_max_drawdown_pct": -14.234,
+        "negative_return_windows": 490
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 11.7949,
+      "max_drawdown_pct": -19.477,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 47.8423,
+      "average_exposure_pct": 31.2299,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.308,
+          "max_drawdown_pct": -6.0746
+        },
+        "2021": {
+          "return_pct": -0.5139,
+          "max_drawdown_pct": -8.9733
+        },
+        "2022": {
+          "return_pct": -7.4371,
+          "max_drawdown_pct": -9.7529
+        },
+        "2023": {
+          "return_pct": -5.534,
+          "max_drawdown_pct": -8.4559
+        },
+        "2024": {
+          "return_pct": 11.4134,
+          "max_drawdown_pct": -6.7677
+        },
+        "2025": {
+          "return_pct": 1.795,
+          "max_drawdown_pct": -8.9248
+        },
+        "2026": {
+          "return_pct": 3.6523,
+          "max_drawdown_pct": -5.1655
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.9059,
+        "median_return_pct": -0.8438,
+        "max_return_pct": 21.9421,
+        "worst_max_drawdown_pct": -17.9059,
+        "negative_return_windows": 566
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 23.5438,
+      "max_drawdown_pct": -15.0023,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 50.3226,
+      "average_exposure_pct": 31.2725,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.2095,
+          "max_drawdown_pct": -5.2389
+        },
+        "2021": {
+          "return_pct": 1.3176,
+          "max_drawdown_pct": -7.7363
+        },
+        "2022": {
+          "return_pct": -5.7179,
+          "max_drawdown_pct": -8.6032
+        },
+        "2023": {
+          "return_pct": -3.516,
+          "max_drawdown_pct": -6.5465
+        },
+        "2024": {
+          "return_pct": 12.1792,
+          "max_drawdown_pct": -6.7519
+        },
+        "2025": {
+          "return_pct": 2.8904,
+          "max_drawdown_pct": -8.5736
+        },
+        "2026": {
+          "return_pct": 4.2766,
+          "max_drawdown_pct": -4.788
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -13.692,
+        "median_return_pct": 1.9128,
+        "max_return_pct": 24.2256,
+        "worst_max_drawdown_pct": -13.692,
+        "negative_return_windows": 481
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_30_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 12.4803,
+      "max_drawdown_pct": -18.9729,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 48.0016,
+      "average_exposure_pct": 31.2768,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.308,
+          "max_drawdown_pct": -6.0746
+        },
+        "2021": {
+          "return_pct": -0.5139,
+          "max_drawdown_pct": -8.9733
+        },
+        "2022": {
+          "return_pct": -6.8673,
+          "max_drawdown_pct": -9.2069
+        },
+        "2023": {
+          "return_pct": -5.5266,
+          "max_drawdown_pct": -8.4994
+        },
+        "2024": {
+          "return_pct": 11.455,
+          "max_drawdown_pct": -6.7902
+        },
+        "2025": {
+          "return_pct": 1.7745,
+          "max_drawdown_pct": -8.9582
+        },
+        "2026": {
+          "return_pct": 3.6303,
+          "max_drawdown_pct": -5.1391
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.3904,
+        "median_return_pct": -0.8391,
+        "max_return_pct": 21.9075,
+        "worst_max_drawdown_pct": -17.3904,
+        "negative_return_windows": 566
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 21.9326,
+      "max_drawdown_pct": -15.6331,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 52.3661,
+      "average_exposure_pct": 31.0318,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.2095,
+          "max_drawdown_pct": -5.2389
+        },
+        "2021": {
+          "return_pct": 1.3176,
+          "max_drawdown_pct": -7.7363
+        },
+        "2022": {
+          "return_pct": -6.959,
+          "max_drawdown_pct": -9.7696
+        },
+        "2023": {
+          "return_pct": -2.9534,
+          "max_drawdown_pct": -5.9734
+        },
+        "2024": {
+          "return_pct": 12.1586,
+          "max_drawdown_pct": -6.7403
+        },
+        "2025": {
+          "return_pct": 2.3315,
+          "max_drawdown_pct": -8.5559
+        },
+        "2026": {
+          "return_pct": 4.2715,
+          "max_drawdown_pct": -4.7905
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -14.3284,
+        "median_return_pct": 1.8064,
+        "max_return_pct": 23.5296,
+        "worst_max_drawdown_pct": -14.3284,
+        "negative_return_windows": 495
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 10.665,
+      "max_drawdown_pct": -19.5681,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 49.8412,
+      "average_exposure_pct": 31.026,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.308,
+          "max_drawdown_pct": -6.0746
+        },
+        "2021": {
+          "return_pct": -0.5139,
+          "max_drawdown_pct": -8.9733
+        },
+        "2022": {
+          "return_pct": -8.0959,
+          "max_drawdown_pct": -10.399
+        },
+        "2023": {
+          "return_pct": -4.9655,
+          "max_drawdown_pct": -7.9254
+        },
+        "2024": {
+          "return_pct": 11.4263,
+          "max_drawdown_pct": -6.7743
+        },
+        "2025": {
+          "return_pct": 0.8757,
+          "max_drawdown_pct": -8.9336
+        },
+        "2026": {
+          "return_pct": 3.6509,
+          "max_drawdown_pct": -5.148
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.0047,
+        "median_return_pct": -0.8416,
+        "max_return_pct": 20.8196,
+        "worst_max_drawdown_pct": -18.0047,
+        "negative_return_windows": 566
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 21.9071,
+      "max_drawdown_pct": -16.1348,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 49.9964,
+      "average_exposure_pct": 31.2625,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.2095,
+          "max_drawdown_pct": -5.2389
+        },
+        "2021": {
+          "return_pct": 1.3176,
+          "max_drawdown_pct": -7.7363
+        },
+        "2022": {
+          "return_pct": -6.959,
+          "max_drawdown_pct": -9.7696
+        },
+        "2023": {
+          "return_pct": -3.5304,
+          "max_drawdown_pct": -6.5325
+        },
+        "2024": {
+          "return_pct": 12.2254,
+          "max_drawdown_pct": -6.7756
+        },
+        "2025": {
+          "return_pct": 2.8622,
+          "max_drawdown_pct": -8.5933
+        },
+        "2026": {
+          "return_pct": 4.2698,
+          "max_drawdown_pct": -4.7882
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -14.8393,
+        "median_return_pct": 1.9363,
+        "max_return_pct": 24.246,
+        "worst_max_drawdown_pct": -14.8393,
+        "negative_return_windows": 495
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 10.9633,
+      "max_drawdown_pct": -20.0411,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 47.6648,
+      "average_exposure_pct": 31.2275,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.308,
+          "max_drawdown_pct": -6.0746
+        },
+        "2021": {
+          "return_pct": -0.5139,
+          "max_drawdown_pct": -8.9733
+        },
+        "2022": {
+          "return_pct": -8.0959,
+          "max_drawdown_pct": -10.399
+        },
+        "2023": {
+          "return_pct": -5.5243,
+          "max_drawdown_pct": -8.4668
+        },
+        "2024": {
+          "return_pct": 11.3797,
+          "max_drawdown_pct": -6.7492
+        },
+        "2025": {
+          "return_pct": 1.8011,
+          "max_drawdown_pct": -8.8967
+        },
+        "2026": {
+          "return_pct": 3.6418,
+          "max_drawdown_pct": -5.1388
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.4891,
+        "median_return_pct": -0.844,
+        "max_return_pct": 21.8528,
+        "worst_max_drawdown_pct": -18.4891,
+        "negative_return_windows": 566
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 23.5438,
+      "max_drawdown_pct": -15.0023,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 50.3226,
+      "average_exposure_pct": 31.2725,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.2095,
+          "max_drawdown_pct": -5.2389
+        },
+        "2021": {
+          "return_pct": 1.3176,
+          "max_drawdown_pct": -7.7363
+        },
+        "2022": {
+          "return_pct": -5.7179,
+          "max_drawdown_pct": -8.6032
+        },
+        "2023": {
+          "return_pct": -3.516,
+          "max_drawdown_pct": -6.5465
+        },
+        "2024": {
+          "return_pct": 12.1792,
+          "max_drawdown_pct": -6.7519
+        },
+        "2025": {
+          "return_pct": 2.8904,
+          "max_drawdown_pct": -8.5736
+        },
+        "2026": {
+          "return_pct": 4.2766,
+          "max_drawdown_pct": -4.788
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -13.692,
+        "median_return_pct": 1.9128,
+        "max_return_pct": 24.2256,
+        "worst_max_drawdown_pct": -13.692,
+        "negative_return_windows": 481
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_40_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 12.4803,
+      "max_drawdown_pct": -18.9729,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 48.0016,
+      "average_exposure_pct": 31.2768,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.308,
+          "max_drawdown_pct": -6.0746
+        },
+        "2021": {
+          "return_pct": -0.5139,
+          "max_drawdown_pct": -8.9733
+        },
+        "2022": {
+          "return_pct": -6.8673,
+          "max_drawdown_pct": -9.2069
+        },
+        "2023": {
+          "return_pct": -5.5266,
+          "max_drawdown_pct": -8.4994
+        },
+        "2024": {
+          "return_pct": 11.455,
+          "max_drawdown_pct": -6.7902
+        },
+        "2025": {
+          "return_pct": 1.7745,
+          "max_drawdown_pct": -8.9582
+        },
+        "2026": {
+          "return_pct": 3.6303,
+          "max_drawdown_pct": -5.1391
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.3904,
+        "median_return_pct": -0.8391,
+        "max_return_pct": 21.9075,
+        "worst_max_drawdown_pct": -17.3904,
+        "negative_return_windows": 566
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 19.6609,
+      "max_drawdown_pct": -17.1529,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 51.7878,
+      "average_exposure_pct": 31.0327,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.1414,
+          "max_drawdown_pct": -8.0676
+        },
+        "2021": {
+          "return_pct": 1.2785,
+          "max_drawdown_pct": -7.7436
+        },
+        "2022": {
+          "return_pct": -7.574,
+          "max_drawdown_pct": -10.704
+        },
+        "2023": {
+          "return_pct": -4.062,
+          "max_drawdown_pct": -7.0697
+        },
+        "2024": {
+          "return_pct": 12.1596,
+          "max_drawdown_pct": -6.7408
+        },
+        "2025": {
+          "return_pct": 2.3796,
+          "max_drawdown_pct": -8.5504
+        },
+        "2026": {
+          "return_pct": 4.2645,
+          "max_drawdown_pct": -4.7566
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -15.8766,
+        "median_return_pct": 1.526,
+        "max_return_pct": 23.5216,
+        "worst_max_drawdown_pct": -15.8766,
+        "negative_return_windows": 499
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 8.6159,
+      "max_drawdown_pct": -20.981,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 49.3375,
+      "average_exposure_pct": 31.0444,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.2472,
+          "max_drawdown_pct": -9.0297
+        },
+        "2021": {
+          "return_pct": -0.5142,
+          "max_drawdown_pct": -8.9779
+        },
+        "2022": {
+          "return_pct": -8.6703,
+          "max_drawdown_pct": -11.1369
+        },
+        "2023": {
+          "return_pct": -6.0443,
+          "max_drawdown_pct": -8.99
+        },
+        "2024": {
+          "return_pct": 11.403,
+          "max_drawdown_pct": -6.7617
+        },
+        "2025": {
+          "return_pct": 0.8373,
+          "max_drawdown_pct": -8.9005
+        },
+        "2026": {
+          "return_pct": 3.6589,
+          "max_drawdown_pct": -5.167
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.4473,
+        "median_return_pct": -1.0091,
+        "max_return_pct": 20.7872,
+        "worst_max_drawdown_pct": -19.4473,
+        "negative_return_windows": 571
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 22.8688,
+      "max_drawdown_pct": -16.6433,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 49.3222,
+      "average_exposure_pct": 31.4824,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.7355,
+          "max_drawdown_pct": -6.743
+        },
+        "2021": {
+          "return_pct": 1.314,
+          "max_drawdown_pct": -7.7315
+        },
+        "2022": {
+          "return_pct": -7.5373,
+          "max_drawdown_pct": -10.678
+        },
+        "2023": {
+          "return_pct": -3.5224,
+          "max_drawdown_pct": -6.547
+        },
+        "2024": {
+          "return_pct": 12.2428,
+          "max_drawdown_pct": -6.7856
+        },
+        "2025": {
+          "return_pct": 2.8834,
+          "max_drawdown_pct": -8.5407
+        },
+        "2026": {
+          "return_pct": 4.2578,
+          "max_drawdown_pct": -4.7555
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -15.3564,
+        "median_return_pct": 1.8121,
+        "max_return_pct": 24.2197,
+        "worst_max_drawdown_pct": -15.3564,
+        "negative_return_windows": 495
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 12.0471,
+      "max_drawdown_pct": -20.491,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 47.1361,
+      "average_exposure_pct": 31.4559,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.9983,
+          "max_drawdown_pct": -7.5558
+        },
+        "2021": {
+          "return_pct": -0.5276,
+          "max_drawdown_pct": -8.9661
+        },
+        "2022": {
+          "return_pct": -8.628,
+          "max_drawdown_pct": -11.1329
+        },
+        "2023": {
+          "return_pct": -5.5168,
+          "max_drawdown_pct": -8.4775
+        },
+        "2024": {
+          "return_pct": 11.382,
+          "max_drawdown_pct": -6.7516
+        },
+        "2025": {
+          "return_pct": 1.7828,
+          "max_drawdown_pct": -8.9108
+        },
+        "2026": {
+          "return_pct": 3.6448,
+          "max_drawdown_pct": -5.1585
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.944,
+        "median_return_pct": -0.9787,
+        "max_return_pct": 21.873,
+        "worst_max_drawdown_pct": -18.944,
+        "negative_return_windows": 570
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 22.8688,
+      "max_drawdown_pct": -16.6433,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 49.3222,
+      "average_exposure_pct": 31.4824,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.7355,
+          "max_drawdown_pct": -6.743
+        },
+        "2021": {
+          "return_pct": 1.314,
+          "max_drawdown_pct": -7.7315
+        },
+        "2022": {
+          "return_pct": -7.5373,
+          "max_drawdown_pct": -10.678
+        },
+        "2023": {
+          "return_pct": -3.5224,
+          "max_drawdown_pct": -6.547
+        },
+        "2024": {
+          "return_pct": 12.2428,
+          "max_drawdown_pct": -6.7856
+        },
+        "2025": {
+          "return_pct": 2.8834,
+          "max_drawdown_pct": -8.5407
+        },
+        "2026": {
+          "return_pct": 4.2578,
+          "max_drawdown_pct": -4.7555
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -15.3564,
+        "median_return_pct": 1.8121,
+        "max_return_pct": 24.2197,
+        "worst_max_drawdown_pct": -15.3564,
+        "negative_return_windows": 495
+      }
+    },
+    {
+      "case": "exposure_0_5_hold_50_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.5,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 12.0471,
+      "max_drawdown_pct": -20.491,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 47.1361,
+      "average_exposure_pct": 31.4559,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.9983,
+          "max_drawdown_pct": -7.5558
+        },
+        "2021": {
+          "return_pct": -0.5276,
+          "max_drawdown_pct": -8.9661
+        },
+        "2022": {
+          "return_pct": -8.628,
+          "max_drawdown_pct": -11.1329
+        },
+        "2023": {
+          "return_pct": -5.5168,
+          "max_drawdown_pct": -8.4775
+        },
+        "2024": {
+          "return_pct": 11.382,
+          "max_drawdown_pct": -6.7516
+        },
+        "2025": {
+          "return_pct": 1.7828,
+          "max_drawdown_pct": -8.9108
+        },
+        "2026": {
+          "return_pct": 3.6448,
+          "max_drawdown_pct": -5.1585
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.944,
+        "median_return_pct": -0.9787,
+        "max_return_pct": 21.873,
+        "worst_max_drawdown_pct": -18.944,
+        "negative_return_windows": 570
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 20.3739,
+      "max_drawdown_pct": -19.8064,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 65.145,
+      "average_exposure_pct": 36.7725,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.4145,
+          "max_drawdown_pct": -6.2756
+        },
+        "2021": {
+          "return_pct": 1.5573,
+          "max_drawdown_pct": -9.2214
+        },
+        "2022": {
+          "return_pct": -9.7915,
+          "max_drawdown_pct": -12.8135
+        },
+        "2023": {
+          "return_pct": -3.5422,
+          "max_drawdown_pct": -7.1289
+        },
+        "2024": {
+          "return_pct": 13.6347,
+          "max_drawdown_pct": -7.9218
+        },
+        "2025": {
+          "return_pct": 2.7492,
+          "max_drawdown_pct": -10.1963
+        },
+        "2026": {
+          "return_pct": 5.12,
+          "max_drawdown_pct": -5.6607
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.3183,
+        "median_return_pct": 0.9699,
+        "max_return_pct": 27.418,
+        "worst_max_drawdown_pct": -18.3183,
+        "negative_return_windows": 510
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 6.4011,
+      "max_drawdown_pct": -24.7136,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 61.3822,
+      "average_exposure_pct": 36.7974,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 6.229,
+          "max_drawdown_pct": -7.2902
+        },
+        "2021": {
+          "return_pct": -0.5843,
+          "max_drawdown_pct": -10.6294
+        },
+        "2022": {
+          "return_pct": -11.2462,
+          "max_drawdown_pct": -13.8116
+        },
+        "2023": {
+          "return_pct": -5.9419,
+          "max_drawdown_pct": -9.4277
+        },
+        "2024": {
+          "return_pct": 12.1308,
+          "max_drawdown_pct": -7.9175
+        },
+        "2025": {
+          "return_pct": 0.869,
+          "max_drawdown_pct": -10.6726
+        },
+        "2026": {
+          "return_pct": 4.3638,
+          "max_drawdown_pct": -6.1006
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.567,
+        "median_return_pct": -2.7755,
+        "max_return_pct": 23.2661,
+        "worst_max_drawdown_pct": -22.567,
+        "negative_return_windows": 592
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 27.2938,
+      "max_drawdown_pct": -18.3969,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 61.012,
+      "average_exposure_pct": 37.3106,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9839,
+          "max_drawdown_pct": -6.2506
+        },
+        "2021": {
+          "return_pct": 1.5428,
+          "max_drawdown_pct": -9.2253
+        },
+        "2022": {
+          "return_pct": -7.5427,
+          "max_drawdown_pct": -10.8801
+        },
+        "2023": {
+          "return_pct": -4.2311,
+          "max_drawdown_pct": -7.7834
+        },
+        "2024": {
+          "return_pct": 14.6517,
+          "max_drawdown_pct": -7.9091
+        },
+        "2025": {
+          "return_pct": 3.4078,
+          "max_drawdown_pct": -10.2177
+        },
+        "2026": {
+          "return_pct": 5.1095,
+          "max_drawdown_pct": -5.6543
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -16.8767,
+        "median_return_pct": 2.1405,
+        "max_return_pct": 29.3607,
+        "worst_max_drawdown_pct": -16.8767,
+        "negative_return_windows": 491
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 13.9535,
+      "max_drawdown_pct": -22.8855,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 57.7724,
+      "average_exposure_pct": 37.3418,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7667,
+          "max_drawdown_pct": -7.2639
+        },
+        "2021": {
+          "return_pct": -0.601,
+          "max_drawdown_pct": -10.6256
+        },
+        "2022": {
+          "return_pct": -8.8989,
+          "max_drawdown_pct": -11.655
+        },
+        "2023": {
+          "return_pct": -6.5994,
+          "max_drawdown_pct": -10.0561
+        },
+        "2024": {
+          "return_pct": 13.7614,
+          "max_drawdown_pct": -7.9499
+        },
+        "2025": {
+          "return_pct": 2.0391,
+          "max_drawdown_pct": -10.6703
+        },
+        "2026": {
+          "return_pct": 4.3652,
+          "max_drawdown_pct": -6.1256
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.0831,
+        "median_return_pct": -1.1263,
+        "max_return_pct": 26.5509,
+        "worst_max_drawdown_pct": -21.0831,
+        "negative_return_windows": 568
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 28.2824,
+      "max_drawdown_pct": -17.7745,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 61.2482,
+      "average_exposure_pct": 37.3343,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9839,
+          "max_drawdown_pct": -6.2506
+        },
+        "2021": {
+          "return_pct": 1.5428,
+          "max_drawdown_pct": -9.2253
+        },
+        "2022": {
+          "return_pct": -6.8489,
+          "max_drawdown_pct": -10.2549
+        },
+        "2023": {
+          "return_pct": -4.2213,
+          "max_drawdown_pct": -7.8129
+        },
+        "2024": {
+          "return_pct": 14.6516,
+          "max_drawdown_pct": -7.9107
+        },
+        "2025": {
+          "return_pct": 3.3899,
+          "max_drawdown_pct": -10.2267
+        },
+        "2026": {
+          "return_pct": 5.1371,
+          "max_drawdown_pct": -5.662
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -16.2491,
+        "median_return_pct": 2.1311,
+        "max_return_pct": 29.3715,
+        "worst_max_drawdown_pct": -16.2491,
+        "negative_return_windows": 482
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_30_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 14.7695,
+      "max_drawdown_pct": -22.3024,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 57.9762,
+      "average_exposure_pct": 37.3657,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7667,
+          "max_drawdown_pct": -7.2639
+        },
+        "2021": {
+          "return_pct": -0.601,
+          "max_drawdown_pct": -10.6256
+        },
+        "2022": {
+          "return_pct": -8.2189,
+          "max_drawdown_pct": -11.0078
+        },
+        "2023": {
+          "return_pct": -6.5932,
+          "max_drawdown_pct": -10.1141
+        },
+        "2024": {
+          "return_pct": 13.7722,
+          "max_drawdown_pct": -7.9561
+        },
+        "2025": {
+          "return_pct": 2.011,
+          "max_drawdown_pct": -10.6807
+        },
+        "2026": {
+          "return_pct": 4.3545,
+          "max_drawdown_pct": -6.0886
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.4814,
+        "median_return_pct": -1.1407,
+        "max_return_pct": 26.4502,
+        "worst_max_drawdown_pct": -20.4814,
+        "negative_return_windows": 568
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 26.2812,
+      "max_drawdown_pct": -18.501,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 63.6414,
+      "average_exposure_pct": 37.0356,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9839,
+          "max_drawdown_pct": -6.2506
+        },
+        "2021": {
+          "return_pct": 1.5428,
+          "max_drawdown_pct": -9.2253
+        },
+        "2022": {
+          "return_pct": -8.3217,
+          "max_drawdown_pct": -11.6323
+        },
+        "2023": {
+          "return_pct": -3.541,
+          "max_drawdown_pct": -7.1262
+        },
+        "2024": {
+          "return_pct": 14.6645,
+          "max_drawdown_pct": -7.9183
+        },
+        "2025": {
+          "return_pct": 2.7113,
+          "max_drawdown_pct": -10.2219
+        },
+        "2026": {
+          "return_pct": 5.1071,
+          "max_drawdown_pct": -5.6392
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -16.9899,
+        "median_return_pct": 2.0331,
+        "max_return_pct": 28.4754,
+        "worst_max_drawdown_pct": -16.9899,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 12.3006,
+      "max_drawdown_pct": -22.9992,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 60.1191,
+      "average_exposure_pct": 37.0468,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7667,
+          "max_drawdown_pct": -7.2639
+        },
+        "2021": {
+          "return_pct": -0.601,
+          "max_drawdown_pct": -10.6256
+        },
+        "2022": {
+          "return_pct": -9.6685,
+          "max_drawdown_pct": -12.4024
+        },
+        "2023": {
+          "return_pct": -5.9427,
+          "max_drawdown_pct": -9.4296
+        },
+        "2024": {
+          "return_pct": 13.6603,
+          "max_drawdown_pct": -7.9028
+        },
+        "2025": {
+          "return_pct": 0.8358,
+          "max_drawdown_pct": -10.6785
+        },
+        "2026": {
+          "return_pct": 4.341,
+          "max_drawdown_pct": -6.0882
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.1968,
+        "median_return_pct": -1.2388,
+        "max_return_pct": 24.8494,
+        "worst_max_drawdown_pct": -21.1968,
+        "negative_return_windows": 570
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 26.1822,
+      "max_drawdown_pct": -19.0827,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 60.7123,
+      "average_exposure_pct": 37.2802,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9839,
+          "max_drawdown_pct": -6.2506
+        },
+        "2021": {
+          "return_pct": 1.5428,
+          "max_drawdown_pct": -9.2253
+        },
+        "2022": {
+          "return_pct": -8.3217,
+          "max_drawdown_pct": -11.6323
+        },
+        "2023": {
+          "return_pct": -4.2294,
+          "max_drawdown_pct": -7.789
+        },
+        "2024": {
+          "return_pct": 14.6573,
+          "max_drawdown_pct": -7.9135
+        },
+        "2025": {
+          "return_pct": 3.3696,
+          "max_drawdown_pct": -10.2141
+        },
+        "2026": {
+          "return_pct": 5.1113,
+          "max_drawdown_pct": -5.6436
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -17.5769,
+        "median_return_pct": 2.1462,
+        "max_return_pct": 29.2997,
+        "worst_max_drawdown_pct": -17.5769,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 12.9798,
+      "max_drawdown_pct": -23.5427,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 57.5106,
+      "average_exposure_pct": 37.3287,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7667,
+          "max_drawdown_pct": -7.2639
+        },
+        "2021": {
+          "return_pct": -0.601,
+          "max_drawdown_pct": -10.6256
+        },
+        "2022": {
+          "return_pct": -9.6685,
+          "max_drawdown_pct": -12.4024
+        },
+        "2023": {
+          "return_pct": -6.6066,
+          "max_drawdown_pct": -10.0689
+        },
+        "2024": {
+          "return_pct": 13.7548,
+          "max_drawdown_pct": -7.9505
+        },
+        "2025": {
+          "return_pct": 2.0497,
+          "max_drawdown_pct": -10.6694
+        },
+        "2026": {
+          "return_pct": 4.3637,
+          "max_drawdown_pct": -6.1059
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.7476,
+        "median_return_pct": -1.1376,
+        "max_return_pct": 26.5224,
+        "worst_max_drawdown_pct": -21.7476,
+        "negative_return_windows": 568
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 28.2824,
+      "max_drawdown_pct": -17.7745,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 61.2482,
+      "average_exposure_pct": 37.3343,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9839,
+          "max_drawdown_pct": -6.2506
+        },
+        "2021": {
+          "return_pct": 1.5428,
+          "max_drawdown_pct": -9.2253
+        },
+        "2022": {
+          "return_pct": -6.8489,
+          "max_drawdown_pct": -10.2549
+        },
+        "2023": {
+          "return_pct": -4.2213,
+          "max_drawdown_pct": -7.8129
+        },
+        "2024": {
+          "return_pct": 14.6516,
+          "max_drawdown_pct": -7.9107
+        },
+        "2025": {
+          "return_pct": 3.3899,
+          "max_drawdown_pct": -10.2267
+        },
+        "2026": {
+          "return_pct": 5.1371,
+          "max_drawdown_pct": -5.662
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -16.2491,
+        "median_return_pct": 2.1311,
+        "max_return_pct": 29.3715,
+        "worst_max_drawdown_pct": -16.2491,
+        "negative_return_windows": 482
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_40_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 14.7695,
+      "max_drawdown_pct": -22.3024,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 57.9762,
+      "average_exposure_pct": 37.3657,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7667,
+          "max_drawdown_pct": -7.2639
+        },
+        "2021": {
+          "return_pct": -0.601,
+          "max_drawdown_pct": -10.6256
+        },
+        "2022": {
+          "return_pct": -8.2189,
+          "max_drawdown_pct": -11.0078
+        },
+        "2023": {
+          "return_pct": -6.5932,
+          "max_drawdown_pct": -10.1141
+        },
+        "2024": {
+          "return_pct": 13.7722,
+          "max_drawdown_pct": -7.9561
+        },
+        "2025": {
+          "return_pct": 2.011,
+          "max_drawdown_pct": -10.6807
+        },
+        "2026": {
+          "return_pct": 4.3545,
+          "max_drawdown_pct": -6.0886
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.4814,
+        "median_return_pct": -1.1407,
+        "max_return_pct": 26.4502,
+        "worst_max_drawdown_pct": -20.4814,
+        "negative_return_windows": 568
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 23.5585,
+      "max_drawdown_pct": -20.2335,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 62.9286,
+      "average_exposure_pct": 37.0843,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.9214,
+          "max_drawdown_pct": -9.4599
+        },
+        "2021": {
+          "return_pct": 1.5436,
+          "max_drawdown_pct": -9.2299
+        },
+        "2022": {
+          "return_pct": -9.0062,
+          "max_drawdown_pct": -12.7071
+        },
+        "2023": {
+          "return_pct": -4.8773,
+          "max_drawdown_pct": -8.4184
+        },
+        "2024": {
+          "return_pct": 14.6291,
+          "max_drawdown_pct": -7.9073
+        },
+        "2025": {
+          "return_pct": 2.7552,
+          "max_drawdown_pct": -10.2027
+        },
+        "2026": {
+          "return_pct": 5.1149,
+          "max_drawdown_pct": -5.6415
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.7503,
+        "median_return_pct": 1.7017,
+        "max_return_pct": 28.4945,
+        "worst_max_drawdown_pct": -18.7503,
+        "negative_return_windows": 499
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 10.0643,
+      "max_drawdown_pct": -24.6111,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 59.4458,
+      "average_exposure_pct": 37.1165,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 8.7003,
+          "max_drawdown_pct": -10.687
+        },
+        "2021": {
+          "return_pct": -0.5932,
+          "max_drawdown_pct": -10.6242
+        },
+        "2022": {
+          "return_pct": -10.3515,
+          "max_drawdown_pct": -13.2764
+        },
+        "2023": {
+          "return_pct": -7.2135,
+          "max_drawdown_pct": -10.6802
+        },
+        "2024": {
+          "return_pct": 13.7223,
+          "max_drawdown_pct": -7.9326
+        },
+        "2025": {
+          "return_pct": 0.8902,
+          "max_drawdown_pct": -10.6243
+        },
+        "2026": {
+          "return_pct": 4.38,
+          "max_drawdown_pct": -6.1202
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.8447,
+        "median_return_pct": -1.359,
+        "max_return_pct": 25.0753,
+        "worst_max_drawdown_pct": -22.8447,
+        "negative_return_windows": 574
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 27.2918,
+      "max_drawdown_pct": -19.6779,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 60.0902,
+      "average_exposure_pct": 37.5479,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.7728,
+          "max_drawdown_pct": -7.9408
+        },
+        "2021": {
+          "return_pct": 1.5582,
+          "max_drawdown_pct": -9.1901
+        },
+        "2022": {
+          "return_pct": -9.0457,
+          "max_drawdown_pct": -12.7375
+        },
+        "2023": {
+          "return_pct": -4.2096,
+          "max_drawdown_pct": -7.7852
+        },
+        "2024": {
+          "return_pct": 14.6519,
+          "max_drawdown_pct": -7.9093
+        },
+        "2025": {
+          "return_pct": 3.4078,
+          "max_drawdown_pct": -10.2179
+        },
+        "2026": {
+          "return_pct": 5.1095,
+          "max_drawdown_pct": -5.6544
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.1905,
+        "median_return_pct": 1.9983,
+        "max_return_pct": 29.3613,
+        "worst_max_drawdown_pct": -18.1905,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 14.256,
+      "max_drawdown_pct": -24.0553,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 56.996,
+      "average_exposure_pct": 37.5551,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.8548,
+          "max_drawdown_pct": -8.9359
+        },
+        "2021": {
+          "return_pct": -0.6249,
+          "max_drawdown_pct": -10.6045
+        },
+        "2022": {
+          "return_pct": -10.3049,
+          "max_drawdown_pct": -13.1922
+        },
+        "2023": {
+          "return_pct": -6.6052,
+          "max_drawdown_pct": -10.0954
+        },
+        "2024": {
+          "return_pct": 13.711,
+          "max_drawdown_pct": -7.9285
+        },
+        "2025": {
+          "return_pct": 2.0244,
+          "max_drawdown_pct": -10.6417
+        },
+        "2026": {
+          "return_pct": 4.374,
+          "max_drawdown_pct": -6.111
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.2677,
+        "median_return_pct": -1.3252,
+        "max_return_pct": 26.4481,
+        "worst_max_drawdown_pct": -22.2677,
+        "negative_return_windows": 573
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 27.2918,
+      "max_drawdown_pct": -19.6779,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 60.0902,
+      "average_exposure_pct": 37.5479,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.7728,
+          "max_drawdown_pct": -7.9408
+        },
+        "2021": {
+          "return_pct": 1.5582,
+          "max_drawdown_pct": -9.1901
+        },
+        "2022": {
+          "return_pct": -9.0457,
+          "max_drawdown_pct": -12.7375
+        },
+        "2023": {
+          "return_pct": -4.2096,
+          "max_drawdown_pct": -7.7852
+        },
+        "2024": {
+          "return_pct": 14.6519,
+          "max_drawdown_pct": -7.9093
+        },
+        "2025": {
+          "return_pct": 3.4078,
+          "max_drawdown_pct": -10.2179
+        },
+        "2026": {
+          "return_pct": 5.1095,
+          "max_drawdown_pct": -5.6544
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.1905,
+        "median_return_pct": 1.9983,
+        "max_return_pct": 29.3613,
+        "worst_max_drawdown_pct": -18.1905,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_6_hold_50_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 14.256,
+      "max_drawdown_pct": -24.0553,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 56.996,
+      "average_exposure_pct": 37.5551,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.8548,
+          "max_drawdown_pct": -8.9359
+        },
+        "2021": {
+          "return_pct": -0.6249,
+          "max_drawdown_pct": -10.6045
+        },
+        "2022": {
+          "return_pct": -10.3049,
+          "max_drawdown_pct": -13.1922
+        },
+        "2023": {
+          "return_pct": -6.6052,
+          "max_drawdown_pct": -10.0954
+        },
+        "2024": {
+          "return_pct": 13.711,
+          "max_drawdown_pct": -7.9285
+        },
+        "2025": {
+          "return_pct": 2.0244,
+          "max_drawdown_pct": -10.6417
+        },
+        "2026": {
+          "return_pct": 4.374,
+          "max_drawdown_pct": -6.111
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -22.2677,
+        "median_return_pct": -1.3252,
+        "max_return_pct": 26.4481,
+        "worst_max_drawdown_pct": -22.2677,
+        "negative_return_windows": 573
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 23.3646,
+      "max_drawdown_pct": -22.7172,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 76.6269,
+      "average_exposure_pct": 42.7069,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 9.766,
+          "max_drawdown_pct": -7.3
+        },
+        "2021": {
+          "return_pct": 1.8077,
+          "max_drawdown_pct": -10.6106
+        },
+        "2022": {
+          "return_pct": -11.3883,
+          "max_drawdown_pct": -14.8084
+        },
+        "2023": {
+          "return_pct": -4.1415,
+          "max_drawdown_pct": -8.2779
+        },
+        "2024": {
+          "return_pct": 15.8433,
+          "max_drawdown_pct": -8.9971
+        },
+        "2025": {
+          "return_pct": 3.0308,
+          "max_drawdown_pct": -11.8811
+        },
+        "2026": {
+          "return_pct": 5.9745,
+          "max_drawdown_pct": -6.4971
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.0344,
+        "median_return_pct": 0.8422,
+        "max_return_pct": 32.0094,
+        "worst_max_drawdown_pct": -21.0344,
+        "negative_return_windows": 513
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.03
+      },
+      "return_pct": 6.9073,
+      "max_drawdown_pct": -28.3449,
+      "orders": 103,
+      "trades": 103,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 71.3707,
+      "average_exposure_pct": 42.7272,
+      "days_exposure_below_5_pct": 39.6563,
+      "yearly": {
+        "2020": {
+          "return_pct": 7.2141,
+          "max_drawdown_pct": -8.4238
+        },
+        "2021": {
+          "return_pct": -0.7516,
+          "max_drawdown_pct": -12.234
+        },
+        "2022": {
+          "return_pct": -13.1837,
+          "max_drawdown_pct": -16.0621
+        },
+        "2023": {
+          "return_pct": -6.9194,
+          "max_drawdown_pct": -10.9314
+        },
+        "2024": {
+          "return_pct": 14.1768,
+          "max_drawdown_pct": -9.0476
+        },
+        "2025": {
+          "return_pct": 0.9629,
+          "max_drawdown_pct": -12.3305
+        },
+        "2026": {
+          "return_pct": 5.1038,
+          "max_drawdown_pct": -7.0382
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.9258,
+        "median_return_pct": -3.3616,
+        "max_return_pct": 27.3719,
+        "worst_max_drawdown_pct": -25.9258,
+        "negative_return_windows": 592
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 31.716,
+      "max_drawdown_pct": -21.1944,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 72.1375,
+      "average_exposure_pct": 43.2758,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.8153,
+          "max_drawdown_pct": -7.2713
+        },
+        "2021": {
+          "return_pct": 1.7912,
+          "max_drawdown_pct": -10.6174
+        },
+        "2022": {
+          "return_pct": -8.8867,
+          "max_drawdown_pct": -12.7007
+        },
+        "2023": {
+          "return_pct": -4.9193,
+          "max_drawdown_pct": -9.0227
+        },
+        "2024": {
+          "return_pct": 17.1654,
+          "max_drawdown_pct": -9.0281
+        },
+        "2025": {
+          "return_pct": 3.7963,
+          "max_drawdown_pct": -11.8761
+        },
+        "2026": {
+          "return_pct": 5.9555,
+          "max_drawdown_pct": -6.4895
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.4827,
+        "median_return_pct": 2.3228,
+        "max_return_pct": 34.4854,
+        "worst_max_drawdown_pct": -19.4827,
+        "negative_return_windows": 495
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.05
+      },
+      "return_pct": 15.7584,
+      "max_drawdown_pct": -26.1763,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 67.6577,
+      "average_exposure_pct": 43.31,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.1152,
+          "max_drawdown_pct": -8.4311
+        },
+        "2021": {
+          "return_pct": -0.7344,
+          "max_drawdown_pct": -12.2506
+        },
+        "2022": {
+          "return_pct": -10.3685,
+          "max_drawdown_pct": -13.4765
+        },
+        "2023": {
+          "return_pct": -7.6634,
+          "max_drawdown_pct": -11.6449
+        },
+        "2024": {
+          "return_pct": 16.0727,
+          "max_drawdown_pct": -9.0588
+        },
+        "2025": {
+          "return_pct": 2.2609,
+          "max_drawdown_pct": -12.3203
+        },
+        "2026": {
+          "return_pct": 5.0684,
+          "max_drawdown_pct": -7.0096
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.1539,
+        "median_return_pct": -1.4659,
+        "max_return_pct": 31.0589,
+        "worst_max_drawdown_pct": -24.1539,
+        "negative_return_windows": 570
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 32.8948,
+      "max_drawdown_pct": -20.4959,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 72.4359,
+      "average_exposure_pct": 43.2969,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.8153,
+          "max_drawdown_pct": -7.2713
+        },
+        "2021": {
+          "return_pct": 1.7912,
+          "max_drawdown_pct": -10.6174
+        },
+        "2022": {
+          "return_pct": -8.0869,
+          "max_drawdown_pct": -11.9817
+        },
+        "2023": {
+          "return_pct": -4.9126,
+          "max_drawdown_pct": -9.0449
+        },
+        "2024": {
+          "return_pct": 17.1313,
+          "max_drawdown_pct": -9.0117
+        },
+        "2025": {
+          "return_pct": 3.8285,
+          "max_drawdown_pct": -11.8619
+        },
+        "2026": {
+          "return_pct": 5.9626,
+          "max_drawdown_pct": -6.4905
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.7703,
+        "median_return_pct": 2.3001,
+        "max_return_pct": 34.4874,
+        "worst_max_drawdown_pct": -18.7703,
+        "negative_return_windows": 483
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_30_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "return_pct": 16.7671,
+      "max_drawdown_pct": -25.5298,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 67.9438,
+      "average_exposure_pct": 43.3646,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.1152,
+          "max_drawdown_pct": -8.4311
+        },
+        "2021": {
+          "return_pct": -0.7344,
+          "max_drawdown_pct": -12.2506
+        },
+        "2022": {
+          "return_pct": -9.5854,
+          "max_drawdown_pct": -12.7267
+        },
+        "2023": {
+          "return_pct": -7.6631,
+          "max_drawdown_pct": -11.6766
+        },
+        "2024": {
+          "return_pct": 16.0514,
+          "max_drawdown_pct": -9.0481
+        },
+        "2025": {
+          "return_pct": 2.2489,
+          "max_drawdown_pct": -12.3876
+        },
+        "2026": {
+          "return_pct": 5.093,
+          "max_drawdown_pct": -7.0074
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -23.4894,
+        "median_return_pct": -1.522,
+        "max_return_pct": 31.0382,
+        "worst_max_drawdown_pct": -23.4894,
+        "negative_return_windows": 571
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 30.5898,
+      "max_drawdown_pct": -21.3302,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 75.3076,
+      "average_exposure_pct": 43.0097,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.8153,
+          "max_drawdown_pct": -7.2713
+        },
+        "2021": {
+          "return_pct": 1.7912,
+          "max_drawdown_pct": -10.6174
+        },
+        "2022": {
+          "return_pct": -9.7792,
+          "max_drawdown_pct": -13.5551
+        },
+        "2023": {
+          "return_pct": -4.1439,
+          "max_drawdown_pct": -8.277
+        },
+        "2024": {
+          "return_pct": 17.1769,
+          "max_drawdown_pct": -9.0421
+        },
+        "2025": {
+          "return_pct": 3.0673,
+          "max_drawdown_pct": -11.8249
+        },
+        "2026": {
+          "return_pct": 5.9653,
+          "max_drawdown_pct": -6.487
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -19.6185,
+        "median_return_pct": 2.2235,
+        "max_return_pct": 33.551,
+        "worst_max_drawdown_pct": -19.6185,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.03
+      },
+      "return_pct": 14.0566,
+      "max_drawdown_pct": -26.3018,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 70.4225,
+      "average_exposure_pct": 43.0725,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.1152,
+          "max_drawdown_pct": -8.4311
+        },
+        "2021": {
+          "return_pct": -0.7344,
+          "max_drawdown_pct": -12.2506
+        },
+        "2022": {
+          "return_pct": -11.2558,
+          "max_drawdown_pct": -14.3361
+        },
+        "2023": {
+          "return_pct": -6.8995,
+          "max_drawdown_pct": -10.9299
+        },
+        "2024": {
+          "return_pct": 15.9857,
+          "max_drawdown_pct": -9.0159
+        },
+        "2025": {
+          "return_pct": 0.9691,
+          "max_drawdown_pct": -12.3422
+        },
+        "2026": {
+          "return_pct": 5.096,
+          "max_drawdown_pct": -7.0265
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.2794,
+        "median_return_pct": -1.5608,
+        "max_return_pct": 29.3695,
+        "worst_max_drawdown_pct": -24.2794,
+        "negative_return_windows": 572
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 30.4794,
+      "max_drawdown_pct": -21.9673,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 71.7753,
+      "average_exposure_pct": 43.2849,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.8153,
+          "max_drawdown_pct": -7.2713
+        },
+        "2021": {
+          "return_pct": 1.7912,
+          "max_drawdown_pct": -10.6174
+        },
+        "2022": {
+          "return_pct": -9.7792,
+          "max_drawdown_pct": -13.5551
+        },
+        "2023": {
+          "return_pct": -4.9202,
+          "max_drawdown_pct": -9.0199
+        },
+        "2024": {
+          "return_pct": 17.1095,
+          "max_drawdown_pct": -9.0013
+        },
+        "2025": {
+          "return_pct": 3.8737,
+          "max_drawdown_pct": -11.8472
+        },
+        "2026": {
+          "return_pct": 5.9706,
+          "max_drawdown_pct": -6.4924
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.2695,
+        "median_return_pct": 2.3014,
+        "max_return_pct": 34.5304,
+        "worst_max_drawdown_pct": -20.2695,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "return_pct": 14.5175,
+      "max_drawdown_pct": -26.9128,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 67.3292,
+      "average_exposure_pct": 43.313,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.1152,
+          "max_drawdown_pct": -8.4311
+        },
+        "2021": {
+          "return_pct": -0.7344,
+          "max_drawdown_pct": -12.2506
+        },
+        "2022": {
+          "return_pct": -11.2558,
+          "max_drawdown_pct": -14.3361
+        },
+        "2023": {
+          "return_pct": -7.6714,
+          "max_drawdown_pct": -11.6685
+        },
+        "2024": {
+          "return_pct": 15.9924,
+          "max_drawdown_pct": -9.0228
+        },
+        "2025": {
+          "return_pct": 2.2378,
+          "max_drawdown_pct": -12.3429
+        },
+        "2026": {
+          "return_pct": 5.0853,
+          "max_drawdown_pct": -7.0137
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -24.9085,
+        "median_return_pct": -1.5333,
+        "max_return_pct": 30.9487,
+        "worst_max_drawdown_pct": -24.9085,
+        "negative_return_windows": 572
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 32.8948,
+      "max_drawdown_pct": -20.4959,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 72.4359,
+      "average_exposure_pct": 43.2969,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.8153,
+          "max_drawdown_pct": -7.2713
+        },
+        "2021": {
+          "return_pct": 1.7912,
+          "max_drawdown_pct": -10.6174
+        },
+        "2022": {
+          "return_pct": -8.0869,
+          "max_drawdown_pct": -11.9817
+        },
+        "2023": {
+          "return_pct": -4.9126,
+          "max_drawdown_pct": -9.0449
+        },
+        "2024": {
+          "return_pct": 17.1313,
+          "max_drawdown_pct": -9.0117
+        },
+        "2025": {
+          "return_pct": 3.8285,
+          "max_drawdown_pct": -11.8619
+        },
+        "2026": {
+          "return_pct": 5.9626,
+          "max_drawdown_pct": -6.4905
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -18.7703,
+        "median_return_pct": 2.3001,
+        "max_return_pct": 34.4874,
+        "worst_max_drawdown_pct": -18.7703,
+        "negative_return_windows": 483
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_40_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 40,
+        "score_buffer": 0.07
+      },
+      "return_pct": 16.7671,
+      "max_drawdown_pct": -25.5298,
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 67.9438,
+      "average_exposure_pct": 43.3646,
+      "days_exposure_below_5_pct": 39.0197,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.1152,
+          "max_drawdown_pct": -8.4311
+        },
+        "2021": {
+          "return_pct": -0.7344,
+          "max_drawdown_pct": -12.2506
+        },
+        "2022": {
+          "return_pct": -9.5854,
+          "max_drawdown_pct": -12.7267
+        },
+        "2023": {
+          "return_pct": -7.6631,
+          "max_drawdown_pct": -11.6766
+        },
+        "2024": {
+          "return_pct": 16.0514,
+          "max_drawdown_pct": -9.0481
+        },
+        "2025": {
+          "return_pct": 2.2489,
+          "max_drawdown_pct": -12.3876
+        },
+        "2026": {
+          "return_pct": 5.093,
+          "max_drawdown_pct": -7.0074
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -23.4894,
+        "median_return_pct": -1.522,
+        "max_return_pct": 31.0382,
+        "worst_max_drawdown_pct": -23.4894,
+        "negative_return_windows": 571
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_03",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 27.277,
+      "max_drawdown_pct": -23.2017,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 74.2634,
+      "average_exposure_pct": 43.0382,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.6974,
+          "max_drawdown_pct": -10.8838
+        },
+        "2021": {
+          "return_pct": 1.8049,
+          "max_drawdown_pct": -10.6265
+        },
+        "2022": {
+          "return_pct": -10.4985,
+          "max_drawdown_pct": -14.7245
+        },
+        "2023": {
+          "return_pct": -5.6648,
+          "max_drawdown_pct": -9.7459
+        },
+        "2024": {
+          "return_pct": 17.1449,
+          "max_drawdown_pct": -9.0263
+        },
+        "2025": {
+          "return_pct": 3.035,
+          "max_drawdown_pct": -11.8539
+        },
+        "2026": {
+          "return_pct": 5.9501,
+          "max_drawdown_pct": -6.4862
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -21.5302,
+        "median_return_pct": 1.9092,
+        "max_return_pct": 33.4519,
+        "worst_max_drawdown_pct": -21.5302,
+        "negative_return_windows": 499
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_03",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.03
+      },
+      "return_pct": 11.1384,
+      "max_drawdown_pct": -28.1424,
+      "orders": 97,
+      "trades": 97,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 69.4958,
+      "average_exposure_pct": 43.1114,
+      "days_exposure_below_5_pct": 39.2743,
+      "yearly": {
+        "2020": {
+          "return_pct": 10.0548,
+          "max_drawdown_pct": -12.2313
+        },
+        "2021": {
+          "return_pct": -0.7348,
+          "max_drawdown_pct": -12.2566
+        },
+        "2022": {
+          "return_pct": -12.0386,
+          "max_drawdown_pct": -15.3318
+        },
+        "2023": {
+          "return_pct": -8.411,
+          "max_drawdown_pct": -12.3676
+        },
+        "2024": {
+          "return_pct": 16.0381,
+          "max_drawdown_pct": -9.0408
+        },
+        "2025": {
+          "return_pct": 0.9349,
+          "max_drawdown_pct": -12.3582
+        },
+        "2026": {
+          "return_pct": 5.0793,
+          "max_drawdown_pct": -7.007
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -26.1731,
+        "median_return_pct": -1.7953,
+        "max_return_pct": 29.321,
+        "worst_max_drawdown_pct": -26.1731,
+        "negative_return_windows": 576
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_05",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 31.7248,
+      "max_drawdown_pct": -22.6592,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 71.1342,
+      "average_exposure_pct": 43.5005,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 14.9741,
+          "max_drawdown_pct": -9.1209
+        },
+        "2021": {
+          "return_pct": 1.7876,
+          "max_drawdown_pct": -10.6158
+        },
+        "2022": {
+          "return_pct": -10.5841,
+          "max_drawdown_pct": -14.7964
+        },
+        "2023": {
+          "return_pct": -4.9187,
+          "max_drawdown_pct": -9.0217
+        },
+        "2024": {
+          "return_pct": 17.1633,
+          "max_drawdown_pct": -9.0272
+        },
+        "2025": {
+          "return_pct": 3.7929,
+          "max_drawdown_pct": -11.8749
+        },
+        "2026": {
+          "return_pct": 5.9551,
+          "max_drawdown_pct": -6.4891
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.9795,
+        "median_return_pct": 2.164,
+        "max_return_pct": 34.4776,
+        "worst_max_drawdown_pct": -20.9795,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_05",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.05
+      },
+      "return_pct": 16.1163,
+      "max_drawdown_pct": -27.5484,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 66.8458,
+      "average_exposure_pct": 43.575,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.5222,
+          "max_drawdown_pct": -10.2488
+        },
+        "2021": {
+          "return_pct": -0.7214,
+          "max_drawdown_pct": -12.2411
+        },
+        "2022": {
+          "return_pct": -12.0275,
+          "max_drawdown_pct": -15.3067
+        },
+        "2023": {
+          "return_pct": -7.6804,
+          "max_drawdown_pct": -11.6712
+        },
+        "2024": {
+          "return_pct": 16.029,
+          "max_drawdown_pct": -9.0368
+        },
+        "2025": {
+          "return_pct": 2.2751,
+          "max_drawdown_pct": -12.3717
+        },
+        "2026": {
+          "return_pct": 5.1012,
+          "max_drawdown_pct": -7.04
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.5518,
+        "median_return_pct": -1.7456,
+        "max_return_pct": 31.1193,
+        "worst_max_drawdown_pct": -25.5518,
+        "negative_return_windows": 576
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_07",
+      "slippage_bps": 0.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 31.7248,
+      "max_drawdown_pct": -22.6592,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 71.1342,
+      "average_exposure_pct": 43.5005,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 14.9741,
+          "max_drawdown_pct": -9.1209
+        },
+        "2021": {
+          "return_pct": 1.7876,
+          "max_drawdown_pct": -10.6158
+        },
+        "2022": {
+          "return_pct": -10.5841,
+          "max_drawdown_pct": -14.7964
+        },
+        "2023": {
+          "return_pct": -4.9187,
+          "max_drawdown_pct": -9.0217
+        },
+        "2024": {
+          "return_pct": 17.1633,
+          "max_drawdown_pct": -9.0272
+        },
+        "2025": {
+          "return_pct": 3.7929,
+          "max_drawdown_pct": -11.8749
+        },
+        "2026": {
+          "return_pct": 5.9551,
+          "max_drawdown_pct": -6.4891
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -20.9795,
+        "median_return_pct": 2.164,
+        "max_return_pct": 34.4776,
+        "worst_max_drawdown_pct": -20.9795,
+        "negative_return_windows": 496
+      }
+    },
+    {
+      "case": "exposure_0_7_hold_50_buffer_0_07",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 50,
+        "score_buffer": 0.07
+      },
+      "return_pct": 16.1163,
+      "max_drawdown_pct": -27.5484,
+      "orders": 91,
+      "trades": 91,
+      "rejected_orders": 0,
+      "rejects_by_reason": {},
+      "turnover_x_initial_cash": 66.8458,
+      "average_exposure_pct": 43.575,
+      "days_exposure_below_5_pct": 38.8924,
+      "yearly": {
+        "2020": {
+          "return_pct": 12.5222,
+          "max_drawdown_pct": -10.2488
+        },
+        "2021": {
+          "return_pct": -0.7214,
+          "max_drawdown_pct": -12.2411
+        },
+        "2022": {
+          "return_pct": -12.0275,
+          "max_drawdown_pct": -15.3067
+        },
+        "2023": {
+          "return_pct": -7.6804,
+          "max_drawdown_pct": -11.6712
+        },
+        "2024": {
+          "return_pct": 16.029,
+          "max_drawdown_pct": -9.0368
+        },
+        "2025": {
+          "return_pct": 2.2751,
+          "max_drawdown_pct": -12.3717
+        },
+        "2026": {
+          "return_pct": 5.1012,
+          "max_drawdown_pct": -7.04
+        }
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "min_return_pct": -25.5518,
+        "median_return_pct": -1.7456,
+        "max_return_pct": 31.1193,
+        "worst_max_drawdown_pct": -25.5518,
+        "negative_return_windows": 576
+      }
+    }
+  ],
+  "decision": "HOLD_FOR_REGIME_STABILITY_REVIEW",
+  "cio_interpretation": {
+    "summary": "v1b low-turnover neighborhood is not a single-point artifact, but rolling 504-session and yearly stability fail under 20 bps. Keep research-only and investigate 2021-2023 regime weakness before any paper discussion.",
+    "paper_gate": "FAIL",
+    "live_gate": "FAIL",
+    "next_action": "research-only regime stability review; no QMT, no real money, no parameter recommendation"
+  }
+}

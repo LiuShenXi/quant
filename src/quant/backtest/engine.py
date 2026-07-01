@@ -20,6 +20,7 @@ from quant.core.contract import (
     Trade,
 )
 from quant.core.portfolio import Portfolio
+from quant.core.sizing import split_qty_by_order_value
 from quant.costs import CostModel
 from quant.data.quality import reject_missing_rows
 from quant.data.service import DataService
@@ -150,17 +151,23 @@ class BacktestEngine:
         strategy.on_init(ctx)
         strategy.on_start(ctx)
         bars = self._load_bars()
-        for bar in bars:
-            if self.now.date() != bar.dt.date():
+        for day_bars in _group_bars_by_session(bars):
+            first_bar = day_bars[0]
+            if self.now.date() != first_bar.dt.date():
                 self.portfolio.mark_new_day()
-            self.current_bars[bar.symbol] = bar
-            self.now = _continuous_auction_open(bar.dt)
-            self.last_prices[bar.symbol] = bar.open
-            self._flush_pending_targets({bar.symbol: bar.open})
-            self.now = bar.dt
-            self.last_prices[bar.symbol] = bar.close
-            self._match_open_orders(bar)
-            strategy.on_bar(ctx, bar)
+            self.now = _continuous_auction_open(first_bar.dt)
+            open_prices = {bar.symbol: bar.open for bar in day_bars}
+            self.last_prices.update(open_prices)
+            self._flush_pending_targets(open_prices)
+            for bar in day_bars:
+                self._match_open_orders(bar)
+
+            self.current_bars.update({bar.symbol: bar for bar in day_bars})
+            close_prices = {bar.symbol: bar.close for bar in day_bars}
+            self.last_prices.update(close_prices)
+            for bar in day_bars:
+                self.now = bar.dt
+                strategy.on_bar(ctx, bar)
             self._record_equity()
         strategy.on_stop(ctx)
         return BacktestResult(orders=self.orders, trades=self.trades, equity=self.equity)
@@ -256,15 +263,21 @@ class BacktestEngine:
             diff = intent.target_qty - current
             if diff == 0:
                 continue
-            self.submit_order(
-                symbol=intent.symbol,
-                side=OrderSide.BUY if diff > 0 else OrderSide.SELL,
+            side = OrderSide.BUY if diff > 0 else OrderSide.SELL
+            for qty in split_qty_by_order_value(
                 qty=abs(diff),
                 price=price,
-                type=OrderType.LIMIT,
-                now=self.now,
-                latest_price=price,
-            )
+                max_order_value=self.risk.limits.max_order_value,
+            ):
+                self.submit_order(
+                    symbol=intent.symbol,
+                    side=side,
+                    qty=qty,
+                    price=price,
+                    type=OrderType.LIMIT,
+                    now=self.now,
+                    latest_price=price,
+                )
         self.pending_targets = retained + self.pending_targets
 
     def _effective_target_qty(self, symbol: str) -> float:
@@ -319,6 +332,9 @@ class BacktestEngine:
     def _match_open_orders(self, bar: Bar) -> None:
         remaining: list[Order] = []
         for order in self.open_orders:
+            if order.symbol != bar.symbol:
+                remaining.append(order)
+                continue
             result = self.matcher.match(order, bar)
             if result.filled_qty <= 0 or result.fill_price is None:
                 remaining.append(order)
@@ -384,6 +400,16 @@ def _continuous_auction_open(value: datetime) -> datetime:
         time(9, 31),
         tzinfo=value.tzinfo or ZoneInfo("Asia/Shanghai"),
     )
+
+
+def _group_bars_by_session(bars: list[Bar]) -> list[list[Bar]]:
+    sessions: list[list[Bar]] = []
+    for bar in bars:
+        if not sessions or sessions[-1][0].dt.date() != bar.dt.date():
+            sessions.append([bar])
+            continue
+        sessions[-1].append(bar)
+    return sessions
 
 
 def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:

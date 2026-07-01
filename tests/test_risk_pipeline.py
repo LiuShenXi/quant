@@ -85,6 +85,69 @@ def test_freeze_open_blocks_buy_but_allows_sell() -> None:
     assert sell.allowed is True
 
 
+def test_position_limit_allows_sell_that_reduces_existing_over_limit_exposure() -> None:
+    engine = RiskEngine(
+        RiskLimits(
+            universe={"510300.SH"},
+            max_order_value=200_000,
+            max_position_value_per_symbol=100_000,
+            max_gross_exposure_pct=2,
+        )
+    )
+    over_limit_position = Position(
+        "510300.SH",
+        "paper",
+        qty=30_000,
+        sellable=30_000,
+        avg_price=7,
+        market_value=249_000,
+    )
+
+    decision = engine.check_order(
+        make_req(OrderSide.SELL, price=8.3, qty=12_000),
+        latest_price=8.3,
+        account=make_account(cash=0, total_value=260_000),
+        positions={"510300.SH": over_limit_position},
+        active_orders=[],
+        now=make_req().created_at,
+        state=EngineState.NORMAL,
+    )
+
+    assert decision.allowed is True
+
+
+def test_position_limit_rejects_buy_that_increases_exposure_above_limit() -> None:
+    engine = RiskEngine(
+        RiskLimits(
+            universe={"510300.SH"},
+            max_order_value=200_000,
+            max_position_value_per_symbol=100_000,
+            max_gross_exposure_pct=2,
+        )
+    )
+    position = Position(
+        "510300.SH",
+        "paper",
+        qty=20_000,
+        sellable=20_000,
+        avg_price=3,
+        market_value=90_000,
+    )
+
+    decision = engine.check_order(
+        make_req(OrderSide.BUY, price=3.2, qty=10_000),
+        latest_price=3.2,
+        account=make_account(cash=100_000, total_value=200_000),
+        positions={"510300.SH": position},
+        active_orders=[],
+        now=make_req().created_at,
+        state=EngineState.NORMAL,
+    )
+
+    assert decision.allowed is False
+    assert decision.rule_id == "position_limit"
+
+
 def test_daily_loss_moves_to_halt() -> None:
     engine = RiskEngine(
         RiskLimits(

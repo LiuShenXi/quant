@@ -1,0 +1,250 @@
+{
+  "status": "research_only",
+  "not_trading_permission": true,
+  "experiment": "v1b_fixed_exposure_substitution",
+  "method_note": "Compare v1b drawdown-control representatives against simple fixed 40/50/60% close-to-close exposure curves. No parameter search.",
+  "data_root": "research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630",
+  "strategy_cases": [
+    {
+      "case": "v1b_center_0_6_hold_40_buffer_0_05_20bps",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.6,
+        "min_hold_days": 40,
+        "score_buffer": 0.05
+      },
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "turnover_x_initial_cash": 57.5106
+    },
+    {
+      "case": "v1b_best20_0_7_hold_30_buffer_0_07_20bps",
+      "slippage_bps": 20.0,
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.7,
+        "min_hold_days": 30,
+        "score_buffer": 0.07
+      },
+      "orders": 93,
+      "trades": 93,
+      "rejected_orders": 0,
+      "turnover_x_initial_cash": 67.9438
+    }
+  ],
+  "metrics": {
+    "v1b_center_0_6_hold_40_buffer_0_05_20bps": {
+      "return_pct": 12.9798,
+      "max_drawdown_pct": -23.5427,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 568,
+        "min_return_pct": -21.7476,
+        "median_return_pct": -1.1376,
+        "max_return_pct": 26.5224,
+        "worst_drawdown_pct": -21.7476,
+        "median_drawdown_pct": -14.1844
+      },
+      "return_per_abs_max_drawdown": 0.5513
+    },
+    "v1b_best20_0_7_hold_30_buffer_0_07_20bps": {
+      "return_pct": 16.7671,
+      "max_drawdown_pct": -25.5298,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 571,
+        "min_return_pct": -23.4894,
+        "median_return_pct": -1.522,
+        "max_return_pct": 31.0382,
+        "worst_drawdown_pct": -23.4894,
+        "median_drawdown_pct": -16.2635
+      },
+      "return_per_abs_max_drawdown": 0.6568
+    },
+    "fixed_40_equal_weight": {
+      "return_pct": 15.8263,
+      "max_drawdown_pct": -20.0967,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 658,
+        "min_return_pct": -18.0633,
+        "median_return_pct": -2.9738,
+        "max_return_pct": 22.5663,
+        "worst_drawdown_pct": -18.3366,
+        "median_drawdown_pct": -13.4988
+      },
+      "return_per_abs_max_drawdown": 0.7875
+    },
+    "fixed_40_510300_SH": {
+      "return_pct": 8.3876,
+      "max_drawdown_pct": -21.7697,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 637,
+        "min_return_pct": -15.9918,
+        "median_return_pct": -1.8788,
+        "max_return_pct": 16.2151,
+        "worst_drawdown_pct": -18.636,
+        "median_drawdown_pct": -12.4063
+      },
+      "return_per_abs_max_drawdown": 0.3853
+    },
+    "fixed_40_510500_SH": {
+      "return_pct": 23.2651,
+      "max_drawdown_pct": -23.4706,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 685,
+        "min_return_pct": -20.8474,
+        "median_return_pct": -3.8789,
+        "max_return_pct": 29.3561,
+        "worst_drawdown_pct": -21.1065,
+        "median_drawdown_pct": -15.4197
+      },
+      "return_per_abs_max_drawdown": 0.9912
+    },
+    "fixed_50_equal_weight": {
+      "return_pct": 19.7829,
+      "max_drawdown_pct": -24.3739,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 658,
+        "min_return_pct": -22.0136,
+        "median_return_pct": -3.7142,
+        "max_return_pct": 28.917,
+        "worst_drawdown_pct": -22.3439,
+        "median_drawdown_pct": -16.3718
+      },
+      "return_per_abs_max_drawdown": 0.8116
+    },
+    "fixed_50_510300_SH": {
+      "return_pct": 10.4845,
+      "max_drawdown_pct": -26.3057,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 637,
+        "min_return_pct": -19.6175,
+        "median_return_pct": -2.3511,
+        "max_return_pct": 20.7886,
+        "worst_drawdown_pct": -22.5191,
+        "median_drawdown_pct": -15.3749
+      },
+      "return_per_abs_max_drawdown": 0.3986
+    },
+    "fixed_50_510500_SH": {
+      "return_pct": 29.0814,
+      "max_drawdown_pct": -28.2092,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 685,
+        "min_return_pct": -25.2258,
+        "median_return_pct": -4.7988,
+        "max_return_pct": 37.6015,
+        "worst_drawdown_pct": -25.5218,
+        "median_drawdown_pct": -18.5329
+      },
+      "return_per_abs_max_drawdown": 1.0309
+    },
+    "fixed_60_equal_weight": {
+      "return_pct": 23.7395,
+      "max_drawdown_pct": -28.4041,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 658,
+        "min_return_pct": -25.7708,
+        "median_return_pct": -4.4258,
+        "max_return_pct": 35.5952,
+        "worst_drawdown_pct": -26.1545,
+        "median_drawdown_pct": -19.0788
+      },
+      "return_per_abs_max_drawdown": 0.8358
+    },
+    "fixed_60_510300_SH": {
+      "return_pct": 12.5813,
+      "max_drawdown_pct": -30.5494,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 637,
+        "min_return_pct": -23.1106,
+        "median_return_pct": -2.8245,
+        "max_return_pct": 25.6028,
+        "worst_drawdown_pct": -26.1519,
+        "median_drawdown_pct": -18.2929
+      },
+      "return_per_abs_max_drawdown": 0.4118
+    },
+    "fixed_60_510500_SH": {
+      "return_pct": 34.8976,
+      "max_drawdown_pct": -32.5967,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 685,
+        "min_return_pct": -29.3328,
+        "median_return_pct": -5.6807,
+        "max_return_pct": 46.2645,
+        "worst_drawdown_pct": -29.6579,
+        "median_drawdown_pct": -21.4154
+      },
+      "return_per_abs_max_drawdown": 1.0706
+    },
+    "cash": {
+      "return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "negative_windows": 0,
+        "min_return_pct": 0.0,
+        "median_return_pct": 0.0,
+        "max_return_pct": 0.0,
+        "worst_drawdown_pct": 0.0,
+        "median_drawdown_pct": 0.0
+      },
+      "return_per_abs_max_drawdown": null
+    }
+  },
+  "substitution_tests": {
+    "v1b_center_0_6_hold_40_buffer_0_05_20bps": {
+      "dominating_fixed_exposure_cases": [],
+      "higher_return_and_lower_max_dd_cases": [
+        "fixed_40_equal_weight",
+        "fixed_40_510500_SH"
+      ],
+      "fewer_or_equal_negative_window_cases": [],
+      "best_return_per_drawdown_fixed_case": "fixed_60_510500_SH"
+    },
+    "v1b_best20_0_7_hold_30_buffer_0_07_20bps": {
+      "dominating_fixed_exposure_cases": [],
+      "higher_return_and_lower_max_dd_cases": [
+        "fixed_40_510500_SH",
+        "fixed_50_equal_weight"
+      ],
+      "fewer_or_equal_negative_window_cases": [],
+      "best_return_per_drawdown_fixed_case": "fixed_60_510500_SH"
+    }
+  },
+  "decision": "HOLD_FOR_PATH_SMOOTHING_UTILITY_REVIEW"
+}

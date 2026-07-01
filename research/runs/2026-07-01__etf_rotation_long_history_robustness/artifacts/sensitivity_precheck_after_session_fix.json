@@ -1,0 +1,295 @@
+{
+  "status": "PASS",
+  "not_trading_permission": true,
+  "method_note": "Research-only rerun after fixing daily session processing: open execution first, all close marks before on_bar, one equity row per session. Supersedes after_timeline_fix artifacts for performance interpretation.",
+  "data_root": "research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630",
+  "strategy": "research/imported/usage_records/2026-06-26__quant_usage_record/strategy_lab/etf_regime_rotation_510300_510500.yaml",
+  "cases": [
+    {
+      "case": "cash_baseline",
+      "return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "orders": 0,
+      "trades": 0,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 0.0,
+      "equity_rows": 1571
+    },
+    {
+      "case": "baseline",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 18.4487,
+      "max_drawdown_pct": -29.4192,
+      "final_value": 118448.7,
+      "orders": 161,
+      "trades": 161,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3344.5,
+      "equity_rows": 1571
+    },
+    {
+      "case": "cost_2x_rate",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.0005,
+      "commission_min": 5,
+      "return_pct": 14.6133,
+      "max_drawdown_pct": -30.5412,
+      "final_value": 114613.32,
+      "orders": 161,
+      "trades": 161,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 6575.48,
+      "equity_rows": 1571
+    },
+    {
+      "case": "cost_4x_rate_2x_min",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.001,
+      "commission_min": 10,
+      "return_pct": 7.5119,
+      "max_drawdown_pct": -32.7009,
+      "final_value": 107511.89,
+      "orders": 161,
+      "trades": 161,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 12751.41,
+      "equity_rows": 1571
+    },
+    {
+      "case": "trend_window_40",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 40,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 45.101,
+      "max_drawdown_pct": -17.8202,
+      "final_value": 145101.03,
+      "orders": 191,
+      "trades": 191,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3629.27,
+      "equity_rows": 1571
+    },
+    {
+      "case": "trend_window_80",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 80,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 36.9704,
+      "max_drawdown_pct": -33.6202,
+      "final_value": 136970.42,
+      "orders": 154,
+      "trades": 154,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3050.58,
+      "equity_rows": 1571
+    },
+    {
+      "case": "momentum_window_10",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 10,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 38.4713,
+      "max_drawdown_pct": -26.1287,
+      "final_value": 138471.33,
+      "orders": 212,
+      "trades": 212,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 4241.07,
+      "equity_rows": 1571
+    },
+    {
+      "case": "momentum_window_40",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 40,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 24.7605,
+      "max_drawdown_pct": -24.4291,
+      "final_value": 124760.48,
+      "orders": 135,
+      "trades": 135,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 2776.02,
+      "equity_rows": 1571
+    },
+    {
+      "case": "score_buffer_0",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.0
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 31.3702,
+      "max_drawdown_pct": -25.5321,
+      "final_value": 131370.19,
+      "orders": 215,
+      "trades": 215,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 4500.91,
+      "equity_rows": 1571
+    },
+    {
+      "case": "score_buffer_0_02",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 5,
+        "score_buffer": 0.02
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 14.108,
+      "max_drawdown_pct": -26.3574,
+      "final_value": 114107.96,
+      "orders": 131,
+      "trades": 131,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 2629.84,
+      "equity_rows": 1571
+    },
+    {
+      "case": "min_hold_days_3",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 3,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 18.3077,
+      "max_drawdown_pct": -28.2863,
+      "final_value": 118307.73,
+      "orders": 161,
+      "trades": 161,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3353.97,
+      "equity_rows": 1571
+    },
+    {
+      "case": "min_hold_days_10",
+      "params": {
+        "symbols": [
+          "510300.SH",
+          "510500.SH"
+        ],
+        "trend_window": 60,
+        "momentum_window": 20,
+        "target_exposure_pct": 0.8,
+        "min_hold_days": 10,
+        "score_buffer": 0.01
+      },
+      "commission_rate": 0.00025,
+      "commission_min": 5,
+      "return_pct": 28.6247,
+      "max_drawdown_pct": -28.0135,
+      "final_value": 128624.68,
+      "orders": 144,
+      "trades": 144,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 2928.22,
+      "equity_rows": 1571
+    }
+  ]
+}

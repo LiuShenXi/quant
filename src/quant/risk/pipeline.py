@@ -122,7 +122,10 @@ class RiskEngine:
                 return _reject("insufficient sellable position for sell order", "cash")
 
         projected_symbol_value = _projected_symbol_value(req, notional, position)
-        if projected_symbol_value > self.limits.max_position_value_per_symbol:
+        if (
+            projected_symbol_value > self.limits.max_position_value_per_symbol
+            and _increases_symbol_exposure(projected_symbol_value, position)
+        ):
             return _reject("projected symbol position exceeds limit", "position_limit")
 
         projected_gross = _projected_gross_exposure(req, notional, positions)
@@ -159,6 +162,11 @@ def _projected_symbol_value(
     if req.side == OrderSide.BUY:
         return current_value + notional
     return max(current_value - notional, 0)
+
+
+def _increases_symbol_exposure(projected_value: float, position: Position | None) -> bool:
+    current_value = position.market_value if position is not None else 0
+    return projected_value > current_value
 
 
 def _projected_gross_exposure(

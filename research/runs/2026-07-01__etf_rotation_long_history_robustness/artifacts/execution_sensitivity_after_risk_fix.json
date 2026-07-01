@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "not_trading_permission": true,
+  "method_note": "Research-only simulation. Slippage worsens matched fill prices; extra_flush_delay retains each target for one additional target flush cycle before submitting.",
+  "data_root": "research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630",
+  "strategy": "research/imported/usage_records/2026-06-26__quant_usage_record/strategy_lab/etf_regime_rotation_510300_510500.yaml",
+  "cases": [
+    {
+      "case": "baseline",
+      "slippage_bps": 0,
+      "extra_flush_delay": 0,
+      "return_pct": 88.5743,
+      "max_drawdown_pct": -13.1395,
+      "final_value": 188574.34,
+      "orders": 216,
+      "trades": 216,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 4206.56
+    },
+    {
+      "case": "slippage_5bps",
+      "slippage_bps": 5,
+      "extra_flush_delay": 0,
+      "return_pct": 76.8003,
+      "max_drawdown_pct": -15.1754,
+      "final_value": 176800.32,
+      "orders": 211,
+      "trades": 211,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 4081.11
+    },
+    {
+      "case": "slippage_10bps",
+      "slippage_bps": 10,
+      "extra_flush_delay": 0,
+      "return_pct": 65.9589,
+      "max_drawdown_pct": -17.2106,
+      "final_value": 165958.89,
+      "orders": 199,
+      "trades": 199,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3929.3
+    },
+    {
+      "case": "slippage_20bps",
+      "slippage_bps": 20,
+      "extra_flush_delay": 0,
+      "return_pct": 45.849,
+      "max_drawdown_pct": -21.6691,
+      "final_value": 145848.97,
+      "orders": 183,
+      "trades": 183,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3656.3
+    },
+    {
+      "case": "extra_one_flush_delay",
+      "slippage_bps": 0,
+      "extra_flush_delay": 1,
+      "return_pct": 28.0922,
+      "max_drawdown_pct": -20.8578,
+      "final_value": 128092.18,
+      "orders": 161,
+      "trades": 161,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 3228.42
+    },
+    {
+      "case": "extra_one_flush_delay_slippage_10bps",
+      "slippage_bps": 10,
+      "extra_flush_delay": 1,
+      "return_pct": 13.5633,
+      "max_drawdown_pct": -25.1635,
+      "final_value": 113563.34,
+      "orders": 151,
+      "trades": 151,
+      "rejected_orders": 0,
+      "reject_reasons": [],
+      "total_commission": 2993.87
+    }
+  ]
+}

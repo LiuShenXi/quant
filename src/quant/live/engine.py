@@ -67,7 +67,8 @@ class PaperEngine:
             clock=lambda: self.now,
         )
         self.gateway = self._build_gateway(gateway_factory)
-        self.risk = RiskEngine(self._build_risk_limits())
+        risk_limits = self._build_risk_limits()
+        self.risk = RiskEngine(risk_limits)
         self.oms = OrderManager(
             account_id=paper_config.account_id,
             gateway=self.gateway,
@@ -104,7 +105,11 @@ class PaperEngine:
             account_id=paper_config.account_id,
             clock=lambda: self.now,
         )
-        self.execution_router = ExecutionRouter(self.oms, self.gateway.query_positions)
+        self.execution_router = ExecutionRouter(
+            self.oms,
+            self.gateway.query_positions,
+            max_order_value=risk_limits.max_order_value,
+        )
         self.context = PaperContext(
             runtime=self._context_runtime(),
             strategy_id=strategy_config.id,

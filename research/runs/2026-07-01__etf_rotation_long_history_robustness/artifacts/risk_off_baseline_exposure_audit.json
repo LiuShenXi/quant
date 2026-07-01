@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "not_trading_permission": true,
+  "method_note": "Research-only exposure audit. Strategy exposure is derived from session-fixed equity.csv as (total_value - cash) / total_value. Fixed exposure baselines are close-to-close normalized static exposure plus cash.",
+  "strategy_artifact": "research/runs/2026-07-01__etf_rotation_long_history_robustness/backtest/etf_regime_rotation_v1_long_history",
+  "data_root": "research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630",
+  "period": {
+    "start": "2020-01-02T15:00:00+08:00",
+    "end": "2026-06-30T15:00:00+08:00",
+    "trading_days": 1571
+  },
+  "strategy_metrics": {
+    "return_pct": 18.4487,
+    "max_drawdown_pct": -29.4192,
+    "annualized_return_pct": 2.7531,
+    "final_value": 118448.7,
+    "orders": 161,
+    "trades": 161,
+    "total_trade_notional": 13378142.6,
+    "turnover_multiple_initial_cash": 133.7814,
+    "total_commission": 3344.5
+  },
+  "exposure_summary": {
+    "average_exposure_pct": 45.408,
+    "median_exposure_pct": 79.5496,
+    "max_exposure_pct": 84.7177,
+    "min_exposure_pct": 0.0,
+    "days_exposure_below_5pct": 683,
+    "days_exposure_below_5pct_pct": 43.4755,
+    "days_exposure_above_50pct": 888,
+    "days_exposure_above_50pct_pct": 56.5245,
+    "days_exposure_above_70pct": 888,
+    "days_exposure_above_70pct_pct": 56.5245
+  },
+  "benchmarks": {
+    "510300.SH_fixed_60pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510300.SH",
+      "exposure_pct": 60.0,
+      "return_pct": 12.5813,
+      "max_drawdown_pct": -30.5494,
+      "annualized_return_pct": 1.9191
+    },
+    "510300.SH_fixed_80pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510300.SH",
+      "exposure_pct": 80.0,
+      "return_pct": 16.7751,
+      "max_drawdown_pct": -38.2657,
+      "annualized_return_pct": 2.5188
+    },
+    "510300.SH_fixed_100pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510300.SH",
+      "exposure_pct": 100.0,
+      "return_pct": 20.9689,
+      "max_drawdown_pct": -45.1007,
+      "annualized_return_pct": 3.1007
+    },
+    "510500.SH_fixed_60pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510500.SH",
+      "exposure_pct": 60.0,
+      "return_pct": 34.8976,
+      "max_drawdown_pct": -32.5967,
+      "annualized_return_pct": 4.9189
+    },
+    "510500.SH_fixed_80pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510500.SH",
+      "exposure_pct": 80.0,
+      "return_pct": 46.5302,
+      "max_drawdown_pct": -40.4633,
+      "annualized_return_pct": 6.3202
+    },
+    "510500.SH_fixed_100pct": {
+      "type": "fixed_symbol_exposure",
+      "symbol": "510500.SH",
+      "exposure_pct": 100.0,
+      "return_pct": 58.1627,
+      "max_drawdown_pct": -47.3145,
+      "annualized_return_pct": 7.6311
+    },
+    "equal_weight_fixed_60pct": {
+      "type": "fixed_equal_weight_exposure",
+      "exposure_pct": 60.0,
+      "return_pct": 23.7395,
+      "max_drawdown_pct": -28.4041,
+      "annualized_return_pct": 3.4759
+    },
+    "equal_weight_fixed_80pct": {
+      "type": "fixed_equal_weight_exposure",
+      "exposure_pct": 80.0,
+      "return_pct": 31.6527,
+      "max_drawdown_pct": -35.8043,
+      "annualized_return_pct": 4.5099
+    },
+    "equal_weight_fixed_100pct": {
+      "type": "fixed_equal_weight_exposure",
+      "exposure_pct": 100.0,
+      "return_pct": 39.5658,
+      "max_drawdown_pct": -42.4382,
+      "annualized_return_pct": 5.493
+    }
+  }
+}

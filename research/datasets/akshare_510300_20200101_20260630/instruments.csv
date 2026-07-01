@@ -1,0 +1,2 @@
+symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status
+510300.SH,300ETF,etf,SH,2020-01-02,,100,100,0.001,1,active

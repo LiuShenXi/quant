@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from quant.core.contract import OrderSide, OrderType, Position
+from quant.core.sizing import split_qty_by_order_value
 from quant.live.oms import OrderManager
 
 
@@ -21,9 +22,11 @@ class ExecutionRouter:
         self,
         oms: OrderManager,
         position_getter: Callable[[], dict[str, Position]],
+        max_order_value: float | None = None,
     ) -> None:
         self.oms = oms
         self._position_getter = position_getter
+        self.max_order_value = max_order_value
         self.pending_targets: list[TargetIntent] = []
 
     def set_target(
@@ -52,21 +55,27 @@ class ExecutionRouter:
                 retained.append(intent)
                 self.oms.freeze_open(f"target_price_missing: {intent.symbol}")
                 continue
+            side = OrderSide.BUY if diff > 0 else OrderSide.SELL
             try:
-                order_id = self.oms.submit_order(
-                    strategy_id=intent.strategy_id,
-                    symbol=intent.symbol,
-                    side=OrderSide.BUY if diff > 0 else OrderSide.SELL,
+                for qty in split_qty_by_order_value(
                     qty=abs(diff),
                     price=price,
-                    type=OrderType.LIMIT,
-                    latest_price=price,
-                    now=now,
-                )
+                    max_order_value=self.max_order_value,
+                ):
+                    order_id = self.oms.submit_order(
+                        strategy_id=intent.strategy_id,
+                        symbol=intent.symbol,
+                        side=side,
+                        qty=qty,
+                        price=price,
+                        type=OrderType.LIMIT,
+                        latest_price=price,
+                        now=now,
+                    )
+                    submitted.append(order_id)
             except Exception as error:
                 retained.append(intent)
                 self.oms.freeze_open(f"target_submit_error: {error}")
                 continue
-            submitted.append(order_id)
         self.pending_targets = retained + self.pending_targets
         return submitted

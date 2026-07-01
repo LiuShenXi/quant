@@ -1,0 +1,259 @@
+{
+  "status": "research_only",
+  "not_trading_permission": true,
+  "experiment": "v1b_drawdown_control_thesis_review",
+  "method_note": "Evaluate whether v1b's lower drawdown and fewer negative rolling windows justify a research-only drawdown-control thesis. No parameter search.",
+  "source_regime_artifact": "artifacts/v1b_regime_failure_review.json",
+  "full_period": {
+    "v1b_center_0_6_hold_40_buffer_0_05_20bps": {
+      "return_pct": 12.9798,
+      "max_drawdown_pct": -23.5427
+    },
+    "v1b_best20_0_7_hold_30_buffer_0_07_20bps": {
+      "return_pct": 16.7671,
+      "max_drawdown_pct": -25.5298
+    },
+    "fixed_60_equal_weight": {
+      "return_pct": 23.7395,
+      "max_drawdown_pct": -28.4041
+    },
+    "fixed_60_510300_SH": {
+      "return_pct": 12.5813,
+      "max_drawdown_pct": -30.5494
+    },
+    "fixed_60_510500_SH": {
+      "return_pct": 34.8976,
+      "max_drawdown_pct": -32.5967
+    }
+  },
+  "comparisons": {
+    "v1b_center_0_6_hold_40_buffer_0_05_20bps": {
+      "fixed_60_equal_weight": {
+        "full_period": {
+          "strategy_return_pct": 12.9798,
+          "benchmark_return_pct": 23.7395,
+          "return_gap_pct": -10.7597,
+          "strategy_max_drawdown_pct": -23.5427,
+          "benchmark_max_drawdown_pct": -28.4041,
+          "drawdown_improvement_pct": 4.8614,
+          "return_loss_per_drawdown_improvement_point": 2.2133
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 568,
+          "benchmark_negative_windows": 658,
+          "negative_window_reduction": 90,
+          "strategy_higher_return_windows": 731,
+          "strategy_lower_drawdown_windows": 802,
+          "materially_better_drawdown_windows_ge_3pct": 517,
+          "median_return_gap_pct": 1.8748,
+          "min_return_gap_pct": -14.0751,
+          "max_return_gap_pct": 11.6979,
+          "median_drawdown_improvement_pct": 2.5169,
+          "min_drawdown_improvement_pct": -4.4186,
+          "max_drawdown_improvement_pct": 8.6847
+        }
+      },
+      "fixed_60_510300_SH": {
+        "full_period": {
+          "strategy_return_pct": 12.9798,
+          "benchmark_return_pct": 12.5813,
+          "return_gap_pct": 0.3985,
+          "strategy_max_drawdown_pct": -23.5427,
+          "benchmark_max_drawdown_pct": -30.5494,
+          "drawdown_improvement_pct": 7.0067,
+          "return_loss_per_drawdown_improvement_point": null
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 568,
+          "benchmark_negative_windows": 637,
+          "negative_window_reduction": 69,
+          "strategy_higher_return_windows": 687,
+          "strategy_lower_drawdown_windows": 735,
+          "materially_better_drawdown_windows_ge_3pct": 508,
+          "median_return_gap_pct": 1.851,
+          "min_return_gap_pct": -8.4885,
+          "max_return_gap_pct": 10.1515,
+          "median_drawdown_improvement_pct": 2.5523,
+          "min_drawdown_improvement_pct": -4.1955,
+          "max_drawdown_improvement_pct": 11.464
+        }
+      },
+      "fixed_60_510500_SH": {
+        "full_period": {
+          "strategy_return_pct": 12.9798,
+          "benchmark_return_pct": 34.8976,
+          "return_gap_pct": -21.9178,
+          "strategy_max_drawdown_pct": -23.5427,
+          "benchmark_max_drawdown_pct": -32.5967,
+          "drawdown_improvement_pct": 9.054,
+          "return_loss_per_drawdown_improvement_point": 2.4208
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 568,
+          "benchmark_negative_windows": 685,
+          "negative_window_reduction": 117,
+          "strategy_higher_return_windows": 626,
+          "strategy_lower_drawdown_windows": 864,
+          "materially_better_drawdown_windows_ge_3pct": 746,
+          "median_return_gap_pct": 0.9781,
+          "min_return_gap_pct": -22.9872,
+          "max_return_gap_pct": 15.2599,
+          "median_drawdown_improvement_pct": 4.8048,
+          "min_drawdown_improvement_pct": -3.0079,
+          "max_drawdown_improvement_pct": 12.1881
+        }
+      }
+    },
+    "v1b_best20_0_7_hold_30_buffer_0_07_20bps": {
+      "fixed_60_equal_weight": {
+        "full_period": {
+          "strategy_return_pct": 16.7671,
+          "benchmark_return_pct": 23.7395,
+          "return_gap_pct": -6.9724,
+          "strategy_max_drawdown_pct": -25.5298,
+          "benchmark_max_drawdown_pct": -28.4041,
+          "drawdown_improvement_pct": 2.8743,
+          "return_loss_per_drawdown_improvement_point": 2.4258
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 571,
+          "benchmark_negative_windows": 658,
+          "negative_window_reduction": 87,
+          "strategy_higher_return_windows": 776,
+          "strategy_lower_drawdown_windows": 687,
+          "materially_better_drawdown_windows_ge_3pct": 396,
+          "median_return_gap_pct": 2.065,
+          "min_return_gap_pct": -13.3511,
+          "max_return_gap_pct": 12.021,
+          "median_drawdown_improvement_pct": 0.6674,
+          "min_drawdown_improvement_pct": -6.4977,
+          "max_drawdown_improvement_pct": 7.5782
+        }
+      },
+      "fixed_60_510300_SH": {
+        "full_period": {
+          "strategy_return_pct": 16.7671,
+          "benchmark_return_pct": 12.5813,
+          "return_gap_pct": 4.1858,
+          "strategy_max_drawdown_pct": -25.5298,
+          "benchmark_max_drawdown_pct": -30.5494,
+          "drawdown_improvement_pct": 5.0196,
+          "return_loss_per_drawdown_improvement_point": null
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 571,
+          "benchmark_negative_windows": 637,
+          "negative_window_reduction": 66,
+          "strategy_higher_return_windows": 726,
+          "strategy_lower_drawdown_windows": 602,
+          "materially_better_drawdown_windows_ge_3pct": 332,
+          "median_return_gap_pct": 3.2013,
+          "min_return_gap_pct": -7.7645,
+          "max_return_gap_pct": 10.9646,
+          "median_drawdown_improvement_pct": 1.0728,
+          "min_drawdown_improvement_pct": -6.2746,
+          "max_drawdown_improvement_pct": 9.6145
+        }
+      },
+      "fixed_60_510500_SH": {
+        "full_period": {
+          "strategy_return_pct": 16.7671,
+          "benchmark_return_pct": 34.8976,
+          "return_gap_pct": -18.1305,
+          "strategy_max_drawdown_pct": -25.5298,
+          "benchmark_max_drawdown_pct": -32.5967,
+          "drawdown_improvement_pct": 7.0669,
+          "return_loss_per_drawdown_improvement_point": 2.5656
+        },
+        "rolling_504_sessions": {
+          "window_sessions": 504,
+          "windows": 1068,
+          "strategy_negative_windows": 571,
+          "benchmark_negative_windows": 685,
+          "negative_window_reduction": 114,
+          "strategy_higher_return_windows": 631,
+          "strategy_lower_drawdown_windows": 845,
+          "materially_better_drawdown_windows_ge_3pct": 643,
+          "median_return_gap_pct": 1.204,
+          "min_return_gap_pct": -19.8989,
+          "max_return_gap_pct": 14.6441,
+          "median_drawdown_improvement_pct": 3.3869,
+          "min_drawdown_improvement_pct": -5.087,
+          "max_drawdown_improvement_pct": 11.0816
+        }
+      }
+    }
+  },
+  "equal_weight_summary": {
+    "v1b_center_0_6_hold_40_buffer_0_05_20bps": {
+      "full_period": {
+        "strategy_return_pct": 12.9798,
+        "benchmark_return_pct": 23.7395,
+        "return_gap_pct": -10.7597,
+        "strategy_max_drawdown_pct": -23.5427,
+        "benchmark_max_drawdown_pct": -28.4041,
+        "drawdown_improvement_pct": 4.8614,
+        "return_loss_per_drawdown_improvement_point": 2.2133
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "strategy_negative_windows": 568,
+        "benchmark_negative_windows": 658,
+        "negative_window_reduction": 90,
+        "strategy_higher_return_windows": 731,
+        "strategy_lower_drawdown_windows": 802,
+        "materially_better_drawdown_windows_ge_3pct": 517,
+        "median_return_gap_pct": 1.8748,
+        "min_return_gap_pct": -14.0751,
+        "max_return_gap_pct": 11.6979,
+        "median_drawdown_improvement_pct": 2.5169,
+        "min_drawdown_improvement_pct": -4.4186,
+        "max_drawdown_improvement_pct": 8.6847
+      }
+    },
+    "v1b_best20_0_7_hold_30_buffer_0_07_20bps": {
+      "full_period": {
+        "strategy_return_pct": 16.7671,
+        "benchmark_return_pct": 23.7395,
+        "return_gap_pct": -6.9724,
+        "strategy_max_drawdown_pct": -25.5298,
+        "benchmark_max_drawdown_pct": -28.4041,
+        "drawdown_improvement_pct": 2.8743,
+        "return_loss_per_drawdown_improvement_point": 2.4258
+      },
+      "rolling_504_sessions": {
+        "window_sessions": 504,
+        "windows": 1068,
+        "strategy_negative_windows": 571,
+        "benchmark_negative_windows": 658,
+        "negative_window_reduction": 87,
+        "strategy_higher_return_windows": 776,
+        "strategy_lower_drawdown_windows": 687,
+        "materially_better_drawdown_windows_ge_3pct": 396,
+        "median_return_gap_pct": 2.065,
+        "min_return_gap_pct": -13.3511,
+        "max_return_gap_pct": 12.021,
+        "median_drawdown_improvement_pct": 0.6674,
+        "min_drawdown_improvement_pct": -6.4977,
+        "max_drawdown_improvement_pct": 7.5782
+      }
+    }
+  },
+  "decision": "CONTINUE_RESEARCH_ONLY_DRAWDOWN_CONTROL_THESIS",
+  "cio_interpretation": {
+    "paper_gate": "FAIL",
+    "live_gate": "FAIL",
+    "summary": "v1b fails as an absolute-return enhancement strategy, but the drawdown-control thesis remains researchable because it reduces max drawdown and negative 504-session windows versus fixed 60% equal-weight exposure. The cost is a large full-period return sacrifice, so this is not paper eligible."
+  }
+}

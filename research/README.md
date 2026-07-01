@@ -18,7 +18,7 @@ research/
     evidence_inventory.md
   templates/
   runs/
-    YYYY-MM-DD__topic/
+    YYYY-MM-DDTHHMM__topic/
   datasets/
   imported/
     usage_records/
@@ -28,7 +28,7 @@ research/
 
 ## How I Will Use This Workspace
 
-- `runs/` is the default home for every new research run.
+- `runs/` is the default home for every non-trivial research task.
 - `registries/` contains long-lived ledgers across all runs.
 - `templates/` contains the required evidence package format.
 - `datasets/` stores reusable research data snapshots or dataset manifests.
@@ -37,13 +37,19 @@ research/
   artifacts. These records are source material, not formal research runs.
 - `scratch/` is temporary research work that is not evidence until promoted into a run.
 - `archive/` stores retired or superseded packages.
+- Strategies are linked through run metadata and registries, not used as the
+  primary physical directory boundary. A single run may involve one strategy,
+  several related strategies, baselines, shared datasets, or portfolio-level
+  questions.
 
 ## Research Run Format
 
-Every non-trivial strategy investigation gets its own run folder:
+Every non-trivial strategy, cross-strategy, dataset, robustness, or portfolio
+investigation gets its own run folder:
 
 ```text
-research/runs/YYYY-MM-DD__strategy_or_topic/
+research/runs/YYYY-MM-DDTHHMM__strategy_or_topic/
+  run.yaml
   00_brief.md
   01_thesis.md
   02_data_audit.md
@@ -51,6 +57,12 @@ research/runs/YYYY-MM-DD__strategy_or_topic/
   04_risk_review.md
   05_paper_observation.md
   06_cio_decision_package.md
+  agents/
+    thesis/
+    data_audit/
+    backtest_validation/
+    risk_review/
+    cio_synthesis/
   artifacts/
   logs/
   refs/
@@ -71,12 +83,43 @@ idea
 
 If evidence is missing, the default decision is to keep the strategy in research.
 
+## Research Run Metadata
+
+Each new multi-agent or non-trivial run should include `run.yaml` so the run can
+be queried by strategy, evidence type, decision, agent, and parent run without
+duplicating files into strategy-specific folders.
+
+```yaml
+run_id: 2026-07-01T1030__etf_rotation_robustness
+research_type: single_strategy
+related_strategies:
+  - etf_regime_rotation_v1
+agents:
+  - strategy-thesis-tracker
+  - data-audit-reviewer
+  - backtest-validator
+status: research-only
+parent_runs:
+  - 2026-06-29__etf_rotation_evidence_normalization
+decision: HOLD_FOR_ROBUSTNESS
+default_safe_action: keep research-only
+```
+
+For cross-strategy, benchmark, dataset, robustness, or portfolio research,
+set `research_type` accordingly and list every related strategy or baseline.
+
 ## Naming Rules
 
-- Run folders use `YYYY-MM-DD__short_slug`.
+- New run folders prefer `YYYY-MM-DDTHHMM__short_slug` so parallel agents do not
+  collide on the same date. Existing `YYYY-MM-DD__short_slug` folders remain
+  valid historical runs.
 - Strategy slugs use lowercase English identifiers, for example
   `etf_regime_rotation_v1`.
-- Artifact folders include the strategy slug and run date when possible.
+- Artifact folders include the strategy slug, run ID, or evidence type when
+  possible.
+- Strategy-specific lookup belongs in `registries/strategy_registry.md`;
+  evidence-specific lookup belongs in `registries/evidence_inventory.md`;
+  decision history belongs in `registries/decision_log.md`.
 - Do not store real credentials, account identifiers, broker tokens, or live
   overlays here.
 
