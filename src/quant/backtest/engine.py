@@ -22,7 +22,7 @@ from quant.core.contract import (
     Trade,
 )
 from quant.core.portfolio import Portfolio
-from quant.core.sizing import split_qty_by_order_value
+from quant.core.sizing import split_qty_by_order_value, target_value_to_qty
 from quant.costs import CostModel
 from quant.data.service import DataService
 from quant.risk.pipeline import RiskEngine, RiskLimits
@@ -43,6 +43,10 @@ class TargetIntent:
     target_qty: float
     created_at: datetime
     correlation_id: str
+    source_bar_timestamp: datetime | None = None
+    target_value: float | None = None
+    target_weight: float | None = None
+    valuation_price: float | None = None
 
 
 class BacktestContext:
@@ -114,6 +118,12 @@ class BacktestContext:
 
     def set_target(self, symbol: str, target_qty: float) -> None:
         self.engine.set_target(symbol=symbol, target_qty=target_qty)
+
+    def set_target_value(self, symbol: str, target_value: float) -> None:
+        self.engine.set_target_value(symbol=symbol, target_value=target_value)
+
+    def set_target_weight(self, symbol: str, target_weight: float) -> None:
+        self.engine.set_target_weight(symbol=symbol, target_weight=target_weight)
 
     def cancel(self, order_id: str) -> None:
         self.engine.cancel_order(order_id)
@@ -264,8 +274,7 @@ class BacktestEngine:
             self._record_equity()
 
     def set_target(self, *, symbol: str, target_qty: float) -> None:
-        self._target_seq += 1
-        correlation_id = f"target-{self._target_seq}"
+        correlation_id = self._next_target_correlation_id()
         self.pending_targets.append(
             TargetIntent(
                 strategy_id=self.config.id,
@@ -280,6 +289,54 @@ class BacktestEngine:
             symbol=symbol,
             correlation_id=correlation_id,
             payload={"target_qty": target_qty},
+        )
+
+    def set_target_value(self, *, symbol: str, target_value: float) -> None:
+        correlation_id = self._next_target_correlation_id()
+        if target_value < 0:
+            self._reject_target_intent(
+                symbol=symbol,
+                correlation_id=correlation_id,
+                risk_rule_id="target_value_range",
+                reason="target value must be non-negative",
+                payload={"target_value": target_value},
+            )
+            return
+        self._set_sized_target(
+            symbol=symbol,
+            target_value=target_value,
+            target_weight=None,
+            correlation_id=correlation_id,
+        )
+
+    def set_target_weight(self, *, symbol: str, target_weight: float) -> None:
+        correlation_id = self._next_target_correlation_id()
+        if target_weight < 0.0 or target_weight > 1.0:
+            self._reject_target_intent(
+                symbol=symbol,
+                correlation_id=correlation_id,
+                risk_rule_id="target_weight_range",
+                reason="target weight must be between 0.0 and 1.0",
+                payload={"target_weight": target_weight},
+            )
+            return
+
+        account = self.portfolio.account(self.last_prices)
+        if account.total_value <= 0:
+            self._reject_target_intent(
+                symbol=symbol,
+                correlation_id=correlation_id,
+                risk_rule_id="gross_exposure",
+                reason="account total value must be positive",
+                payload={"target_weight": target_weight},
+            )
+            return
+
+        self._set_sized_target(
+            symbol=symbol,
+            target_value=round(account.total_value * target_weight, 12),
+            target_weight=target_weight,
+            correlation_id=correlation_id,
         )
 
     def submit_order(
@@ -447,6 +504,7 @@ class BacktestEngine:
     def _flush_pending_targets(self, latest_prices: dict[str, float]) -> None:
         pending = self.pending_targets
         self.pending_targets = []
+        pending = self._reject_over_gross_target_weight_batches(pending)
         retained: list[TargetIntent] = []
         for intent in pending:
             price = latest_prices.get(intent.symbol)
@@ -496,6 +554,149 @@ class BacktestEngine:
                     correlation_id=intent.correlation_id,
                 )
         self.pending_targets = retained + self.pending_targets
+
+    def _set_sized_target(
+        self,
+        *,
+        symbol: str,
+        target_value: float,
+        target_weight: float | None,
+        correlation_id: str,
+    ) -> None:
+        valuation_price = self._target_valuation_price(symbol)
+        if valuation_price is None or valuation_price <= 0:
+            self._reject_target_intent(
+                symbol=symbol,
+                correlation_id=correlation_id,
+                risk_rule_id="valuation_price",
+                reason="valuation price must be positive",
+                payload={
+                    "target_value": target_value,
+                    "target_weight": target_weight,
+                    "valuation_price": valuation_price,
+                },
+            )
+            return
+
+        instrument = self.data.get_instrument(symbol)
+        target_qty = target_value_to_qty(
+            target_value=target_value,
+            price=valuation_price,
+            lot_size=instrument.lot_size,
+            qty_step=instrument.qty_step,
+            allow_fractional=self.config.account.allow_fractional,
+        )
+        intent = TargetIntent(
+            strategy_id=self.config.id,
+            symbol=symbol,
+            target_qty=target_qty,
+            created_at=self.now,
+            correlation_id=correlation_id,
+            source_bar_timestamp=self._source_bar_timestamp(),
+            target_value=target_value,
+            target_weight=target_weight,
+            valuation_price=valuation_price,
+        )
+        self.pending_targets.append(intent)
+        self._append_event(
+            "target_intent",
+            symbol=symbol,
+            correlation_id=correlation_id,
+            payload=_target_intent_payload(intent),
+        )
+
+    def _reject_over_gross_target_weight_batches(
+        self,
+        pending: list[TargetIntent],
+    ) -> list[TargetIntent]:
+        batches: dict[datetime, list[TargetIntent]] = {}
+        for intent in pending:
+            if intent.target_weight is None:
+                continue
+            batches.setdefault(intent.created_at, []).append(intent)
+
+        rejected_correlation_ids: set[str] = set()
+        for batch in batches.values():
+            batch_gross_weight = round(
+                sum(abs(intent.target_weight or 0.0) for intent in batch),
+                12,
+            )
+            if batch_gross_weight <= self.risk.limits.max_gross_exposure_pct:
+                continue
+            reason = "target weight batch exceeds max gross exposure"
+            self._append_event(
+                "risk_check",
+                risk_rule_id="gross_exposure",
+                payload={
+                    "action": "reject_target_batch",
+                    "allowed": False,
+                    "batch_gross_weight": batch_gross_weight,
+                    "max_gross_exposure_pct": self.risk.limits.max_gross_exposure_pct,
+                    "reason": reason,
+                    "target_count": len(batch),
+                },
+            )
+            for intent in batch:
+                rejected_correlation_ids.add(intent.correlation_id)
+                self._append_event(
+                    "target_intent_rejected",
+                    symbol=intent.symbol,
+                    risk_rule_id="gross_exposure",
+                    correlation_id=intent.correlation_id,
+                    payload={
+                        **_target_intent_payload(intent),
+                        "reason": reason,
+                    },
+                )
+
+        return [
+            intent
+            for intent in pending
+            if intent.correlation_id not in rejected_correlation_ids
+        ]
+
+    def _target_valuation_price(self, symbol: str) -> float | None:
+        price = self.last_prices.get(symbol)
+        if price is not None:
+            return price
+        bar = self.current_bars.get(symbol)
+        return bar.close if bar is not None else None
+
+    def _source_bar_timestamp(self) -> datetime:
+        return self.get_visible_bar_time(self.config.primary_frequency) or self.now
+
+    def _next_target_correlation_id(self) -> str:
+        self._target_seq += 1
+        return f"target-{self._target_seq}"
+
+    def _reject_target_intent(
+        self,
+        *,
+        symbol: str,
+        correlation_id: str,
+        risk_rule_id: str,
+        reason: str,
+        payload: dict[str, Any],
+    ) -> None:
+        self._append_event(
+            "risk_check",
+            symbol=symbol,
+            risk_rule_id=risk_rule_id,
+            correlation_id=correlation_id,
+            payload={
+                "action": "reject_target_intent",
+                "allowed": False,
+                "reason": reason,
+                **payload,
+            },
+        )
+        self._append_event(
+            "target_intent_rejected",
+            symbol=symbol,
+            risk_rule_id=risk_rule_id,
+            correlation_id=correlation_id,
+            payload={"reason": reason, **payload},
+        )
 
     def _effective_target_qty(self, symbol: str) -> float:
         mark = self.last_prices.get(symbol, 0.0)
@@ -717,6 +918,20 @@ def _empty_history(fields) -> pd.DataFrame:
     return pd.DataFrame(
         columns=["symbol", "dt", "open", "high", "low", "close", "volume", "amount"]
     )
+
+
+def _target_intent_payload(intent: TargetIntent) -> dict[str, object]:
+    return {
+        "source_bar_timestamp": (
+            intent.source_bar_timestamp.isoformat()
+            if intent.source_bar_timestamp is not None
+            else None
+        ),
+        "target_qty": intent.target_qty,
+        "target_value": intent.target_value,
+        "target_weight": intent.target_weight,
+        "valuation_price": intent.valuation_price,
+    }
 
 
 def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
