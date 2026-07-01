@@ -23,7 +23,7 @@ from quant.core.contract import (
     Trade,
 )
 from quant.core.portfolio import Portfolio
-from quant.costs import CostModel
+from quant.costs import cost_model_from_config
 from quant.data.service import DataService
 from quant.risk.pipeline import RiskEngine, RiskLimits
 
@@ -34,6 +34,7 @@ class BacktestResult:
     trades: list[Trade]
     equity: list[dict[str, object]]
     events: list[JournalEvent] = field(default_factory=list)
+    cost_report_inputs: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -172,12 +173,7 @@ class BacktestEngine:
         )
         self.matcher = Matcher(volume_limit_pct=0.05)
         self.risk = RiskEngine(self._build_risk_limits())
-        self.cost_model = CostModel(
-            commission_rate=0.00025,
-            commission_min=5,
-            stamp_tax=0,
-            transfer_fee=0,
-        )
+        self.cost_model = cost_model_from_config(config.costs)
         self.open_orders: list[Order] = []
         self.order_correlation_ids: dict[str, str | None] = {}
         self.pending_targets: list[TargetIntent] = []
@@ -191,6 +187,8 @@ class BacktestEngine:
         self.loaded_frequencies: set[str] = set()
         self.clock: BacktestClock | None = None
         self.state: dict[str, object] = {}
+        self.total_fee = 0.0
+        self.estimated_slippage_cost = 0.0
         self._target_seq = 0
 
     def run(self) -> BacktestResult:
@@ -222,6 +220,7 @@ class BacktestEngine:
             trades=self.trades,
             equity=self.equity,
             events=list(self.journal.events),
+            cost_report_inputs=self._cost_report_inputs(),
         )
 
     def _run_daily_sessions(
@@ -824,7 +823,17 @@ class BacktestEngine:
             if result.filled_qty <= 0 or result.fill_price is None:
                 remaining.append(order)
                 continue
-            commission = self.cost_model.calculate(order.side, result.filled_qty, result.fill_price)
+            cost_breakdown = self.cost_model.calculate_breakdown(
+                order.side,
+                result.filled_qty,
+                result.fill_price,
+            )
+            commission = cost_breakdown.fee
+            self.total_fee = round(self.total_fee + cost_breakdown.fee, 2)
+            self.estimated_slippage_cost = round(
+                self.estimated_slippage_cost + cost_breakdown.estimated_slippage_cost,
+                2,
+            )
             cash_before = self.portfolio.account(self.last_prices).cash
             trade = Trade(
                 trade_id=f"T-{len(self.trades) + 1}",
@@ -858,6 +867,15 @@ class BacktestEngine:
                 updated_order if old.order_id == order.order_id else old for old in self.orders
             ]
             correlation_id = self.order_correlation_ids.get(order.order_id)
+            fill_payload = {
+                "side": order.side.value,
+                "qty": result.filled_qty,
+                "price": result.fill_price,
+                "commission": commission,
+                "order_status": status.value,
+                "remaining_qty": remaining_qty,
+                **cost_breakdown.fill_event_fields(),
+            }
             self._append_event(
                 "fill",
                 timestamp=bar.dt,
@@ -865,14 +883,7 @@ class BacktestEngine:
                 order_id=order.order_id,
                 trade_id=trade.trade_id,
                 correlation_id=correlation_id,
-                payload={
-                    "side": order.side.value,
-                    "qty": result.filled_qty,
-                    "price": result.fill_price,
-                    "commission": commission,
-                    "order_status": status.value,
-                    "remaining_qty": remaining_qty,
-                },
+                payload=fill_payload,
             )
             self._append_event(
                 "cash_transition",
@@ -896,6 +907,13 @@ class BacktestEngine:
         self.equity.append(
             {"dt": self.now.isoformat(), "total_value": account.total_value, "cash": account.cash}
         )
+
+    def _cost_report_inputs(self) -> dict[str, object]:
+        return {
+            **self.cost_model.report_inputs(),
+            "total_fee": round(self.total_fee, 2),
+            "estimated_slippage_cost": round(self.estimated_slippage_cost, 2),
+        }
 
     def _set_visible_bars(
         self,
