@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from quant.core.contract import Account, OrderSide, Position, Trade
 from quant.core.settlement import SettlementRules
@@ -10,6 +10,7 @@ class PositionState:
     sellable: float = 0
     pending_t0_sellable: float = 0
     pending_sellable: float = 0
+    pending_sellable_by_lag: dict[int, float] = field(default_factory=dict)
     avg_price: float = 0
 
 
@@ -68,10 +69,15 @@ class Portfolio:
         if trade.side == OrderSide.BUY:
             old_cost = state.qty * state.avg_price
             state.qty = _clean_qty(state.qty + trade.qty)
-            if self.settlement_rules.sellable_lag_bars(instrument) <= 0:
+            sellable_lag = self.settlement_rules.sellable_lag_bars(instrument)
+            if sellable_lag <= 0:
                 state.pending_t0_sellable = _clean_qty(state.pending_t0_sellable + trade.qty)
-            else:
+            elif sellable_lag == 1:
                 state.pending_sellable = _clean_qty(state.pending_sellable + trade.qty)
+            else:
+                state.pending_sellable_by_lag[sellable_lag] = _clean_qty(
+                    state.pending_sellable_by_lag.get(sellable_lag, 0.0) + trade.qty
+                )
             state.avg_price = (old_cost + value) / state.qty if state.qty else 0
             self.cash -= value + trade.commission
         else:
@@ -91,6 +97,20 @@ class Portfolio:
         for state in self.positions.values():
             state.sellable = _clean_qty(state.sellable + state.pending_sellable)
             state.pending_sellable = 0
+            if not state.pending_sellable_by_lag:
+                continue
+            pending_by_lag: dict[int, float] = {}
+            released = 0.0
+            for lag, qty in state.pending_sellable_by_lag.items():
+                remaining_lag = lag - 1
+                if remaining_lag <= 0:
+                    released += qty
+                else:
+                    pending_by_lag[remaining_lag] = _clean_qty(
+                        pending_by_lag.get(remaining_lag, 0.0) + qty
+                    )
+            state.sellable = _clean_qty(state.sellable + released)
+            state.pending_sellable_by_lag = pending_by_lag
 
     def position(self, symbol: str, mark_price: float) -> Position:
         state = self.positions.get(symbol, PositionState())

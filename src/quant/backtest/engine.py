@@ -733,24 +733,37 @@ class BacktestEngine:
 
     def _instrument_for_settlement(self, symbol: str) -> Instrument:
         instrument = self.data.get_instrument(symbol)
+        allow_fractional = self._instrument_allows_fractional(symbol, instrument.allow_fractional)
         manifest = getattr(self.data, "_manifest", None)
         if manifest is None:
-            return instrument
+            return replace(instrument, allow_fractional=allow_fractional)
         symbol_manifest = None
         for candidate in manifest.symbols:
             if candidate.symbol == symbol:
                 symbol_manifest = candidate
                 break
         if symbol_manifest is None:
-            return instrument
+            return replace(instrument, allow_fractional=allow_fractional)
+        manifest_allow_fractional = getattr(symbol_manifest, "allow_fractional", None)
+        if manifest_allow_fractional is not None:
+            allow_fractional = _coerce_bool(manifest_allow_fractional, default=allow_fractional)
         return replace(
             instrument,
             lot_size=symbol_manifest.lot_size,
             qty_step=symbol_manifest.qty_step,
             t_plus=symbol_manifest.t_plus,
-            allow_fractional=True,
+            allow_fractional=allow_fractional,
             quote_currency=manifest.quote_currency,
         )
+
+    def _instrument_allows_fractional(self, symbol: str, default: bool) -> bool:
+        instruments = getattr(self.data, "_instruments", None)
+        if instruments is None or "allow_fractional" not in instruments.columns:
+            return default
+        row = instruments[instruments["symbol"] == symbol]
+        if row.empty:
+            return default
+        return _coerce_bool(row.iloc[0]["allow_fractional"], default=default)
 
     def _split_executable_order_qty(self, *, symbol: str, qty: float, price: float) -> list[float]:
         if qty <= 0:
@@ -1008,3 +1021,20 @@ def _risk_reject_reason(rule_id: str | None, reason: str | None) -> str:
     if rule_id and reason:
         return f"{rule_id}: {reason}"
     return reason or rule_id or "risk rejected order"
+
+
+def _coerce_bool(value: object, *, default: bool) -> bool:
+    if value is None or pd.isna(value):
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    normalized = str(value).strip().lower()
+    if normalized == "":
+        return default
+    if normalized in {"1", "true", "yes", "y"}:
+        return True
+    if normalized in {"0", "false", "no", "n"}:
+        return False
+    raise ValueError(f"allow_fractional must be boolean, got {value!r}")

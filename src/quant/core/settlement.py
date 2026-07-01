@@ -37,6 +37,4 @@ def _settlement_to_lag(value: str) -> int:
 
 
 def _instrument_allows_fractional(instrument: Instrument) -> bool:
-    if instrument.allow_fractional:
-        return True
-    return not float(instrument.lot_size).is_integer() or not float(instrument.qty_step).is_integer()
+    return instrument.allow_fractional

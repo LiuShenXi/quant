@@ -99,6 +99,47 @@ def test_fractional_t0_spot_can_be_marked_and_sold_on_next_bar(
     assert observations[2]["qty"] == pytest.approx(0.0)
 
 
+def test_manifest_backed_symbol_without_fractional_permission_does_not_fill_fractional_qty(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    strategy_module = ModuleType("tests.no_fractional_permission_strategy")
+
+    class NoFractionalPermissionStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            self.symbol = ctx.params["symbol"]
+            self.sent = False
+
+        def on_bar(self, ctx, bar) -> None:
+            if bar.symbol == self.symbol and not self.sent:
+                self.sent = True
+                ctx.set_target_value(self.symbol, 0.10)
+
+    strategy_module.NoFractionalPermissionStrategy = NoFractionalPermissionStrategy
+    monkeypatch.setattr(
+        "quant.backtest.engine.import_module",
+        lambda name: (
+            strategy_module if name == "tests.no_fractional_permission_strategy" else None
+        ),
+    )
+
+    result = BacktestEngine(
+        config=_spot_config(
+            class_path="tests.no_fractional_permission_strategy:NoFractionalPermissionStrategy"
+        ),
+        data=DataService(
+            _write_spot_manifest_data(
+                tmp_path,
+                instrument_allow_fractional=False,
+            )
+        ),
+        initial_cash=1_000,
+    ).run()
+
+    assert result.orders == []
+    assert result.trades == []
+
+
 def test_a_share_lot_rounding_and_t1_sellable_rollover_stay_legacy_compatible() -> None:
     from quant.core.settlement import SettlementRules
 
@@ -143,6 +184,46 @@ def test_a_share_lot_rounding_and_t1_sellable_rollover_stay_legacy_compatible() 
     assert portfolio.position("510300.SH", mark_price=3.0).sellable == 200
 
 
+def test_t_plus_two_buy_releases_sellable_after_two_day_advances() -> None:
+    instrument = Instrument(
+        symbol="LOCKED.SPOT",
+        name="Locked Spot",
+        type="spot",
+        exchange="TEST",
+        list_date=date(2020, 1, 1),
+        delist_date=None,
+        lot_size=1,
+        qty_step=1,
+        tick_size=0.01,
+        t_plus=2,
+        status="active",
+    )
+    portfolio = Portfolio(account_id="backtest", initial_cash=100_000)
+    portfolio.apply_trade(
+        Trade(
+            trade_id="T-1",
+            order_id="O-1",
+            strategy_id="settlement",
+            account_id="backtest",
+            symbol="LOCKED.SPOT",
+            side=OrderSide.BUY,
+            qty=10,
+            price=10.0,
+            commission=0.0,
+            dt=pd.Timestamp("2024-01-03T15:00:00+08:00").to_pydatetime(),
+        ),
+        instrument=instrument,
+    )
+
+    portfolio.mark_new_day()
+
+    assert portfolio.position("LOCKED.SPOT", mark_price=10.0).sellable == 0
+
+    portfolio.mark_new_day()
+
+    assert portfolio.position("LOCKED.SPOT", mark_price=10.0).sellable == 10
+
+
 def _spot_config(*, class_path: str):
     return load_strategy_config(Path("config/strategies/dual_ma_510300.yaml")).model_copy(
         update={
@@ -161,7 +242,11 @@ def _spot_config(*, class_path: str):
     )
 
 
-def _write_spot_manifest_data(tmp_path: Path) -> Path:
+def _write_spot_manifest_data(
+    tmp_path: Path,
+    *,
+    instrument_allow_fractional: bool = True,
+) -> Path:
     data_root = tmp_path / "spot_manifest_data"
     data_root.mkdir()
     pd.DataFrame(
@@ -185,6 +270,7 @@ def _write_spot_manifest_data(tmp_path: Path) -> Path:
                 "tick_size": 0.01,
                 "t_plus": 0,
                 "status": "active",
+                "allow_fractional": instrument_allow_fractional,
             }
         ]
     ).to_csv(data_root / "instruments.csv", index=False)
