@@ -40,6 +40,50 @@ Core rules:
 - Re-entry after stop: wait a 5-day cooling period and require market breadth to recover.
 - Research hard red line: any tested variant with max drawdown worse than 35% cannot advance.
 
+## Business Definitions For Implementers
+
+These definitions are part of the business spec. They are meant to remove ambiguity for a later programming agent without turning this document into an engineering plan.
+
+Market and time:
+
+- Default research timezone: UTC.
+- 4-hour bars are expected to close at 00:00, 04:00, 08:00, 12:00, 16:00, and 20:00 UTC unless the audited data source declares a different convention.
+- Daily bars use UTC day boundaries unless the data audit chooses and documents another convention.
+- A daily trend decision may only use the most recently fully closed daily bar.
+- A 4-hour ranking decision may only use the most recently fully closed 4-hour bar.
+- Signals generated from a closed bar may not fill on the same bar. The baseline research assumption is signal at closed bar, execution at the next modeled executable 4-hour bar price with configured fee and slippage.
+
+Trend and breadth:
+
+- Business default for a daily uptrend: daily close is above the 50-day EMA, and the 50-day EMA is above its value 10 calendar days earlier.
+- Market breadth is risk-on only when at least two of BTC, ETH, and SOL satisfy the daily uptrend definition.
+- If fewer than two assets are in daily uptrends, the target allocation is 100% stablecoin cash.
+- The 50-day and 10-day values are v1 research defaults, not optimized parameters. Sensitivity may be reported, but the best sensitivity case cannot replace the baseline thesis.
+
+Ranking and allocation:
+
+- Rank only BTC, ETH, and SOL.
+- Business default for 4-hour strength ranking: 20 closed 4-hour bar total return.
+- Ties are broken by lower 20-bar realized volatility, then by BTC, ETH, SOL order.
+- When risk-on and not stopped, allocate 60% to the top-ranked asset and 40% to the second-ranked asset.
+- Rebalance at most once per UTC calendar day. If multiple 4-hour evaluations suggest changes on the same UTC date, only the first eligible rebalance may trade.
+- If the target top two are unchanged, do not rebalance solely to correct small drift unless the implementation later defines a tested drift threshold.
+
+Drawdown stop and re-entry:
+
+- Portfolio trailing drawdown is measured from close-to-close total equity after modeled fees and slippage.
+- The 20% trailing stop uses the active risk cycle peak. A new active risk cycle begins when the strategy enters risk-on after being fully in cash due to a stop.
+- Full-sample max drawdown is still measured on the entire equity curve and must not exceed the 35% research hard red line.
+- A stop event moves the target allocation to 100% stablecoin cash.
+- The 5-day cooling period means 120 hours after the stop event timestamp under the research timezone.
+- Re-entry requires both conditions: cooling period elapsed and market breadth risk-on using fully closed daily data.
+
+Stablecoin cash:
+
+- Stablecoin cash is a zero-yield quote-currency state for v1 research.
+- Stablecoin issuer, depeg, custody, exchange, and yield risks are acknowledged but not modeled as alpha sources.
+- The data audit must identify whether the quote currency is USDT, USDC, USD, or another proxy before backtest validation.
+
 ## Hypothesis
 
 If BTC, ETH, and SOL exhibit persistent trend regimes and cross-sectional leadership, then a daily trend breadth filter plus 4-hour top-two rotation may capture upside better than passive crypto exposure while reducing severe drawdowns through cash exits and portfolio-level stop rules.
@@ -256,4 +300,3 @@ Current next step is not implementation of live trading. The next step is to cre
 ## Default Safe Option
 
 Keep `crypto_trend_breadth_top2_v1` research-only. Do not paper, live, connect exchanges, connect brokers, increase capital, or generate real orders until later gates produce explicit evidence and human authorization.
-
