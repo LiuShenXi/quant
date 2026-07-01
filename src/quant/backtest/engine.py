@@ -396,8 +396,43 @@ class BacktestEngine:
         )
         return order_id
 
-    def cancel_order(self, order_id: str) -> None:
-        self.open_orders = [order for order in self.open_orders if order.order_id != order_id]
+    def cancel_order(self, order_id: str, *, reason: str = "strategy_cancel_requested") -> None:
+        remaining: list[Order] = []
+        cancelled_order: Order | None = None
+        for order in self.open_orders:
+            if order.order_id != order_id:
+                remaining.append(order)
+                continue
+            cancelled_order = replace(
+                order,
+                status=OrderStatus.CANCELLED,
+                updated_at=self.now,
+            )
+        if cancelled_order is None:
+            return
+        self.open_orders = remaining
+        self.orders = [
+            cancelled_order if order.order_id == order_id else order for order in self.orders
+        ]
+        correlation_id = self.order_correlation_ids.get(order_id)
+        self._append_event(
+            "order_cancelled",
+            strategy_id=cancelled_order.strategy_id,
+            account_id=cancelled_order.account_id,
+            symbol=cancelled_order.symbol,
+            order_id=order_id,
+            correlation_id=correlation_id,
+            payload={
+                "side": cancelled_order.side.value,
+                "type": cancelled_order.type.value,
+                "qty": cancelled_order.qty,
+                "price": cancelled_order.price,
+                "filled_qty": cancelled_order.filled_qty,
+                "remaining_qty": cancelled_order.remaining_qty,
+                "status": OrderStatus.CANCELLED.value,
+                "reason": reason,
+            },
+        )
 
     def get_visible_bar_time(self, freq: str) -> datetime | None:
         if freq in self.visible_bar_times:

@@ -11,7 +11,7 @@ from quant.backtest.engine import BacktestEngine
 from quant.backtest.events import EventJournal
 from quant.backtest.results import write_result
 from quant.core.config import RiskConfig, load_strategy_config
-from quant.core.contract import StrategyBase
+from quant.core.contract import OrderSide, OrderStatus, OrderType, StrategyBase
 from quant.data.service import DataService
 
 
@@ -132,6 +132,60 @@ def test_backtest_order_rejection_event_has_risk_rule_and_reason(monkeypatch) ->
     assert rejected_events[0].payload["status"] == "REJECTED"
 
 
+def test_ctx_cancel_records_order_cancelled_event(monkeypatch, tmp_path) -> None:
+    strategy_module = ModuleType("tests.backtest_journal_cancel_strategy")
+
+    class CancelStrategy(StrategyBase):
+        def on_init(self, ctx) -> None:
+            self.symbol = ctx.params["symbol"]
+            self.cancelled = False
+
+        def on_bar(self, ctx, bar) -> None:
+            if bar.symbol != self.symbol or self.cancelled:
+                return
+            self.cancelled = True
+            order_id = ctx.order(
+                self.symbol,
+                OrderSide.BUY,
+                100,
+                price=bar.close,
+                type=OrderType.LIMIT,
+            )
+            ctx.cancel(order_id)
+
+    strategy_module.CancelStrategy = CancelStrategy
+    monkeypatch.setattr(
+        "quant.backtest.engine.import_module",
+        lambda name: strategy_module if name == "tests.backtest_journal_cancel_strategy" else None,
+    )
+    config = load_strategy_config(Path("config/strategies/dual_ma_510300.yaml")).model_copy(
+        update={
+            "class_path": "tests.backtest_journal_cancel_strategy:CancelStrategy",
+            "params": {"symbol": "510300.SH"},
+        }
+    )
+
+    result = BacktestEngine(
+        config=config,
+        data=DataService(_write_cancel_data(tmp_path)),
+        initial_cash=100_000,
+    ).run()
+
+    cancelled_events = [event for event in result.events if event.event_type == "order_cancelled"]
+    assert len(cancelled_events) == 1
+    event = cancelled_events[0]
+    assert event.source_component == "backtest.engine"
+    assert event.strategy_id == config.id
+    assert event.account_id == "backtest"
+    assert event.symbol == "510300.SH"
+    assert event.order_id == "O-1"
+    assert event.timestamp.isoformat() == "2024-01-02T10:00:00+08:00"
+    assert event.payload["reason"] == "strategy_cancel_requested"
+    assert event.payload["status"] == OrderStatus.CANCELLED.value
+    assert result.orders[0].status == OrderStatus.CANCELLED
+    assert result.trades == []
+
+
 def test_result_export_writes_recorded_events_as_jsonl_objects(tmp_path) -> None:
     config = _active_sample_config()
     result = BacktestEngine(
@@ -161,3 +215,36 @@ def _active_sample_config():
     return load_strategy_config(Path("config/strategies/dual_ma_510300.yaml")).model_copy(
         update={"params": {"symbol": "510300.SH", "fast": 1, "slow": 2, "target_qty": 10000}}
     )
+
+
+def _write_cancel_data(tmp_path: Path) -> Path:
+    data_root = tmp_path / "cancel_data"
+    data_root.mkdir()
+    (data_root / "bars_1d.csv").write_text(
+        "\n".join(
+            [
+                "symbol,dt,open,high,low,close,volume,amount,pre_close,limit_up,limit_down,suspended,data_status,source,updated_at",
+                "510300.SH,2024-01-02T10:00:00+08:00,3.0,3.1,2.9,3.0,1000000,3000000,3.0,3.3,2.7,False,ok,test,2024-01-02T10:01:00+08:00",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (data_root / "instruments.csv").write_text(
+        "\n".join(
+            [
+                "symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status",
+                "510300.SH,CSI 300 ETF,etf,SH,2020-01-01,,100,100,0.001,1,active",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (data_root / "adjust_factors.csv").write_text(
+        "\n".join(
+            [
+                "symbol,ex_date,factor",
+                "510300.SH,2024-01-02,1.0",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return data_root
