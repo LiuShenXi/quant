@@ -13,6 +13,7 @@ from quant.core.config import StrategyConfig
 from quant.core.contract import (
     Bar,
     EngineState,
+    Instrument,
     Order,
     OrderRequest,
     OrderSide,
@@ -22,7 +23,6 @@ from quant.core.contract import (
     Trade,
 )
 from quant.core.portfolio import Portfolio
-from quant.core.sizing import split_qty_by_order_value, target_value_to_qty
 from quant.costs import CostModel
 from quant.data.service import DataService
 from quant.risk.pipeline import RiskEngine, RiskLimits
@@ -163,7 +163,13 @@ class BacktestEngine:
         self.run_id = run_id or config.id
         self.journal = EventJournal(run_id=self.run_id)
         self.now = datetime(1970, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai"))
-        self.portfolio = Portfolio(account_id="backtest", initial_cash=initial_cash)
+        self.portfolio = Portfolio(
+            account_id="backtest",
+            initial_cash=initial_cash,
+            currency=config.account.currency,
+            settlement=config.account.settlement,
+            allow_fractional=config.account.allow_fractional,
+        )
         self.matcher = Matcher(volume_limit_pct=0.05)
         self.risk = RiskEngine(self._build_risk_limits())
         self.cost_model = CostModel(
@@ -229,6 +235,8 @@ class BacktestEngine:
             first_bar = day_bars[0]
             if self.now.date() != first_bar.dt.date():
                 self.portfolio.mark_new_day()
+            else:
+                self.portfolio.mark_new_bar()
             self.now = _continuous_auction_open(first_bar.dt)
             open_prices = {bar.symbol: bar.open for bar in day_bars}
             self.last_prices.update(open_prices)
@@ -258,6 +266,8 @@ class BacktestEngine:
         for decision_time in self.clock.primary_timeline():
             if self.now.date() != decision_time.date():
                 self.portfolio.mark_new_day()
+            else:
+                self.portfolio.mark_new_bar()
             self.now = decision_time
             primary_bars = primary_bars_by_time[decision_time]
             open_prices = {bar.symbol: bar.open for bar in primary_bars}
@@ -351,6 +361,10 @@ class BacktestEngine:
         latest_price: float | None = None,
         correlation_id: str | None = None,
     ) -> str:
+        qty = self.portfolio.settlement_rules.round_qty(
+            qty,
+            self._instrument_for_settlement(symbol),
+        )
         order_id = f"O-{len(self.orders) + 1}"
         created_at = now or self.now
         order = Order(
@@ -523,6 +537,10 @@ class BacktestEngine:
                 continue
             current = self._effective_target_qty(intent.symbol)
             diff = intent.target_qty - current
+            executable_qty = self.portfolio.settlement_rules.round_qty(
+                abs(diff),
+                self._instrument_for_settlement(intent.symbol),
+            )
             self._append_event(
                 "rebalance_decision",
                 symbol=intent.symbol,
@@ -532,16 +550,16 @@ class BacktestEngine:
                     "current_qty": current,
                     "diff_qty": diff,
                     "price": price,
-                    "action": "noop" if diff == 0 else "submit_order",
+                    "action": "noop" if diff == 0 or executable_qty == 0 else "submit_order",
                 },
             )
-            if diff == 0:
+            if diff == 0 or executable_qty == 0:
                 continue
             side = OrderSide.BUY if diff > 0 else OrderSide.SELL
-            for qty in split_qty_by_order_value(
-                qty=abs(diff),
+            for qty in self._split_executable_order_qty(
+                symbol=intent.symbol,
+                qty=executable_qty,
                 price=price,
-                max_order_value=self.risk.limits.max_order_value,
             ):
                 self.submit_order(
                     symbol=intent.symbol,
@@ -578,13 +596,10 @@ class BacktestEngine:
             )
             return
 
-        instrument = self.data.get_instrument(symbol)
-        target_qty = target_value_to_qty(
-            target_value=target_value,
-            price=valuation_price,
-            lot_size=instrument.lot_size,
-            qty_step=instrument.qty_step,
-            allow_fractional=self.config.account.allow_fractional,
+        instrument = self._instrument_for_settlement(symbol)
+        target_qty = self.portfolio.settlement_rules.round_qty(
+            target_value / valuation_price,
+            instrument,
         )
         intent = TargetIntent(
             strategy_id=self.config.id,
@@ -716,6 +731,58 @@ class BacktestEngine:
             for symbol, state in self.portfolio.positions.items()
         }
 
+    def _instrument_for_settlement(self, symbol: str) -> Instrument:
+        instrument = self.data.get_instrument(symbol)
+        manifest = getattr(self.data, "_manifest", None)
+        if manifest is None:
+            return instrument
+        symbol_manifest = None
+        for candidate in manifest.symbols:
+            if candidate.symbol == symbol:
+                symbol_manifest = candidate
+                break
+        if symbol_manifest is None:
+            return instrument
+        return replace(
+            instrument,
+            lot_size=symbol_manifest.lot_size,
+            qty_step=symbol_manifest.qty_step,
+            t_plus=symbol_manifest.t_plus,
+            allow_fractional=True,
+            quote_currency=manifest.quote_currency,
+        )
+
+    def _split_executable_order_qty(self, *, symbol: str, qty: float, price: float) -> list[float]:
+        if qty <= 0:
+            return []
+        max_order_value = self.risk.limits.max_order_value
+        if (
+            price <= 0
+            or max_order_value is None
+            or max_order_value <= 0
+            or qty * price <= max_order_value
+        ):
+            return [qty]
+
+        instrument = self._instrument_for_settlement(symbol)
+        raw_limit = (max_order_value / price) * (1 - 1e-12)
+        chunks: list[float] = []
+        remaining = qty
+        while remaining > 0:
+            if remaining * price <= max_order_value:
+                chunks.append(remaining)
+                break
+            chunk = self.portfolio.settlement_rules.round_qty(
+                min(remaining, raw_limit),
+                instrument,
+            )
+            if chunk <= 0:
+                chunks.append(remaining)
+                break
+            chunks.append(chunk)
+            remaining = round(remaining - chunk, 12)
+        return chunks
+
     def _load_strategy(self) -> StrategyBase:
         module_name, class_name = self.config.class_path.split(":")
         module = import_module(module_name)
@@ -759,7 +826,10 @@ class BacktestEngine:
                 dt=bar.dt,
             )
             self.trades.append(trade)
-            self.portfolio.apply_trade(trade)
+            self.portfolio.apply_trade(
+                trade,
+                instrument=self._instrument_for_settlement(order.symbol),
+            )
             cash_after = self.portfolio.account(self.last_prices).cash
             remaining_qty = order.remaining_qty - result.filled_qty
             status = OrderStatus.FILLED if remaining_qty == 0 else OrderStatus.PARTIAL

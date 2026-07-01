@@ -42,11 +42,13 @@ class Instrument:
     exchange: str
     list_date: date
     delist_date: date | None
-    lot_size: int
-    qty_step: int
+    lot_size: float
+    qty_step: float
     tick_size: float
     t_plus: int
     status: str
+    allow_fractional: bool = False
+    quote_currency: str | None = None
 
 
 @dataclass(frozen=True)
