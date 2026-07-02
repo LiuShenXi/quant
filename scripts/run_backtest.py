@@ -22,9 +22,10 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_strategy_config(Path(args.strategy))
-    data = DataService(Path(args.data_root))
+    data_root = Path(args.data_root)
+    data = DataService(data_root)
     result = BacktestEngine(config=config, data=data, initial_cash=args.initial_cash).run()
-    write_result(result, output_dir=Path(args.out), config=config)
+    write_result(result, output_dir=Path(args.out), config=config, data_root=data_root)
 
 
 if __name__ == "__main__":
