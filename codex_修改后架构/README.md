@@ -34,6 +34,7 @@
 | 11 | 11_m0_m2_开发计划.md | M0~M2 第一阶段开发施工单:文件、任务、测试、验收 | 开始写代码前 |
 | 12 | 12_m3_paper_开发计划.md | M3 Paper 交易施工单:M3a 本地 replay 基建 + M3b 10 日 Paper 观察门槛 | 完成 M0~M2 后 |
 | 13 | 13_m4_qmt_live_开发计划.md | M4 QMT 真金实盘草案计划:QMT dry-run、Windows 部署、小资金观察门槛 | M3b 签收后 |
+| v1.3 | v1.3_real_data_foundation/ | Real Data Foundation 专题架构包:data lake、manifest lifecycle、provider probe、quality/audit gate、Phase 1A/1B 数据闭环 | 启动 v1.3 数据中台迭代前 |
 
 建议阅读顺序:**01 → 03 → 09** 先建立全局观,然后按 09 的里程碑顺序,实现到哪一块再精读哪一篇。
 
