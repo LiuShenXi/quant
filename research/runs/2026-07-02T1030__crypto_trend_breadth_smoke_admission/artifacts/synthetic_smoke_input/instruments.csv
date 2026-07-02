@@ -1,0 +1,4 @@
+symbol,name,type,exchange,list_date,delist_date,lot_size,qty_step,tick_size,t_plus,status,allow_fractional
+BTC,Bitcoin Spot,crypto_spot,SYNTHETIC,2025-12-31,,0.000001,0.000001,0.01,0,active,true
+ETH,Ether Spot,crypto_spot,SYNTHETIC,2025-12-31,,0.000001,0.000001,0.01,0,active,true
+SOL,Solana Spot,crypto_spot,SYNTHETIC,2025-12-31,,0.000001,0.000001,0.01,0,active,true

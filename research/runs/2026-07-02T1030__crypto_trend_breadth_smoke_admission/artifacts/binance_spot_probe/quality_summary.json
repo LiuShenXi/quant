@@ -1,0 +1,102 @@
+{
+  "blocking_for_formal_backtest": [
+    "Need terms/access review and reproducible downloader.",
+    "Need dataset contract decision for dt: bar open time vs normalized close boundary.",
+    "Need longer coverage, hashes, quality logs, and cross-source sanity check.",
+    "Need formal data-audit-reviewer PASS/PASS_WITH_WARNINGS before backtest validation."
+  ],
+  "docs": "https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints",
+  "intervals": [
+    "4h",
+    "1d"
+  ],
+  "overall_verdict": "PROBE_PASS_WITH_WARNINGS_NOT_AUDITED_DATASET",
+  "probe_window_utc": {
+    "end": "2026-06-08T00:00:00+00:00",
+    "start": "2026-06-01T00:00:00+00:00"
+  },
+  "semantic_notes": [
+    "Binance klines are uniquely identified by open time.",
+    "close_time is the exchange-provided kline close timestamp in ms.",
+    "startTime/endTime are interpreted in UTC by the API.",
+    "This probe is not an audited dataset and is not formal backtest input."
+  ],
+  "source": "Binance Spot REST /api/v3/klines",
+  "status_by_symbol_interval": {
+    "BTCUSDT_1d": {
+      "duplicates": 0,
+      "expected_rows": 7,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 8
+    },
+    "BTCUSDT_4h": {
+      "duplicates": 0,
+      "expected_rows": 42,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 43
+    },
+    "ETHUSDT_1d": {
+      "duplicates": 0,
+      "expected_rows": 7,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 8
+    },
+    "ETHUSDT_4h": {
+      "duplicates": 0,
+      "expected_rows": 42,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 43
+    },
+    "SOLUSDT_1d": {
+      "duplicates": 0,
+      "expected_rows": 7,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 8
+    },
+    "SOLUSDT_4h": {
+      "duplicates": 0,
+      "expected_rows": 42,
+      "extra_boundary_rows": 1,
+      "first_open_time": "2026-06-01T00:00:00Z",
+      "invalid_ohlc": 0,
+      "invalid_volume": 0,
+      "last_open_time": "2026-06-08T00:00:00Z",
+      "missing": [],
+      "rows": 43
+    }
+  },
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "warnings": [
+    "API returned a kline whose open_time equals the requested endTime boundary; formal downloader must define inclusive/exclusive window handling.",
+    "Probe uses Binance venue-specific spot data and is not generic crypto market truth."
+  ]
+}

@@ -1,0 +1,80 @@
+account:
+  allow_fractional: true
+  currency: USDT
+  settlement: t0
+benchmarks:
+- id: cash_usdt
+  params_patch: {}
+  symbol: null
+  symbols: []
+  type: cash
+- id: hold_btc
+  params_patch: {}
+  symbol: BTC
+  symbols: []
+  type: single_asset_buy_hold
+- id: hold_eth
+  params_patch: {}
+  symbol: ETH
+  symbols: []
+  type: single_asset_buy_hold
+- id: hold_sol
+  params_patch: {}
+  symbol: SOL
+  symbols: []
+  type: single_asset_buy_hold
+- id: equal_weight_crypto
+  params_patch: {}
+  symbol: null
+  symbols:
+  - BTC
+  - ETH
+  - SOL
+  type: equal_weight_buy_hold
+calendar: continuous_24x7
+class: strategies.crypto_trend_breadth:CryptoTrendBreadthTop2
+costs:
+  fee_bps: 10.0
+  model: bps
+  preset: synthetic_smoke
+  slippage_bps: 20.0
+freq: 4h
+frequencies:
+  history:
+  - 4h
+  - 1d
+  primary: 4h
+id: crypto_trend_breadth_top2_v1
+params:
+  breadth_min_uptrends: 2
+  rank_lookback_bars: 2
+  rank_symbols:
+  - BTC
+  - ETH
+  - SOL
+  rebalance_freq: 4h
+  target_weights:
+    leader: 0.6
+    runner_up: 0.4
+  top_n: 2
+  trend_ema_days: 2
+  trend_ema_slope_days: 1
+  trend_freq: 1d
+risk:
+  max_gross_exposure_pct: 1.0
+  max_order_value:
+    currency: USDT
+    unit: quote_currency
+    value: 1000.0
+  max_orders_per_minute: 20
+  max_position_value:
+    currency: USDT
+    unit: quote_currency
+    value: 1000.0
+  portfolio_stop: null
+runtime_mode: backtest
+universe:
+- BTC
+- ETH
+- SOL
+version: 1.0.0

@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ETF 研究状态可视化报告 - 2026-07-02</title>
+  <style>
+    :root {
+      --ink: #18212f;
+      --muted: #5b6472;
+      --line: #d8dee8;
+      --paper: #f6f7f2;
+      --panel: #ffffff;
+      --blue: #2e6fbb;
+      --green: #0f8b6f;
+      --red: #c7473a;
+      --amber: #b27b16;
+      --slate: #3f4b5f;
+      --violet: #6b5aa9;
+      --shadow: 0 14px 30px rgba(34, 42, 55, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: #172031;
+      color: #fff;
+      padding: 38px max(24px, calc((100vw - 1180px) / 2)) 30px;
+    }
+
+    header p { color: #d7deeb; max-width: 900px; margin: 12px 0 0; }
+
+    h1, h2, h3 { line-height: 1.18; margin: 0; letter-spacing: 0; }
+    h1 { font-size: clamp(28px, 4vw, 48px); max-width: 920px; }
+    h2 { font-size: 24px; margin-bottom: 14px; }
+    h3 { font-size: 16px; margin-bottom: 10px; }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    section {
+      margin: 22px 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 22px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
+      gap: 18px;
+    }
+
+    .verdict {
+      border-left: 7px solid var(--red);
+      background: #fff8f6;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 14px;
+      background: #fbfcfd;
+      min-height: 92px;
+    }
+
+    .kpi .label { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .kpi .value { font-size: 23px; font-weight: 750; margin-top: 5px; }
+    .kpi .note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+
+    .bad { color: #8d241c; background: #ffe8e3; border-color: #f1c1b9; }
+    .warn { color: #78520d; background: #fff1ce; border-color: #e9cc86; }
+    .ok { color: #075c4b; background: #dff5ee; border-color: #9bd8c8; }
+    .info { color: #214f86; background: #e7f0fb; border-color: #b8d0ee; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .hero-grid > *, .grid-2 > *, .grid-3 > *, .evidence-list > * { min-width: 0; }
+
+    .callout {
+      border: 1px solid #edc5be;
+      background: #fff6f3;
+      border-radius: 8px;
+      padding: 14px 15px;
+      color: #6f2a23;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+      position: relative;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .event:first-child { border-top: 0; padding-top: 0; }
+    .date { font-weight: 800; color: var(--slate); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    th, td { border-bottom: 1px solid var(--line); padding: 9px 8px; text-align: left; }
+    th { color: var(--muted); font-weight: 750; background: #f7f9fb; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .bar-table .bar-cell { min-width: 180px; }
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #e9edf3;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: inherit; }
+    .blue { background: var(--blue); }
+    .green { background: var(--green); }
+    .red { background: var(--red); }
+    .amber { background: var(--amber); }
+    .violet { background: var(--violet); }
+
+    .chart-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    svg { display: block; width: 100%; height: auto; }
+    .axis { stroke: #cad2dc; stroke-width: 1; }
+    .equity-line { fill: none; stroke: var(--blue); stroke-width: 3; vector-effect: non-scaling-stroke; }
+    .area { fill: rgba(46,111,187,.10); }
+    .chart-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+    .evidence-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .evidence {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfd;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: #263246;
+      overflow-wrap: anywhere;
+    }
+
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    li { margin: 5px 0; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 24px 0 8px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid, .grid-2, .grid-3, .evidence-list { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .event { grid-template-columns: 1fr; gap: 4px; }
+    }
+
+    @media (max-width: 520px) {
+      main { padding: 14px; }
+      section { padding: 16px; }
+      .kpis { grid-template-columns: 1fr; }
+      .bar-table .bar-cell { min-width: 110px; }
+      th, td { padding: 8px 6px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ETF 研究状态可视化报告</h1>
+    <p>生成日期：2026-07-02。范围：510300.SH / 510500.SH ETF 轮动 v1 家族研究复盘。本报告只整理仓库内 research-only 证据，不是投资建议、交易许可、paper 准入、QMT 准入或真钱授权。</p>
+  </header>
+
+  <main>
+    <section class="verdict hero-grid">
+      <div>
+        <h2>当前结论：v1 家族已退休</h2>
+        <p>最新 CIO 处置为 <strong>RETIRE_ETF_ROTATION_V1_FAMILY</strong>。原始 v1 和 v1b 低换手主线均不能继续作为候选策略推进；它们只保留为研究素材、反例约束和引擎修复证据。</p>
+        <div class="badge-row">
+          <span class="badge bad">paper_gate = FAIL</span>
+          <span class="badge bad">live_gate = FAIL</span>
+          <span class="badge bad">qmt_gate = FAIL</span>
+          <span class="badge bad">real_money_gate = FAIL</span>
+          <span class="badge info">research-only archive</span>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>一句话版：</strong>这些天不是没做，而是做到了能下结论。证据显示 v1/v1b 的收益增强、低换手稳健性和路径平滑主张都不够硬，不能进入 paper，更不能往真钱方向走。
+      </div>
+    </section>
+
+    <section>
+      <h2>核心数字</h2>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">长历史区间</div>
+          <div class="value">1571</div>
+          <div class="note">交易日，2020-01-02 至 2026-06-30</div>
+        </div>
+        <div class="kpi">
+          <div class="label">v1 基准收益</div>
+          <div class="value">18.45%</div>
+          <div class="note">修复 session 后，低于等权持有</div>
+        </div>
+        <div class="kpi">
+          <div class="label">v1 最大回撤</div>
+          <div class="value">-29.42%</div>
+          <div class="note">仍是权益级风险</div>
+        </div>
+        <div class="kpi">
+          <div class="label">20 bps 滑点</div>
+          <div class="value">-8.32%</div>
+          <div class="note">成本压力下收益转负</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>研究时间线</h2>
+      <div class="timeline">
+        <div class="event">
+          <div class="date">2026-06-26</div>
+          <div>导入首轮 ETF 研究记录、真实数据样本、双均线和 ETF 轮动 v1 的早期 backtest/paper 运行材料。</div>
+        </div>
+        <div class="event">
+          <div class="date">2026-06-27</div>
+          <div>形成 CIO 初审包：ETF regime rotation v1 的 thesis、数据审查、回测审查和鲁棒性 probe。</div>
+        </div>
+        <div class="event">
+          <div class="date">2026-06-29</div>
+          <div>把证据规范化：补 backtest artifact inspector、benchmark report、sample split report，并整理当前路径的数据/回测/风控审查。</div>
+        </div>
+        <div class="event">
+          <div class="date">2026-07-01</div>
+          <div>做长历史鲁棒性验证，修复 target 切片、减仓风控、跨标的撮合、多标的日线 session 等引擎问题。修复后 v1 绩效显著下修。</div>
+        </div>
+        <div class="event">
+          <div class="date">2026-07-01</div>
+          <div>继续做 v1b 低换手、固定暴露替代、回撤控制、路径平滑效用实验。最终结论：v1/v1b 家族退休。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div>
+        <h2>v1 权益曲线</h2>
+        <p>修复后基准回测从 100,000 到 118,448.70。曲线显示策略后半段改善，但全周期没有形成足够稳健的 alpha 证据。</p>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 840 260" role="img" aria-label="ETF rotation v1 equity curve">
+            <line class="axis" x1="20" y1="20" x2="20" y2="240"></line>
+            <line class="axis" x1="20" y1="240" x2="820" y2="240"></line>
+            <polygon class="area" points="20,240 20.0,150.7 30.1,150.7 40.3,150.7 50.4,150.7 60.5,148.9 70.6,155.3 80.8,123.9 90.9,102.5 101.0,105.4 111.1,144.1 121.3,160.4 131.4,136.5 141.5,127.7 151.6,74.1 161.8,82.1 171.9,93.8 182.0,91.0 192.2,76.0 202.3,62.8 212.4,55.8 222.5,51.2 232.7,11.0 242.8,55.3 252.9,68.5 263.0,86.6 273.2,100.8 283.3,100.8 293.4,100.8 303.5,100.8 313.7,100.8 323.8,82.9 333.9,94.9 344.1,85.0 354.2,173.3 364.3,173.3 374.4,167.8 384.6,165.1 394.7,156.8 404.8,156.2 414.9,168.0 425.1,151.9 435.2,165.6 445.3,165.6 455.4,171.7 465.6,167.3 475.7,188.9 485.8,188.9 495.9,188.9 506.1,203.4 516.2,203.4 526.3,203.4 536.5,182.3 546.6,207.0 556.7,201.3 566.8,210.8 577.0,210.8 587.1,220.0 597.2,220.0 607.3,131.4 617.5,94.2 627.6,136.5 637.7,141.1 647.8,141.1 658.0,126.3 668.1,169.5 678.2,166.8 688.4,171.7 698.5,172.0 708.6,144.7 718.7,78.7 728.9,51.2 739.0,65.3 749.1,86.8 759.2,77.7 769.4,0.0 779.5,28.4 789.6,42.4 799.7,41.5 809.9,40.8 820.0,33.8 820,240"></polygon>
+            <polyline class="equity-line" points="20.0,150.7 30.1,150.7 40.3,150.7 50.4,150.7 60.5,148.9 70.6,155.3 80.8,123.9 90.9,102.5 101.0,105.4 111.1,144.1 121.3,160.4 131.4,136.5 141.5,127.7 151.6,74.1 161.8,82.1 171.9,93.8 182.0,91.0 192.2,76.0 202.3,62.8 212.4,55.8 222.5,51.2 232.7,11.0 242.8,55.3 252.9,68.5 263.0,86.6 273.2,100.8 283.3,100.8 293.4,100.8 303.5,100.8 313.7,100.8 323.8,82.9 333.9,94.9 344.1,85.0 354.2,173.3 364.3,173.3 374.4,167.8 384.6,165.1 394.7,156.8 404.8,156.2 414.9,168.0 425.1,151.9 435.2,165.6 445.3,165.6 455.4,171.7 465.6,167.3 475.7,188.9 485.8,188.9 495.9,188.9 506.1,203.4 516.2,203.4 526.3,203.4 536.5,182.3 546.6,207.0 556.7,201.3 566.8,210.8 577.0,210.8 587.1,220.0 597.2,220.0 607.3,131.4 617.5,94.2 627.6,136.5 637.7,141.1 647.8,141.1 658.0,126.3 668.1,169.5 678.2,166.8 688.4,171.7 698.5,172.0 708.6,144.7 718.7,78.7 728.9,51.2 739.0,65.3 749.1,86.8 759.2,77.7 769.4,0.0 779.5,28.4 789.6,42.4 799.7,41.5 809.9,40.8 820.0,33.8"></polyline>
+          </svg>
+          <div class="chart-labels"><span>2020-01-02</span><span>min 89,071</span><span>max 123,775</span><span>2026-06-30</span></div>
+        </div>
+      </div>
+      <div>
+        <h2>收益与回撤对比</h2>
+        <table class="bar-table">
+          <thead><tr><th>组合</th><th class="num">收益</th><th class="num">最大回撤</th><th>收益条</th></tr></thead>
+          <tbody>
+            <tr><td>v1 session-fixed</td><td class="num">18.45%</td><td class="num">-29.42%</td><td class="bar-cell"><div class="bar-track"><div class="bar-fill blue" style="width:32%"></div></div></td></tr>
+            <tr><td>510300 持有</td><td class="num">20.97%</td><td class="num">-45.10%</td><td><div class="bar-track"><div class="bar-fill green" style="width:36%"></div></div></td></tr>
+            <tr><td>510500 持有</td><td class="num">58.16%</td><td class="num">-47.31%</td><td><div class="bar-track"><div class="bar-fill green" style="width:100%"></div></div></td></tr>
+            <tr><td>等权持有</td><td class="num">39.57%</td><td class="num">-42.44%</td><td><div class="bar-track"><div class="bar-fill green" style="width:68%"></div></div></td></tr>
+          </tbody>
+        </table>
+        <p>v1 的回撤低于直接持有，但收益也低于所有核心基准，不能证明收益增强 thesis。</p>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div>
+        <h2>执行成本压力</h2>
+        <table>
+          <thead><tr><th>滑点假设</th><th class="num">收益</th><th class="num">最大回撤</th><th>结论</th></tr></thead>
+          <tbody>
+            <tr><td>0 bps</td><td class="num">18.45%</td><td class="num">-29.42%</td><td>低于等权和 510500</td></tr>
+            <tr><td>10 bps</td><td class="num">4.17%</td><td class="num">-33.72%</td><td>收益被明显侵蚀</td></tr>
+            <tr><td>20 bps</td><td class="num">-8.32%</td><td class="num">-37.72%</td><td>收益转负，主线证伪</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h2>样本拆分</h2>
+        <table>
+          <thead><tr><th>区间</th><th class="num">v1 收益</th><th class="num">v1 回撤</th><th class="num">等权收益</th></tr></thead>
+          <tbody>
+            <tr><td>2020-01-02 至 2023-03-29</td><td class="num">-2.19%</td><td class="num">-23.99%</td><td class="num">2.18%</td></tr>
+            <tr><td>2023-03-30 至 2026-06-30</td><td class="num">20.59%</td><td class="num">-13.13%</td><td class="num">34.95%</td></tr>
+          </tbody>
+        </table>
+        <p>前半段失效、后半段改善，说明结论有明显 regime 依赖，不能用单一全周期收益包装成稳健策略。</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>v1b 低换手变体为什么也退场</h2>
+      <div class="grid-3">
+        <div class="evidence">
+          <h3>邻域稳定性</h3>
+          <p>27 个参数邻域 case 中，20 bps 下全为正，但没有一个通过完整滚动稳定性检查；2021、2022、2023 均出现负收益年度。</p>
+          <span class="badge warn">research-only</span>
+        </div>
+        <div class="evidence">
+          <h3>固定暴露替代</h3>
+          <p>v1b center 20 bps 收益 12.98%，最大回撤 -23.54%；fixed 40% equal-weight 收益 15.83%，最大回撤 -20.10%，同时更好。</p>
+          <span class="badge bad">thesis weakened</span>
+        </div>
+        <div class="evidence">
+          <h3>路径平滑</h3>
+          <p>相对固定暴露，负窗口减少只在 504 日窗口成立；252 和 756 日窗口不成立，最终决策为 RETIRE_V1B_MAINLINE。</p>
+          <span class="badge bad">RETIRE_V1B_MAINLINE</span>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Portfolio</th><th class="num">收益</th><th class="num">最大回撤</th><th class="num">504 日负窗口</th></tr></thead>
+        <tbody>
+          <tr><td>v1b center 20 bps</td><td class="num">12.98%</td><td class="num">-23.54%</td><td class="num">568</td></tr>
+          <tr><td>v1b best20 20 bps</td><td class="num">16.77%</td><td class="num">-25.53%</td><td class="num">571</td></tr>
+          <tr><td>fixed 40% equal-weight</td><td class="num">15.83%</td><td class="num">-20.10%</td><td class="num">658</td></tr>
+          <tr><td>fixed 50% equal-weight</td><td class="num">19.78%</td><td class="num">-24.37%</td><td class="num">658</td></tr>
+          <tr><td>fixed 60% equal-weight</td><td class="num">23.74%</td><td class="num">-28.40%</td><td class="num">658</td></tr>
+          <tr><td>fixed 40% 510500</td><td class="num">23.27%</td><td class="num">-23.47%</td><td class="num">685</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>审查结论链</h2>
+      <div class="evidence-list">
+        <div class="evidence">
+          <h3>数据审查</h3>
+          <p><span class="badge warn">PASS_WITH_WARNINGS</span></p>
+          <ul>
+            <li>数据集：<code>research/datasets/akshare_etf_rotation_510300_510500_20200101_20260630</code></li>
+            <li>3142 条 bars，1571 个交易日，2 个 ETF。</li>
+            <li>无重复 symbol/dt，核心 OHLCV 空值为 0。</li>
+            <li>警告：正式推进前仍需归档 provider 版本、原始命令日志、最新数据日期和复权口径。</li>
+          </ul>
+        </div>
+        <div class="evidence">
+          <h3>回测审查</h3>
+          <p><span class="badge warn">PASS_WITH_WARNINGS</span></p>
+          <ul>
+            <li>artifact 完整性检查：<code>PASS</code>。</li>
+            <li>orders/trades：161/161，events：322，拒单：0。</li>
+            <li>报告用于 research-only，不支持 paper 准入。</li>
+            <li>旧版高收益 baseline 因时间线和撮合 bug 作废。</li>
+          </ul>
+        </div>
+        <div class="evidence">
+          <h3>风控审查</h3>
+          <p><span class="badge info">APPROVE_FOR_REVIEW</span></p>
+          <ul>
+            <li>只批准继续 research-only 审查，不批准 paper/live。</li>
+            <li>不能通过放宽 <code>max_order_value</code> 来美化回测。</li>
+            <li>仍缺 paper observation plan、M3b signoff、paper/live gatekeeper review 和人工风险授权。</li>
+          </ul>
+        </div>
+        <div class="evidence">
+          <h3>CIO 最终处置</h3>
+          <p><span class="badge bad">RETIRE_ETF_ROTATION_V1_FAMILY</span></p>
+          <ul>
+            <li>不得继续扩大 v1/v1b 参数搜索。</li>
+            <li>不得把 v1b center 或 best20 作为推荐参数。</li>
+            <li>不得从 v1/v1b 直接生成 paper observation plan。</li>
+            <li>不得接 QMT，不得真钱交易。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>以后如果重启 ETF 研究，门槛是什么</h2>
+      <div class="grid-2">
+        <div>
+          <h3>必须重新开始</h3>
+          <ul>
+            <li>先定义新 thesis，再定义参数。</li>
+            <li>先定义真实执行口径，再跑收益。</li>
+            <li>必须比较 cash、fixed 40%/50%/60% equal-weight、fixed 40%/50%/60% 单 ETF。</li>
+            <li>必须报告 252/504/756 多窗口滚动收益、回撤、负窗口数量。</li>
+            <li>必须纳入 10/20 bps 成本压力。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>禁止路径</h3>
+          <ul>
+            <li>不得从 v1/v1b 参数继续外推。</li>
+            <li>不得扩大 ETF 池直接重跑 v1/v1b。</li>
+            <li>不得用单一窗口或单一参数点作为晋级证据。</li>
+            <li>不得在未通过固定暴露替代审查前讨论 paper。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>证据来源</h2>
+      <ul>
+        <li><code>research/runs/2026-07-01__etf_rotation_long_history_robustness/17_etf_rotation_v1_family_final_disposition.md</code></li>
+        <li><code>research/runs/2026-07-01__etf_rotation_long_history_robustness/01_data_audit_long_history.md</code></li>
+        <li><code>research/runs/2026-07-01__etf_rotation_long_history_robustness/02_backtest_validation_long_history.md</code></li>
+        <li><code>research/runs/2026-07-01__etf_rotation_long_history_robustness/03_risk_review.md</code></li>
+        <li><code>research/runs/2026-07-01__etf_rotation_long_history_robustness/artifacts/*.json</code></li>
+        <li><code>research/runs/2026-07-01__post_etf_v1_research_queue/00_research_queue.md</code></li>
+      </ul>
+      <p class="footer-note">本报告不替代 thesis/data/backtest/risk/paper-live gate 审查。任何 M4、QMT、券商接入或真钱相关工作，在 M3b 签核包验证通过前均阻塞；即便通过，也不等于批准真钱交易。</p>
+    </section>
+  </main>
+</body>
+</html>

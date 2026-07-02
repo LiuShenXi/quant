@@ -1,0 +1,51 @@
+dataset_id: crypto_trend_breadth_synthetic_smoke
+source: synthetic_strategy_contract_fixture
+timezone: UTC
+calendar: continuous_24x7
+quote_currency: USDT
+coverage:
+  start: "2025-12-31T00:00:00Z"
+  end: "2026-01-02T08:00:00Z"
+symbols:
+  - symbol: BTC
+    type: crypto_spot
+    exchange: SYNTHETIC
+    active_from: "2025-12-31T00:00:00Z"
+    active_to: null
+    qty_step: 0.000001
+    lot_size: 0.000001
+    t_plus: 0
+  - symbol: ETH
+    type: crypto_spot
+    exchange: SYNTHETIC
+    active_from: "2025-12-31T00:00:00Z"
+    active_to: null
+    qty_step: 0.000001
+    lot_size: 0.000001
+    t_plus: 0
+  - symbol: SOL
+    type: crypto_spot
+    exchange: SYNTHETIC
+    active_from: "2025-12-31T00:00:00Z"
+    active_to: null
+    qty_step: 0.000001
+    lot_size: 0.000001
+    t_plus: 0
+frequencies:
+  - freq: 4h
+    file: bars_4h.csv
+    expected_interval: PT4H
+    coverage:
+      start: "2026-01-02T00:00:00Z"
+      end: "2026-01-02T08:00:00Z"
+    construction: synthetic_source
+  - freq: 1d
+    file: bars_1d.csv
+    expected_interval: P1D
+    coverage:
+      start: "2025-12-31T00:00:00Z"
+      end: "2026-01-02T00:00:00Z"
+    construction: synthetic_daily_close
+    aggregation:
+      source_freq: 4h
+      boundary_timezone: UTC

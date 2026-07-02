@@ -1,0 +1,33 @@
+run_id: 2026-07-02T1030__crypto_trend_breadth_smoke_admission
+research_type: single_strategy_smoke_admission
+related_strategies:
+  - crypto_trend_breadth_top2_v1
+parent_runs:
+  - 2026-07-01T1703__crypto_trend_breadth_top2_admission
+agents:
+  - quant-cio-orchestrator
+  - strategy-thesis-tracker
+  - data-audit-reviewer
+  - backtest-validator
+  - risk-governor
+  - parallel-explorer:data-audit
+  - parallel-explorer:strategy-engine
+  - parallel-explorer:backtest-gate
+status: research-only
+decision: CRYPTO_RESEARCH_TASKBOOK_LOCKED
+default_safe_action: keep research-only
+not_trading_permission: true
+created_at: "2026-07-02T10:30:00+08:00"
+evidence:
+  - 00_brief.md
+  - 01_thesis_update.md
+  - 02_data_audit_triage.md
+  - 03_synthetic_smoke_plan.md
+  - 04_backtest_smoke_review.md
+  - 05_cio_decision_package.md
+  - 06_risk_triage.md
+  - 07_binance_spot_probe.md
+  - 08_cio_research_taskbook.md
+  - artifacts/synthetic_smoke_input
+  - artifacts/synthetic_smoke_result
+  - artifacts/binance_spot_probe

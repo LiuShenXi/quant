@@ -1,0 +1,93 @@
+run_id: 2026-07-02T1114__a_share_limit_up_continuation_v0
+created_at: 2026-07-02T11:14:00+08:00
+timezone: Asia/Shanghai
+topic: A-share individual-stock limit-up continuation research
+research_type: single_strategy
+status: THESIS_DRAFT
+mode: research-only
+owner: Codex research
+
+related_strategies:
+  - a_share_limit_up_continuation_v0
+parent_runs: []
+
+agents:
+  - quant-cio-orchestrator
+  - strategy-thesis-tracker
+
+stage_outputs:
+  brief: 00_brief.md
+  thesis: 01_thesis.md
+  data_requirements: 02_data_requirements.md
+  experiment_plan: 03_experiment_plan.md
+  data_audit: null
+  backtest_validation: null
+  risk_review: null
+  paper_observation: null
+  cio_decision_package: 05_cio_decision_package.md
+  decision_record: null
+
+data_requirements:
+  status: DRAFT
+  required_sources:
+    - exchange trading rules
+    - reproducible A-share market data provider
+    - instruments and corporate-action source
+    - trading calendar source
+    - intraday or order-book source before board-capture claims
+  required_fields:
+    - open
+    - high
+    - low
+    - close
+    - volume
+    - amount
+    - turnover
+    - limit_up_price
+    - limit_down_price
+    - adjustment_factor
+    - st_status
+    - suspension_status
+    - listing_status
+  required_calendar: A-share exchange trading calendar
+  required_adjustment: explicit raw and adjusted price policy
+  audit_status: NOT_STARTED
+
+experiment_plan:
+  status: DESIGN_ONLY
+  baseline: post_limit_up_event_study
+  matrix:
+    - event_baseline
+    - cost_stress
+    - execution_failure_stress
+    - sample_split
+    - regime_split
+    - benchmark_ablation
+  pass_conditions:
+    - data audit is PASS or documented PASS_WITH_WARNINGS
+    - costs and execution assumptions are declared before results
+    - return distribution is not dominated by a tiny number of events
+    - failed-entry and failed-exit assumptions do not destroy the thesis
+  falsification_rules:
+    - stop if daily data is used to claim intraday limit-up buyability
+    - stop if realistic costs or failed execution remove the edge
+    - stop if results depend on post-hoc filters
+    - stop if drawdown or tail loss cannot pass independent risk review
+
+decision_records:
+  - 05_cio_decision_package.md
+
+decision: RESEARCH_ONLY_THESIS_DRAFT
+default_safe_action: keep research-only
+blocking_issues:
+  - no audited dataset
+  - no validated execution model
+  - no backtest artifact
+  - no risk review
+  - no paper observation
+not_allowed:
+  - paper trading
+  - live trading
+  - broker or QMT connection
+  - real-money trading
+  - real credentials, account identifiers, broker tokens, or live overlays

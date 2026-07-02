@@ -1,0 +1,3 @@
+trade_id,order_id,strategy_id,account_id,symbol,side,qty,price,commission,dt,broker_order_id,broker_trade_id
+T-1,O-1,crypto_trend_breadth_top2_v1,backtest,ETH,BUY,10.714285,56.0,0.6,2026-01-02T08:00:00+00:00,,
+T-2,O-2,crypto_trend_breadth_top2_v1,backtest,SOL,BUY,18.181818,22.0,0.4,2026-01-02T08:00:00+00:00,,
