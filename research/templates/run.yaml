@@ -1,0 +1,58 @@
+run_id: YYYY-MM-DDTHHMM__short_topic
+created_at: YYYY-MM-DDTHH:MM:SS+08:00
+timezone: Asia/Shanghai
+topic: short research topic
+research_type: single_strategy
+status: THESIS_DRAFT
+mode: research-only
+owner: Codex research
+
+related_strategies:
+  - strategy_id
+parent_runs: []
+
+agents:
+  - quant-cio-orchestrator
+  - strategy-thesis-tracker
+
+stage_outputs:
+  brief: 00_brief.md
+  thesis: 01_thesis.md
+  data_requirements: 02_data_requirements.md
+  experiment_plan: 03_experiment_plan.md
+  data_audit: null
+  backtest_validation: null
+  risk_review: null
+  paper_observation: null
+  cio_decision_package: null
+  decision_record: 07_decision_record.md
+
+data_requirements:
+  status: DRAFT
+  required_sources: []
+  required_fields: []
+  required_calendar: null
+  required_adjustment: null
+  audit_status: NOT_STARTED
+
+experiment_plan:
+  status: DESIGN_ONLY
+  baseline: null
+  matrix: []
+  pass_conditions: []
+  falsification_rules: []
+
+decision_records:
+  - 07_decision_record.md
+
+decision: THESIS_DRAFT
+default_safe_action: keep research-only
+blocking_issues:
+  - thesis, data, backtest, and risk evidence are incomplete
+not_allowed:
+  - paper trading
+  - live trading
+  - broker or exchange connection
+  - QMT integration
+  - real-money trading
+  - real credentials, account identifiers, broker tokens, or live overlays

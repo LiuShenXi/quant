@@ -52,13 +52,18 @@ research/runs/YYYY-MM-DDTHHMM__strategy_or_topic/
   run.yaml
   00_brief.md
   01_thesis.md
-  02_data_audit.md
-  03_backtest_validation.md
-  04_risk_review.md
-  05_paper_observation.md
-  06_cio_decision_package.md
+  02_data_requirements.md
+  03_experiment_plan.md
+  04_data_audit.md
+  05_backtest_validation.md
+  06_risk_review.md
+  07_decision_record.md
+  08_paper_observation.md
+  09_cio_decision_package.md
   agents/
     thesis/
+    data_requirements/
+    experiment_plan/
     data_audit/
     backtest_validation/
     risk_review/
@@ -82,6 +87,27 @@ idea
 ```
 
 If evidence is missing, the default decision is to keep the strategy in research.
+
+## Starting A Static Research Run
+
+For a new opening research package, create a run folder and copy the static
+template pack:
+
+```bash
+mkdir -p research/runs/YYYY-MM-DDTHHMM__short_topic
+cp research/templates/run.yaml research/runs/YYYY-MM-DDTHHMM__short_topic/
+cp research/templates/00_brief.md research/runs/YYYY-MM-DDTHHMM__short_topic/
+cp research/templates/01_thesis.md research/runs/YYYY-MM-DDTHHMM__short_topic/
+cp research/templates/02_data_requirements.md research/runs/YYYY-MM-DDTHHMM__short_topic/
+cp research/templates/03_experiment_plan.md research/runs/YYYY-MM-DDTHHMM__short_topic/
+cp research/templates/07_decision_record.md research/runs/YYYY-MM-DDTHHMM__short_topic/
+```
+
+Fill `run.yaml` before editing the Markdown files. A run can stay at
+`THESIS_DRAFT` with only the opening pack completed. Formal `data_audit`,
+`backtest_validation`, `risk_review`, `paper_observation`, and
+`cio_decision_package` records are added only when those gates are actually
+reviewed.
 
 ## Research Run Metadata
 
